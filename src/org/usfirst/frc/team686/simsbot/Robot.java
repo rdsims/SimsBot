@@ -22,7 +22,7 @@ import org.usfirst.frc.team686.simsbot.subsystems.Drive;
  */
 public class Robot extends IterativeRobot 
 {
-	PowerDistributionPanel pdp;
+	PowerDistributionPanel pdp = new PowerDistributionPanel();
 	
 	Drive drive = Drive.getInstance();
 	JoystickControls controls = JoystickControls.getInstance();
@@ -55,55 +55,27 @@ public class Robot extends IterativeRobot
     	TimeZone.setDefault(TimeZone.getTimeZone("America/New_York"));
 
     	// Determine folder for log files
-    	findLogDirectory();
-    	
-    	// add signals to logger
-    	populateDataLogger();
+    	dataLogger.findLogDirectory();
     }
     
 	
-	public void findLogDirectory()
-	{
 
-		// Determine folder for log files
-		File logDirectory = null;
-		if (logDirectory == null) logDirectory = checkLogDirectory(new File("/dev/sda1"));
-		if (logDirectory == null)
-		{
-			logDirectory = new File("/home/admin/logs");
-		    if (!logDirectory.exists())
-		    {
-			    logDirectory.mkdir();
-		    }
-		}
-		if (logDirectory != null && logDirectory.isDirectory())
-		{
-			String logMessage = String.format("Log directory is %s\n", logDirectory);
-			System.out.print (logMessage);
-			dataLogger.setDirectory(logDirectory);
-			dataLogger.setMinimumInterval(1000);
-		}	        
-	}
 	
-	public File checkLogDirectory (File root)
+	public void writeDataLogger()
 	{
-		// does the root directory exist?
-		if (!root.isDirectory()) return null;
+		double lCurrent = pdp.getCurrent(15);
+		double rCurrent = pdp.getCurrent(0);
+		double lCtrl = drive.leftMotor_.get();
+		double rCtrl = drive.rightMotor_.get();
 		
-		File logDirectory = new File(root, "logs");
-		if (!logDirectory.isDirectory()) return null;
-		
-		return logDirectory;
-	}
-	
-	public void populateDataLogger()
-	{
 		if (dataLogger.shouldLogData())
 		{
+			dataLogger.addDataItem("lMotorCurrent",  lCurrent);
 			dataLogger.addDataItem("lMotorCurrent",  pdp.getCurrent(15));
 			dataLogger.addDataItem("rMotorCurrent",  pdp.getCurrent(0));
 			dataLogger.addDataItem("lMotorCtrl",     drive.leftMotor_.get());
 			dataLogger.addDataItem("rMotorCtrl",  	 drive.rightMotor_.get());
+			dataLogger.saveDataItems();
 		}
 	}	
 	
@@ -139,6 +111,8 @@ public class Robot extends IterativeRobot
             autoFirstRun = false;
 
         }
+        
+        writeDataLogger();        
      }
 
     @Override
@@ -169,6 +143,8 @@ public class Robot extends IterativeRobot
         }
     	
         drive.setOpenLoop(drive.tankDrive( controls.getThrottle(), controls.getTurn() ));
+    
+        writeDataLogger();        
     }
         
     
@@ -178,7 +154,8 @@ public class Robot extends IterativeRobot
     @Override
     public void testPeriodic()
     {
-    
+        
+        writeDataLogger();        
     }
     
     private boolean dpFirstRun = true;

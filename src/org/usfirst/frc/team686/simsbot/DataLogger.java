@@ -18,51 +18,45 @@ public class DataLogger
         return mInstance;
     }
 
-	
-	/*
-	public static void main(String [] args)
-	{
-		DataLogger test1 = new DataLogger(new File("./test"));
-		test1.setMinimumInterval(150);
-		{
-		test1.addDataItem("stuffD", 1.0);
-		test1.addDataItem("stuffI", 3);
-		test1.addDataItem("stuffB", false);
-		test1.addDataItem("stuffS", "value");
-		test1.saveDataItems();
-		}
-		try {
-			Thread.sleep(300);
-			} catch (InterruptedException e) {
-				// cannot happen
-				
-			}
-		{
-		test1.addDataItem("stuffD", 1.2);
-		test1.addDataItem("stuffI", 34);
-		test1.addDataItem("stuffB", true);
-		test1.addDataItem("stuffS", "should not show up");
-		test1.saveDataItems();
-		}
-		try {
-		Thread.sleep(2000);
-		} catch (InterruptedException e) {
-			// cannot happen
-			
-		}
-		{
-		test1.addDataItem("stuffD", 1.2);
-		test1.addDataItem("stuffI", 34);
-		test1.addDataItem("stuffB", true);
-		test1.addDataItem("stuffS", "*should* show up");
-		test1.saveDataItems();
-		}
-		//System.out.println(test1.getDate());
-	}
-	*/
-	
 	File parentDirectory;
-	long minimumInterval = 500;
+	long minimumInterval = 0;	// 0: write as fast as possible
+
+	
+	public void findLogDirectory()
+	{
+
+		// Determine folder for log files
+		File logDirectory = null;
+		if (logDirectory == null) logDirectory = checkLogDirectory(new File("/media/sda1"));
+		if (logDirectory == null)
+		{
+			logDirectory = new File("/home/admin/logs");
+		    if (!logDirectory.exists())
+		    {
+			    logDirectory.mkdir();
+		    }
+		}
+		if (logDirectory != null && logDirectory.isDirectory())
+		{
+			String logMessage = String.format("Log directory is %s\n", logDirectory);
+			System.out.print (logMessage);
+			setDirectory(logDirectory);
+			//setMinimumInterval(1000);
+		}	        
+	}
+	
+	public File checkLogDirectory (File root)
+	{
+		// does the root directory exist?
+		if (!root.isDirectory()) return null;
+		
+		File logDirectory = new File(root, "logs");
+		if (!logDirectory.isDirectory()) return null;
+		
+		return logDirectory;
+	}
+	
+	
 	
 	public void setDirectory(File directory) 
 	{
