@@ -153,10 +153,7 @@ public class Drive extends Subsystem {
 	    }
 	    
 	    DriveSignal signal = new DriveSignal(leftMotorSpeed, rightMotorSpeed);
-	    
-        System.out.println("Throttle: " + throttle + ", Turn: " + turn + ", LMS: " + leftMotorSpeed + ", RMS: " + rightMotorSpeed + ", (" + signal.leftMotor + ", " + signal.rightMotor + ")");
-	    
-	    
+	   	    
 	    return signal;
     }
 

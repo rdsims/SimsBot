@@ -10,6 +10,8 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.PrintStream;
 
+// TODO: script file to move logs off of flash drive (not just copy) but only if successfully transferred
+
 public class DataLogger 
 {
     private static DataLogger mInstance = new DataLogger();
