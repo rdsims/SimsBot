@@ -7,11 +7,12 @@ import java.util.TimeZone;
 
 import edu.wpi.first.wpilibj.IterativeRobot;
 import edu.wpi.first.wpilibj.PowerDistributionPanel;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 import org.usfirst.frc.team686.lib.util.DriveSignal;
 
 import org.usfirst.frc.team686.simsbot.JoystickControls;
-import org.usfirst.frc.team686.simsbot.subsystems.Drive;
+import org.usfirst.frc.team686.simsbot.subsystems.DriveSubsystem;
 
 /**
  * The VM is configured to automatically run this class, and to call the
@@ -24,7 +25,7 @@ public class Robot extends IterativeRobot
 {
 	PowerDistributionPanel pdp = new PowerDistributionPanel();
 	
-	Drive drive = Drive.getInstance();
+	DriveSubsystem drive = DriveSubsystem.getInstance();
 	JoystickControls controls = JoystickControls.getInstance();
 	
 	DataLogger dataLogger = DataLogger.getInstance();
@@ -63,20 +64,23 @@ public class Robot extends IterativeRobot
 	
 	public void writeDataLogger()
 	{
-		double lCurrent = pdp.getCurrent(15);
-		double rCurrent = pdp.getCurrent(0);
-		double lCtrl = drive.leftMotor_.get();
-		double rCtrl = drive.rightMotor_.get();
-		
 		if (dataLogger.shouldLogData())
 		{
-			dataLogger.addDataItem("lMotorCurrent",  lCurrent);
-			dataLogger.addDataItem("lMotorCurrent",  pdp.getCurrent(15));
-			dataLogger.addDataItem("rMotorCurrent",  pdp.getCurrent(0));
-			dataLogger.addDataItem("lMotorCtrl",     drive.leftMotor_.get());
-			dataLogger.addDataItem("rMotorCtrl",  	 drive.rightMotor_.get());
+			dataLogger.addDataItem("lMotorCurrent",  drive.lMotor.getOutputCurrent());
+			dataLogger.addDataItem("rMotorCurrent",  drive.rMotor.getOutputCurrent());
+			dataLogger.addDataItem("lMotorCtrl",     drive.lMotor.get());
+			dataLogger.addDataItem("rMotorCtrl",  	 drive.rMotor.get());
+			dataLogger.addDataItem("lDistance",      drive.getLeftDistanceInches());
+			dataLogger.addDataItem("rDistance",      drive.getRightDistanceInches());
+			dataLogger.addDataItem("lVelocity", 	 drive.getLeftVelocityInchesPerSec());
+			dataLogger.addDataItem("rVelocity", 	 drive.getRightVelocityInchesPerSec());
+			//TODO: add closed loop error
+			//TODO: add heading (gyro)
+			//TODO: add heading error
 			dataLogger.saveDataItems();
 		}
+
+		drive.outputToSmartDashboard();
 	}	
 	
 	/**

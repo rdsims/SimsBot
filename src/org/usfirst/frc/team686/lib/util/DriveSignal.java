@@ -5,8 +5,8 @@ package org.usfirst.frc.team686.lib.util;
  * the brake mode is enabled.
  */
 public class DriveSignal {
-    public double leftMotor;
-    public double rightMotor;
+    public double lMotor;
+    public double rMotor;
     public boolean breakMode;
 
     public DriveSignal(double left, double right) {
@@ -14,8 +14,8 @@ public class DriveSignal {
     }
 
     public DriveSignal(double left, double right, boolean breakMode) {
-        this.leftMotor = left;
-        this.rightMotor = right;
+        this.lMotor = left;
+        this.rMotor = right;
         this.breakMode = breakMode;
     }
 
@@ -24,6 +24,6 @@ public class DriveSignal {
 
     @Override
     public String toString() {
-        return "L: " + leftMotor + ", R: " + rightMotor;
+        return "L: " + lMotor + ", R: " + rMotor;
     }
 }

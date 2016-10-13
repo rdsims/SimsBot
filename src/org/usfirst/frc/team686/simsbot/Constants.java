@@ -18,14 +18,16 @@ public class Constants extends ConstantsBase {
     public static double kCameraDeadband = 0.0;
 
     // Wheels
-    public static double kDriveWheelDiameterInches = 7.3; // Measured on
-                                                          // 4/23/2016
+    public static double kDriveWheelDiameterInches = 13.00 / Math.PI; //RS
     public static double kTrackLengthInches = 8.265;
     public static double kTrackWidthInches = 23.8;
     public static double kTrackEffectiveDiameter = (kTrackWidthInches * kTrackWidthInches
             + kTrackLengthInches * kTrackLengthInches) / kTrackWidthInches;
     public static double kTrackScrubFactor = 0.5;
 
+    // Wheel Encoder
+    public static double kQuadEncoderTicksPerRev = 4.0 * 256.0;
+    
     // Drive constants
     public static double kDriveLowGearMaxSpeedInchesPerSec = 12.0 * 7.0;
 
@@ -62,8 +64,8 @@ public class Constants extends ConstantsBase {
 
     // Path following constants
     public static double kPathFollowingLookahead = 24.0; // inches
-    public static double kPathFollowingMaxVel = 120.0; // inches/sec
-    public static double kPathFollowingMaxAccel = 80.0; // inches/sec^2
+    public static double kPathFollowingMaxVel = 90.0; // inches/sec  		// RS measured ~100 inches/sec on carpet
+    public static double kPathFollowingMaxAccel = 90.0; // inches/sec^2		// RS measured 800-1000 inches/sec^2 on carpet
 
     // Do not change anything after this line!
     // Port assignments should match up with the spreadsheet here:
