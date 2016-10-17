@@ -6,17 +6,21 @@ import edu.wpi.first.wpilibj.CANTalon;
 //import edu.wpi.first.wpilibj.Counter;
 //import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.GyroBase;
+import edu.wpi.first.wpilibj.Timer;
 //import edu.wpi.first.wpilibj.Solenoid;
 //import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 import org.usfirst.frc.team686.simsbot.Constants;
 import org.usfirst.frc.team686.lib.sensors.BNO055;
+import org.usfirst.frc.team686.lib.sensors.BNO055.opmode_t;
+import org.usfirst.frc.team686.lib.sensors.BNO055.reg_t;
 import org.usfirst.frc.team686.lib.util.DriveSignal;
 
 
 /**
- * The robot's drivetrain, which implements the Superstructure abstract class.
+ * The robot's drivetrain, which implements the Subsystem abstract class.
  * The drivetrain has several states and builds on the abstract class by
  * offering additional control methods, including control by path and velocity.
  * 
@@ -41,7 +45,8 @@ public class DriveSubsystem extends Subsystem {
     private boolean brakeMode = true;
     private DriveControlState driveControlState;
 
-    private static BNO055 imu; 
+    private final BNO055 imu; 
+    
     
     // The constructor instantiates all of the drivetrain components when the
     // robot powers up
@@ -50,6 +55,9 @@ public class DriveSubsystem extends Subsystem {
         lMotor = new CANTalon(Constants.kLeftMotorTalonId);
         rMotor = new CANTalon(Constants.kRightMotorTalonId);
 
+        imu = BNO055.getInstance(Constants.BNO055_PORT);
+
+        
         // Get status at 100Hz
         lMotor.setStatusFrameRateMs(CANTalon.StatusFrameRate.Feedback, 10);
         rMotor.setStatusFrameRateMs(CANTalon.StatusFrameRate.Feedback, 10);
@@ -63,18 +71,19 @@ public class DriveSubsystem extends Subsystem {
 
         // Set up the encoders
         lMotor.setFeedbackDevice(CANTalon.FeedbackDevice.QuadEncoder);
+        /* doesn't work for QuadEncoders
         if (lMotor.isSensorPresent(
                 CANTalon.FeedbackDevice.QuadEncoder) != CANTalon.FeedbackDeviceStatus.FeedbackStatusPresent) {
             DriverStation.reportError("Could not detect left drive encoder!", false);
-        }
+        }*/
         lMotor.setInverted(false);
         lMotor.reverseSensor(true);
         lMotor.reverseOutput(false);
         rMotor.setFeedbackDevice(CANTalon.FeedbackDevice.QuadEncoder);
-        if (rMotor.isSensorPresent(
-                CANTalon.FeedbackDevice.QuadEncoder) != CANTalon.FeedbackDeviceStatus.FeedbackStatusPresent) {
+        /* doesn't work for QuadEncoders
+        if (rMotor.isSensorPresent(CANTalon.FeedbackDevice.QuadEncoder) != CANTalon.FeedbackDeviceStatus.FeedbackStatusPresent) {
             DriverStation.reportError("Could not detect right drive encoder!", false);
-        }
+        }*/
         lMotor.setInverted(true);		// right motor is flipped with respect to left motor.  Need to reverse direction of rotation in PercentVbus mode
         rMotor.reverseSensor(false);	// inverts feedback in closed loop modes
         rMotor.reverseOutput(true);	// reverse direction of rotation in closed loop modes
@@ -95,11 +104,33 @@ public class DriveSubsystem extends Subsystem {
                 kBaseLockControlSlot);
 
         setOpenLoop(DriveSignal.NEUTRAL);
+        /*
+    	double currentTime; //seconds
+    	double nextTime; //seconds
         
-        
-        
-        imu = BNO055.getInstance(BNO055.opmode_t.OPERATION_MODE_IMUPLUS, BNO055.vector_type_t.VECTOR_EULER);
-        
+        if (imu.isSensorPresent()) 
+        {
+	        if (imu.isInitialized())
+		    {
+		        if (imu.isCalibrated())
+			    {
+			       	System.out.println("Gyro reporting present, initialized, calibrated");
+			    }
+			    else
+			    {
+			       	DriverStation.reportError("Gyro is reporting not calibrated", false);
+			    }
+		    }
+	        else
+	        {
+	        	DriverStation.reportError("Gyro is reporting not initialized", false);
+	        }
+        }
+        else
+        {
+            DriverStation.reportError("Could not detect gyro!", false);       	
+        }
+        */
     }
 
     /**
@@ -258,12 +289,14 @@ public class DriveSubsystem extends Subsystem {
 		//TODO: add closed loop error
         SmartDashboard.putNumber("gyroAngle", imu.getHeading());
 		//TODO: add heading error
+        
+        imu.updateDashboard(9);        
     }
 
     @Override
     public synchronized void zeroSensors() {
         resetEncoders();
-        imu.reset();
+        //imu.reset();
     }
 
     private void configureTalonsForSpeedControl() {
@@ -319,10 +352,5 @@ public class DriveSubsystem extends Subsystem {
     public BNO055 getImu() {
     	return imu;
     }
-    
-    public synchronized Rotation2d getGyroAngle() {
-        return Rotation2d.fromDegrees(gyro_.getAngle());
-    }
-
     
 }

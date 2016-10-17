@@ -9,6 +9,7 @@ import edu.wpi.first.wpilibj.IterativeRobot;
 import edu.wpi.first.wpilibj.PowerDistributionPanel;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
+import org.usfirst.frc.team686.lib.sensors.BNO055;
 import org.usfirst.frc.team686.lib.util.DriveSignal;
 
 import org.usfirst.frc.team686.simsbot.JoystickControls;
@@ -75,7 +76,7 @@ public class Robot extends IterativeRobot
 			dataLogger.addDataItem("lVelocity", 	 drive.getLeftVelocityInchesPerSec());
 			dataLogger.addDataItem("rVelocity", 	 drive.getRightVelocityInchesPerSec());
 			//TODO: add closed loop error
-			//TODO: add heading (gyro)
+			dataLogger.addDataItem("Heading", 	 	drive.getImu().getHeading());
 			//TODO: add heading error
 			dataLogger.saveDataItems();
 		}
@@ -163,6 +164,7 @@ public class Robot extends IterativeRobot
     }
     
     private boolean dpFirstRun = true;
+    private boolean calibrateAccelerometer = false;	// set to true only when you want to calibrate the accelerometer 
     
     @Override
     public void disabledPeriodic() 
@@ -173,6 +175,19 @@ public class Robot extends IterativeRobot
             dpFirstRun = false;
         }
         drive.stop();
+
+        if (calibrateAccelerometer)
+        {
+	        /*
+        	BNO055.CalOffsets off = new BNO055.CalOffsets();
+	        off = drive.getImu().getCalibrationOffsets();
+	        System.out.println("Accelerometer offsets: (" + off.accel_offset_x + ", " + off.accel_offset_y + ", " + off.accel_offset_z + ", " + off.accel_radius + ")");
+	        */
+        	
+	        drive.getImu().updateDashboard(9);	// report gyro calibration        
+        }
+
+        drive.getImu().updateDashboard(4);	// report gyro calibration        
     }
 
  

@@ -2,6 +2,10 @@ package org.usfirst.frc.team686.lib.sensors;
 
 import java.util.TimerTask;
 
+import org.usfirst.frc.team686.lib.sensors.BNO055.reg_t;
+import org.usfirst.frc.team686.simsbot.Constants;
+
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.GyroBase;
 import edu.wpi.first.wpilibj.I2C;
 import edu.wpi.first.wpilibj.Timer;
@@ -10,8 +14,7 @@ import edu.wpi.first.wpilibj.networktables.NetworkTable;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 /**
- * Attribution: copied from FRC team 868, https://github.com/frc868/lib-sensors/tree/master/src/com/techhounds/lib/sensors/BNO055.java
- * which was itself adapted from FRC team 2168, https://github.com/jcorcoran/BNO055_FRC/blob/master/src/org/team2168/utils/BNO055.java
+ * Attribution: copied from FRC team 2168, https://github.com/jcorcoran/BNO055_FRC/blob/master/src/org/team2168/utils/BNO055.java
  */
 
 
@@ -29,30 +32,16 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
  *    private static BNO055 imu;
  *    
  *    public Robot() {
- *        imu = BNO055.getInstance(BNO055.opmode_t.OPERATION_MODE_IMUPLUS,
+ *        imu = BNO055.getInstance(BNO055.opmode_t.OPERATION_MODE_IMU,
  *        		BNO055.vector_type_t.VECTOR_EULER);
  *    }
  *    
- *  Example 2: When you want gryo angle readings:
- *  
- *  <pre><code>
+ *  Example 2: When you want gyro angle readings:
  *  
  *  public void robotInit() {
  *    bno055 = BNO055.getInstance(I2C.Port.kOnboard);
  *  }
  *  
- *  public Gyro getGyroX() {
- *    return bno055.createGyroX();
- *  }
- *  
- *  public Gyro getGyroY() {
- *    return bno055.createGyroY();
- *  }
- *  
- *  public Gyro getGyroZ() {
- *    return bno055.createGyroZ();
- *  }
- *  </code></pre>
  *    
  * 
  * You can check the status of the sensor by using the following methods:
@@ -68,9 +57,9 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
  *                   // around. See the method comments for more info.
  *
  * Once the sensor calibration is complete , you can get position data by
- *   by using the getVector() method. See this method definiton for usage info.
+ *   by using the getVector() method. See this method definition for usage info.
  * 
- * This code was originally ported from arduino source developed by Adafruit.
+ * This code was originally ported from Arduino source developed by Adafruit.
  * See the original comment header below.
  * 
  * @author james@team2168.org
@@ -80,9 +69,9 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
  *=======================================================================
  *This is a library for the BNO055 orientation sensor
  *
- *Designed specifically to work with the Adafruit BNO055 Breakout.
+ *Designed specifically to work with the Adafruit BNO055 breakout.
  *
- *Pick one up today in the adafruit shop!
+ *Pick one up today in the Adafruit shop!
  *------> http://www.adafruit.com/products
  *
  *These sensors use I2C to communicate, 2 pins are required to interface.
@@ -317,15 +306,15 @@ public class BNO055 {
 
 	public enum opmode_t {
 		/* Operation mode settings*/
-		OPERATION_MODE_CONFIG                                   (0X00),
+		OPERATION_MODE_CONFIG                                   (0X00),	// allow 19ms to switch to this mode from any other, 7ms to switch out
 		OPERATION_MODE_ACCONLY                                  (0X01),
 		OPERATION_MODE_MAGONLY                                  (0X02),
-		OPERATION_MODE_GYRONLY                                  (0X03),
+		OPERATION_MODE_GYROONLY                                 (0X03),
 		OPERATION_MODE_ACCMAG                                   (0X04),
 		OPERATION_MODE_ACCGYRO                                  (0X05),
 		OPERATION_MODE_MAGGYRO                                  (0X06),
 		OPERATION_MODE_AMG                                      (0X07),
-		OPERATION_MODE_IMUPLUS                                  (0X08),
+		OPERATION_MODE_IMU                                  	(0X08),
 		OPERATION_MODE_COMPASS                                  (0X09),
 		OPERATION_MODE_M4G                                      (0X0A),
 		OPERATION_MODE_NDOF_FMC_OFF                             (0X0B),
@@ -350,11 +339,18 @@ public class BNO055 {
 		public byte bl_rev;
 	}
 
-	public class CalData {
+	public class CalState {
 		public byte sys;
 		public byte gyro;
 		public byte accel;
 		public byte mag;
+	}
+
+	public static class CalOffsets {
+		public short accel_offset_x;
+		public short accel_offset_y;
+		public short accel_offset_z;
+		public short accel_radius;
 	}
 
 	public enum vector_type_t {
@@ -396,8 +392,11 @@ public class BNO055 {
 	 * @param port the physical port the sensor is plugged into on the roboRio (I2C.Port.kOnboard or I2C.Port.kMXP).
 	 * @return the instantiated BNO055 object
 	 */
-	public static BNO055 getInstance(I2C.Port port) {
-		return getInstance(opmode_t.OPERATION_MODE_IMUPLUS, vector_type_t.VECTOR_EULER, port, BNO055.BNO055_ADDRESS_A);
+	public static BNO055 getInstance(I2C.Port port)
+	{
+		// OPERATION_MODE_IMU provides fusion of accelerometer and gyro
+		// VECTOR_EULER returns heading, roll, pitch
+		return getInstance(opmode_t.OPERATION_MODE_IMU, vector_type_t.VECTOR_EULER, port, BNO055.BNO055_ADDRESS_A);
 	}
 
 	/**
@@ -436,23 +435,28 @@ public class BNO055 {
 	/**
 	 * Called periodically. Communicates with the sensor, and checks its state. 
 	 */
-	private void update() {
+	private void update() 
+	{
 		currentTime = Timer.getFPGATimestamp(); //seconds
-		if(!initialized) {
-//			System.out.println("State: " + state + ".  curr: " + currentTime
-//					+ ", next: " + nextTime);
+		if(!initialized) 
+		{
+			//System.out.println("State: " + state + ".  curr: " + currentTime + ", next: " + nextTime);
 			
 			//Step through process of initializing the sensor in a non-
 			//  blocking manner. This sequence of events follows the process
 			//  defined in the original adafruit source as closely as possible.
 			//  XXX: It's likely some of these delays can be optimized out.
-			switch(state) {
+			switch(state) 
+			{
 			case 0:
 				//Wait for the sensor to be present
-				if((0xFF & read8(reg_t.BNO055_CHIP_ID_ADDR)) != BNO055_ID) {
+				if((0xFF & read8(reg_t.BNO055_CHIP_ID_ADDR)) != BNO055_ID) 
+				{
 					//Sensor not present, keep trying
 					sensorPresent = false;
-				} else {
+				} 
+				else 
+				{
 					//Sensor present, go to next state
 					sensorPresent = true;
 					state++;
@@ -460,23 +464,26 @@ public class BNO055 {
 				}
 				break;
 			case 1:
-				if(currentTime >= nextTime) {
+				if(currentTime >= nextTime) 
+				{
 					//Switch to config mode (just in case since this is the default)
+					nextTime = Timer.getFPGATimestamp() + 0.050;	// grabbing time before setMode, since setMode has it's own delay
 					setMode(opmode_t.OPERATION_MODE_CONFIG.getVal());
-					nextTime = Timer.getFPGATimestamp() + 0.050;
 					state++;
 				}
 				break;
 			case 2:
 				// Reset
-				if(currentTime >= nextTime){
-					write8(reg_t.BNO055_SYS_TRIGGER_ADDR, (byte) 0x20);
+				if(currentTime >= nextTime)
+				{
+					write8(reg_t.BNO055_SYS_TRIGGER_ADDR, (byte) 0x20);	// sets SYS_RST to force a power-on reset
 					state++;
 				}
 				break;
 			case 3:
 				//Wait for the sensor to be present
-				if((0xFF & read8(reg_t.BNO055_CHIP_ID_ADDR)) == BNO055_ID) {
+				if((0xFF & read8(reg_t.BNO055_CHIP_ID_ADDR)) == BNO055_ID) 
+				{
 					//Sensor present, go to next state
 					state++;
 					//Log current time
@@ -485,48 +492,77 @@ public class BNO055 {
 				break;
 			case 4:
 				//Wait at least 50ms
-				if(currentTime >= nextTime) {
+				if(currentTime >= nextTime) 
+				{
+					//Switch to config mode (just in case since this is the default)
+					setMode(opmode_t.OPERATION_MODE_CONFIG.getVal());
+					nextTime = Timer.getFPGATimestamp() + 0.050;
+					state++;
+				}
+				break;
+			case 5:
+				//RS: added stated to write accelerometer calibration values  
+				//Wait at least 50ms
+				//Write accelerometer calibration values
+				if(currentTime >= nextTime) 
+				{
+					nextTime = Timer.getFPGATimestamp() + 0.050;	// grabbing time before setCalibrationOffsets, since setCalibrationOffsets has it's own delay
+					setCalibrationOffsets();
+					state++;
+				}
+				break;
+			case 6:
+				//Wait at least 50ms
+				if(currentTime >= nextTime) 
+				{
 					/* Set to normal power mode */
 					write8(reg_t.BNO055_PWR_MODE_ADDR, (byte) powermode_t.POWER_MODE_NORMAL.getVal());
 					nextTime = Timer.getFPGATimestamp() + 0.050;
 					state++;
 				}
 				break;
-			case 5:
+			case 7:
 				//Use external crystal - 32.768 kHz
-				if(currentTime >= nextTime) {
+				if(currentTime >= nextTime) 
+				{
 					write8(reg_t.BNO055_PAGE_ID_ADDR, (byte) 0x00);
 					nextTime = Timer.getFPGATimestamp() + 0.050;
 					state++;
 				}
 				break;
-			case 6:
-				if(currentTime >= nextTime) {
-					write8(reg_t.BNO055_SYS_TRIGGER_ADDR, (byte) 0x80);
+			case 8:
+				if(currentTime >= nextTime) 
+				{
+					write8(reg_t.BNO055_SYS_TRIGGER_ADDR, (byte) 0x80);	// CLK_SEL = 1: selects external oscillator
 					nextTime = Timer.getFPGATimestamp() + 0.500;
 					state++;
 				}
 				break;
-			case 7:
+			case 9:
 				//Set operating mode to mode requested at instantiation
-				if(currentTime >= nextTime) {
+				if(currentTime >= nextTime) 
+				{
+					nextTime = Timer.getFPGATimestamp() + 1.050;	// grabbing time before setMode, since setMode has it's own delay
 					setMode(requestedMode);
-					nextTime = Timer.getFPGATimestamp() + 1.05;
 					state++;
 				}
 				break;
-			case 8:
-				if(currentTime >= nextTime) {
+			case 10:
+				if(currentTime >= nextTime) 
+				{
 					state++;
 				}
-			case 9:
+				break;
+			case 11:
 				initialized = true;
 				break;
 			default:
 				//Should never get here - Fail safe
 				initialized = false;
 			}
-		} else {
+		} 
+		else
+		{
 			//Sensor is initialized, periodically query position data
 			calculateVector();
 		}
@@ -555,12 +591,9 @@ public class BNO055 {
 		}
 		
 
-		x = (short)((positionVector[0] & 0xFF)
-				| ((positionVector[1] << 8) & 0xFF00));
-		y = (short)((positionVector[2] & 0xFF)
-				| ((positionVector[3] << 8) & 0xFF00));
-		z = (short)((positionVector[4] & 0xFF)
-				| ((positionVector[5] << 8) & 0xFF00));
+		x = (short)((positionVector[0] & 0xFF) | ((positionVector[1] << 8) & 0xFF00));
+		y = (short)((positionVector[2] & 0xFF) | ((positionVector[3] << 8) & 0xFF00));
+		z = (short)((positionVector[4] & 0xFF) | ((positionVector[5] << 8) & 0xFF00));
 
 		/* Convert the value to an appropriate range (section 3.6.4) */
 		/* and assign the value to the Vector type */
@@ -595,9 +628,11 @@ public class BNO055 {
 		
 		//calculate turns
 		headingDiff = xyz[0] - pos[0];
-		if(Math.abs(headingDiff) >= 180) {
+		if(Math.abs(headingDiff) >= 180) 
+		{
 			//We've traveled past the zero heading position
-			if(headingDiff > 0) {
+			if(headingDiff > 0) 
+			{
 				turns++;
 			} else {
 				turns--;
@@ -616,11 +651,28 @@ public class BNO055 {
 		setMode(mode.getVal());
 	}
 
-	private void setMode(int mode) {
-		_mode = mode;
-		write8(reg_t.BNO055_OPR_MODE_ADDR, (byte) _mode);
+	private void setMode(int mode)
+	{
+		if (mode != _mode)
+		{
+			_mode = mode;
+			write8(reg_t.BNO055_OPR_MODE_ADDR, (byte) _mode);
+			
+			// Allow 19ms to switch into CONFIG mode, 7ms to switch out of it.
+			// Just use 50ms for now, since we won't be switching much
+			nextTime = Timer.getFPGATimestamp() + 0.050;
+			currentTime = Timer.getFPGATimestamp();
+			while (currentTime < nextTime) {
+				currentTime = Timer.getFPGATimestamp();
+			}
+		}
 	}
 
+	private int getMode() {
+		return (int)(read8(reg_t.BNO055_OPR_MODE_ADDR) & 0xF);
+	}
+
+	
 	/**
 	 * Gets the latest system status info
 	 * @return
@@ -635,7 +687,7 @@ public class BNO055 {
 		   0 = Idle
 		   1 = System Error
 		   2 = Initializing Peripherals
-		   3 = System Initalization
+		   3 = System Initialization
 		   4 = Executing Self-Test
 		   5 = Sensor fusion algorithm running
 		   6 = System running without fusion algorithms */
@@ -727,16 +779,16 @@ public class BNO055 {
 	 * @return each value will be set to 0 if not calibrated, 3 if fully
 	 *   calibrated.
 	 */
-	public CalData getCalibration() {
-		CalData data = new CalData();
-		int rawCalData = read8(reg_t.BNO055_CALIB_STAT_ADDR);
+	public CalState getCalibrationState() {
+		CalState state = new CalState();
+		int rawCalState = read8(reg_t.BNO055_CALIB_STAT_ADDR);
 
-		data.sys = (byte) ((rawCalData >> 6) & 0x03);
-		data.gyro = (byte) ((rawCalData >> 4) & 0x03);
-		data.accel = (byte) ((rawCalData >> 2) & 0x03);
-		data.mag = (byte) (rawCalData & 0x03);
+		state.sys = (byte) ((rawCalState >> 6) & 0x03);
+		state.gyro = (byte) ((rawCalState >> 4) & 0x03);
+		state.accel = (byte) ((rawCalState >> 2) & 0x03);
+		state.mag = (byte) (rawCalState & 0x03);
 
-		return data;
+		return state;
 	}
 
 	/**
@@ -761,28 +813,105 @@ public class BNO055 {
 			{ true, false,  true}, // OPERATION_MODE_ACCGYRO
 			{false,  true,  true}, // OPERATION_MODE_MAGGYRO
 			{ true,  true,  true}, // OPERATION_MODE_AMG
-			{ true, false,  true}, // OPERATION_MODE_IMUPLUS
+			{ true, false,  true}, // OPERATION_MODE_IMU
 			{ true,  true, false}, // OPERATION_MODE_COMPASS
 			{ true,  true, false}, // OPERATION_MODE_M4G
 			{ true,  true,  true}, // OPERATION_MODE_NDOF_FMC_OFF
 			{ true,  true,  true}  // OPERATION_MODE_NDOF
 		};
 
-		CalData data = getCalibration();
+		CalState state = getCalibrationState();
 		
-		if(sensorModeMap[_mode][0]) //Accelerometer used
-			retVal = retVal && (data.accel >= 3);
-		if(sensorModeMap[_mode][1]) //Magnetometer used
-			retVal = retVal && (data.mag >= 3);
-		if(sensorModeMap[_mode][2]) //Gyroscope used
-			retVal = retVal && (data.gyro >= 3);
-		
+		try
+		{
+			if(sensorModeMap[_mode][0]) //Accelerometer used
+				retVal = retVal && (state.accel >= 3);
+			if(sensorModeMap[_mode][1]) //Magnetometer used
+				retVal = retVal && (state.mag >= 3);
+			if(sensorModeMap[_mode][2]) //Gyroscope used
+				retVal = retVal && (state.gyro >= 3);
+		}
+		catch (ArrayIndexOutOfBoundsException e) 
+		{
+			System.out.println("Warning: ArrayIndexOutOfBoundsException sensorModeMap[" + _mode + "][x]");
+		}
 		return retVal;
+	}
+	
+
+	public CalOffsets getCalibrationOffsets() {
+
+		CalOffsets offsets = new CalOffsets();
+		
+		if (initialized)
+		{
+			int lastMode = getMode();
+			setMode(opmode_t.OPERATION_MODE_CONFIG.getVal());
+			
+			int msb, lsb;
+			
+			msb = read8(reg_t.ACCEL_OFFSET_X_MSB_ADDR);
+			lsb = read8(reg_t.ACCEL_OFFSET_X_LSB_ADDR);
+			offsets.accel_offset_x = (short) ((msb << 8) | lsb);
+			
+			msb = read8(reg_t.ACCEL_OFFSET_Y_MSB_ADDR);
+			lsb = read8(reg_t.ACCEL_OFFSET_Y_LSB_ADDR);
+			offsets.accel_offset_y = (short) ((msb << 8) | lsb);
+
+			msb = read8(reg_t.ACCEL_OFFSET_Z_MSB_ADDR);
+			lsb = read8(reg_t.ACCEL_OFFSET_Z_LSB_ADDR);
+			offsets.accel_offset_z = (short) ((msb << 8) | lsb);
+			
+			msb = read8(reg_t.ACCEL_RADIUS_MSB_ADDR);
+			lsb = read8(reg_t.ACCEL_RADIUS_LSB_ADDR);
+			offsets.accel_radius = (short) ((msb << 8) | lsb);
+
+			setMode(lastMode);
+		}
+		
+		return offsets;
+	}
+	
+	
+	
+	public void setCalibrationOffsets()
+	{
+		int lastMode = getMode();
+		setMode(opmode_t.OPERATION_MODE_CONFIG.getVal());
+
+		write8(reg_t.ACCEL_OFFSET_X_LSB_ADDR, (byte)((Constants.kAccelOffsetX >> 0) & 0xFF));
+		write8(reg_t.ACCEL_OFFSET_X_MSB_ADDR, (byte)((Constants.kAccelOffsetX >> 8) & 0xFF));
+		write8(reg_t.ACCEL_OFFSET_Y_LSB_ADDR, (byte)((Constants.kAccelOffsetY >> 0) & 0xFF));
+		write8(reg_t.ACCEL_OFFSET_Y_MSB_ADDR, (byte)((Constants.kAccelOffsetY >> 8) & 0xFF));
+		write8(reg_t.ACCEL_OFFSET_Z_LSB_ADDR, (byte)((Constants.kAccelOffsetZ >> 0) & 0xFF));
+		write8(reg_t.ACCEL_OFFSET_Z_MSB_ADDR, (byte)((Constants.kAccelOffsetZ >> 8) & 0xFF));
+		
+		write8(reg_t.ACCEL_RADIUS_LSB_ADDR, (byte)((Constants.kAccelRadius >> 0) & 0xFF));
+		write8(reg_t.ACCEL_RADIUS_MSB_ADDR, (byte)((Constants.kAccelRadius >> 8) & 0xFF));
+
+		// we will only write the accelerometer calibration constants
+		// the gyroscope is calibrated by sitting still
+		// the magnetometer is not used for IMU mode (accel + mag fusion) 
+		
+		setMode(lastMode);
+	}
+	
+	
+	public void printRawCal() {
+        System.out.println("IMU mode: " + (int)read8(reg_t.BNO055_OPR_MODE_ADDR));
+        System.out.println("Accel X MSB: "  + (int)read8(reg_t.ACCEL_OFFSET_X_MSB_ADDR));
+        System.out.println("Accel X LSB: "  + (int)read8(reg_t.ACCEL_OFFSET_X_LSB_ADDR));
+        System.out.println("Accel Y MSB: "  + (int)read8(reg_t.ACCEL_OFFSET_Y_MSB_ADDR));
+        System.out.println("Accel Y LSB: "  + (int)read8(reg_t.ACCEL_OFFSET_Y_LSB_ADDR));
+        System.out.println("Accel Z MSB: "  + (int)read8(reg_t.ACCEL_OFFSET_Z_MSB_ADDR));
+        System.out.println("Accel Z LSB: "  + (int)read8(reg_t.ACCEL_OFFSET_Z_LSB_ADDR));
+        System.out.println("Accel Radius MSB: "  + (int)read8(reg_t.ACCEL_RADIUS_MSB_ADDR));
+        System.out.println("Accel Radius LSB: "  + (int)read8(reg_t.ACCEL_RADIUS_LSB_ADDR));
 	}
 	
 	/**
 	 * Get the sensors internal temperature.
-	 * @return temperature in degrees celsius.
+	 * @return temperature in degrees Celsius.
 	 */
 	public int getTemp() {
 		return (read8(reg_t.BNO055_TEMP_ADDR));
@@ -812,86 +941,7 @@ public class BNO055 {
 		return xyz;
 	}
 
-	/**
-	 * Returns a pseudo {@class Gyro} instance that you can use to monitor
-	 * rotation about the x-axis.
-	 * 
-	 * <p>
-	 * NOTE: The {@class Gyro} returned has some limitations/features:
-	 * </p>
-	 * 
-	 * <ul>
-	 * <li>The {@link Gyro#calibrate()} method does nothing.</li>
-	 * <li>The {@link Gyro#reset()} method only resets that instance to zero
-	 * (any other Gyro objects created will be unchanged). This is typically
-	 * what you want.</li>
-	 * <li>The {@link Gyro#getRate()} method is NOT implemented (do not use it).</li>
-	 * </ul>
-	 * 
-	 * @return A new {@class Gyro} object you can used for tracking rotation.
-	 */
-	public GyroBase createGyroX() {
-		return new GyroAdapter(xyz[0], 0, 360, false) {
-			@Override
-			protected double getSensorValue() {
-				return xyz[0];
-			}
-		};
-	}
 
-	/**
-	 * Returns a pseudo {@class Gyro} instance that you can use to monitor
-	 * rotation about the y-axis.
-	 * 
-	 * <p>
-	 * NOTE: The {@class Gyro} returned has some limitations/features:
-	 * </p>
-	 * 
-	 * <ul>
-	 * <li>The {@link Gyro#calibrate()} method does nothing.</li>
-	 * <li>The {@link Gyro#reset()} method only resets that instance to zero
-	 * (any other Gyro objects created will be unchanged). This is typically
-	 * what you want.</li>
-	 * <li>The {@link Gyro#getRate()} method is NOT implemented (do not use it).</li>
-	 * </ul>
-	 * 
-	 * @return A new {@class Gyro} object you can used for tracking rotation.
-	 */
-	public GyroBase createGyroY() {
-		return new GyroAdapter(xyz[1], -90, 90, false) {
-			@Override
-			protected double getSensorValue() {
-				return xyz[1];
-			}
-		};
-	}
-
-	/**
-	 * Returns a pseudo {@class Gyro} instance that you can use to monitor
-	 * rotation about the z-axis.
-	 * 
-	 * <p>
-	 * NOTE: The {@class Gyro} returned has some limitations/features:
-	 * </p>
-	 * 
-	 * <ul>
-	 * <li>The {@link Gyro#calibrate()} method does nothing.</li>
-	 * <li>The {@link Gyro#reset()} method only resets that instance to zero
-	 * (any other Gyro objects created will be unchanged). This is typically
-	 * what you want.</li>
-	 * <li>The {@link Gyro#getRate()} method is NOT implemented (do not use it).</li>
-	 * </ul>
-	 * 
-	 * @return A new {@class Gyro} object you can used for tracking rotation.
-	 */
-	public GyroBase createGyroZ() {
-		return new GyroAdapter(xyz[2], -180, +180, false) {
-			@Override
-			protected double getSensorValue() {
-				return xyz[2];
-			}
-		};
-	}
 	
 	/**
 	 * The heading of the sensor (x axis) in continuous format. Eg rotating the
@@ -973,25 +1023,36 @@ public class BNO055 {
 		}
 
 		boolean calibrated = isCalibrated();
-		CalData cal = getCalibration();
+		CalState calState = getCalibrationState();
 
-		SmartDashboard.putNumber("BNO055 Gyro Cal", cal.gyro);
+		SmartDashboard.putNumber("BNO055 Mode", getMode());
+		SmartDashboard.putNumber("BNO055 Gyro Cal", calState.gyro);
 
 		if (verbosity < 7) {
 			return;
 		}
 		SmartDashboard.putBoolean("BNO055 Calibrated", calibrated);
-		SmartDashboard.putNumber("BNO055 Sys Cal", cal.sys);
-		SmartDashboard.putNumber("BNO055 Mag Cal", cal.mag);
-		SmartDashboard.putNumber("BNO055 Accel Cal", cal.accel);
+		SmartDashboard.putNumber("BNO055 Sys Cal", calState.sys);
+		SmartDashboard.putNumber("BNO055 Mag Cal", calState.mag);
+		SmartDashboard.putNumber("BNO055 Accel Cal", calState.accel);
 		
-		if (verbosity < 9) {
+		if (verbosity < 8) {
 			return;
 		}
 
 		SmartDashboard.putNumber("BNO055 Read Dur", readDurationLast);
 		SmartDashboard.putNumber("BNO055 Read Max", readDurationMax);			
 		SmartDashboard.putNumber("BNO055 Read Over", readDurationOver);	
+
+		if (verbosity < 9) {
+			return;
+		}
+
+		CalOffsets calOffsets = getCalibrationOffsets();
+		SmartDashboard.putNumber("BNO055 accel_offset_x", calOffsets.accel_offset_x);
+		SmartDashboard.putNumber("BNO055 accel_offset_y", calOffsets.accel_offset_y);
+		SmartDashboard.putNumber("BNO055 accel_offset_z", calOffsets.accel_offset_z);
+		SmartDashboard.putNumber("BNO055 accel_radius",   calOffsets.accel_radius);
 	}
 	
 	/**
@@ -1014,6 +1075,10 @@ public class BNO055 {
 		sd.delete("BNO055 Read Dur");
 		sd.delete("BNO055 Read Max");
 		sd.delete("BNO055 Read Over");
+		sd.delete("BNO055 accel_offset_x");
+		sd.delete("BNO055 accel_offset_y");
+		sd.delete("BNO055 accel_offset_z");
+		sd.delete("BNO055 accel_radius");
 	}
 
 	/**
