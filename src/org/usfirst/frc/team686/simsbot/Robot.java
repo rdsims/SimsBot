@@ -7,12 +7,14 @@ import java.util.TimeZone;
 
 import edu.wpi.first.wpilibj.IterativeRobot;
 import edu.wpi.first.wpilibj.PowerDistributionPanel;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 import org.usfirst.frc.team686.lib.util.*;
 
 import org.usfirst.frc.team686.simsbot.JoystickControls;
 import org.usfirst.frc.team686.simsbot.loops.LoopList;
 import org.usfirst.frc.team686.simsbot.subsystems.Drive;
+
 
 /**
  * The VM is configured to automatically run this class, and to call the
@@ -82,14 +84,13 @@ public class Robot extends IterativeRobot
     }
 
 	
-	public void writeDataLogger()
+	public void log()
 	{
 		if (dataLogger.shouldLogData())
 		{
 			dataLogger.addDataItem("lMotorCurrent",  pdp.getCurrent(15));
 			dataLogger.addDataItem("rMotorCurrent",  pdp.getCurrent(0));
-			dataLogger.addDataItem("lMotorCtrl",     drive.leftMotor_.get());
-			dataLogger.addDataItem("rMotorCtrl",  	 drive.rightMotor_.get());
+			drive.log();
 			dataLogger.saveDataItems();
 		}
 	}	
@@ -128,7 +129,8 @@ public class Robot extends IterativeRobot
             throw t;
         }
     }	
-	 
+        
+    
     @Override
     public void disabledPeriodic() 
     {
@@ -168,7 +170,6 @@ public class Robot extends IterativeRobot
             CrashTracker.logThrowableCrash(t);
             throw t;
     	}
-    	
     }
 
      
@@ -177,7 +178,7 @@ public class Robot extends IterativeRobot
     {
     	 try 
     	 {
-	        writeDataLogger();        
+	        log();        
 //             outputAllToSmartDashboard();
 //             updateDriverFeedback();
          } 
@@ -228,7 +229,7 @@ public class Robot extends IterativeRobot
     	{
             drive.setOpenLoop(drive.tankDrive( controls.getThrottle(), controls.getTurn() ));
             
-            writeDataLogger();           		
+            log();           		
     	}
     	catch (Throwable t) 
     	{

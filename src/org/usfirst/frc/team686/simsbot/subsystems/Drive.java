@@ -225,7 +225,7 @@ public class Drive extends Subsystem
             rightMotor_.changeControlMode(CANTalon.TalonControlMode.PercentVbus);
             driveControlState_ = DriveControlState.OPEN_LOOP;
         }
-        setLeftRightPower(signal.leftMotor, signal.rightMotor);
+        setLeftRightPower(signal.lMotor, signal.rMotor);
     }
 
     public synchronized void setBaseLockOn() {
@@ -284,12 +284,24 @@ public class Drive extends Subsystem
     }
 
     @Override
-    public void outputToSmartDashboard() {
+    public void log() {
         SmartDashboard.putNumber("left_distance", getLeftDistanceInches());
         SmartDashboard.putNumber("right_distance", getRightDistanceInches());
         SmartDashboard.putNumber("left_velocity", getLeftVelocityInchesPerSec());
         SmartDashboard.putNumber("right_velocity", getRightVelocityInchesPerSec());
     }
+	dataLogger.addDataItem("lMotorCurrent",  drive.lMotor.getOutputCurrent());
+	dataLogger.addDataItem("rMotorCurrent",  drive.rMotor.getOutputCurrent());
+	dataLogger.addDataItem("lMotorCtrl",     drive.lMotor.get());
+	dataLogger.addDataItem("rMotorCtrl",  	 drive.rMotor.get());
+	dataLogger.addDataItem("lDistance",      drive.getLeftDistanceInches());
+	dataLogger.addDataItem("rDistance",      drive.getRightDistanceInches());
+	dataLogger.addDataItem("lVelocity", 	 drive.getLeftVelocityInchesPerSec());
+	dataLogger.addDataItem("rVelocity", 	 drive.getRightVelocityInchesPerSec());
+	//TODO: add closed loop error
+	dataLogger.addDataItem("Heading", 	 	drive.getImu().getHeading());
+	//TODO: add heading error
+>>>>>>> refs/heads/master
 
     @Override
     public synchronized void zeroSensors() {
