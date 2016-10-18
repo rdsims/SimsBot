@@ -29,10 +29,11 @@ public class DataLogger
 
 		// Determine folder for log files
 		File logDirectory = null;
-		if (logDirectory == null) logDirectory = checkLogDirectory(new File("/media/sda1"));
+		if (logDirectory == null) 
+			logDirectory = checkLogDirectory(new File("/media/sda1"));
 		if (logDirectory == null)
 		{
-			logDirectory = new File("/home/admin/logs");
+			logDirectory = new File("/home/lvuser/logs");
 		    if (!logDirectory.exists())
 		    {
 			    logDirectory.mkdir();
@@ -50,10 +51,12 @@ public class DataLogger
 	public File checkLogDirectory (File root)
 	{
 		// does the root directory exist?
-		if (!root.isDirectory()) return null;
+		if (!root.isDirectory()) 
+			return null;
 		
 		File logDirectory = new File(root, "logs");
-		if (!logDirectory.isDirectory()) return null;
+		if (!logDirectory.isDirectory()) 
+			return null;
 		
 		return logDirectory;
 	}

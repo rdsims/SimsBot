@@ -8,9 +8,10 @@ import java.util.TimeZone;
 import edu.wpi.first.wpilibj.IterativeRobot;
 import edu.wpi.first.wpilibj.PowerDistributionPanel;
 
-import org.usfirst.frc.team686.lib.util.DriveSignal;
+import org.usfirst.frc.team686.lib.util.*;
 
 import org.usfirst.frc.team686.simsbot.JoystickControls;
+import org.usfirst.frc.team686.simsbot.loops.LoopList;
 import org.usfirst.frc.team686.simsbot.subsystems.Drive;
 
 /**
@@ -29,7 +30,14 @@ public class Robot extends IterativeRobot
 	
 	DataLogger dataLogger = DataLogger.getInstance();
     
-
+	LoopList loopList  = new LoopList();
+	
+	
+   public Robot()
+   {
+	   CrashTracker.logRobotConstruction();
+   }
+	
 	
    public void zeroAllSensors() {
         drive.zeroSensors();
@@ -43,34 +51,41 @@ public class Robot extends IterativeRobot
 	@Override
     public void robotInit() 
     {
-		// TODO: try/catch CrashTracker
-		
-        System.out.println("Running SimsBot robotInit()");
-
-       // Reset all state
-        zeroAllSensors();
-        
-
-    	// Set dataLogger and Time information
-    	TimeZone.setDefault(TimeZone.getTimeZone("America/New_York"));
-
-    	// Determine folder for log files
-    	dataLogger.findLogDirectory();
+		try
+		{
+            CrashTracker.logRobotInit();	
+	
+	       // Reset all state
+	        zeroAllSensors();
+	        
+	        // Configure LoopLists
+	        loopList.register(drive.getLoop());
+	
+	    	// Set dataLogger and Time information
+	    	TimeZone.setDefault(TimeZone.getTimeZone("America/New_York"));
+	
+	    	// Determine folder for log files
+	    	dataLogger.findLogDirectory();
+		}
+		catch (Throwable t)
+		{
+			CrashTracker.logThrowableCrash(t);
+			throw t;
+		}
     }
     
 	
+    public void stopAll() 
+    {
+        drive.stop();
+//        mSuperstructure.stop();
+    }
 
 	
 	public void writeDataLogger()
 	{
-		double lCurrent = pdp.getCurrent(15);
-		double rCurrent = pdp.getCurrent(0);
-		double lCtrl = drive.leftMotor_.get();
-		double rCtrl = drive.rightMotor_.get();
-		
 		if (dataLogger.shouldLogData())
 		{
-			dataLogger.addDataItem("lMotorCurrent",  lCurrent);
 			dataLogger.addDataItem("lMotorCurrent",  pdp.getCurrent(15));
 			dataLogger.addDataItem("rMotorCurrent",  pdp.getCurrent(0));
 			dataLogger.addDataItem("lMotorCtrl",     drive.leftMotor_.get());
@@ -79,98 +94,147 @@ public class Robot extends IterativeRobot
 		}
 	}	
 	
-	/**
-	 * This autonomous (along with the chooser code above) shows how to select between different autonomous modes
-	 * using the dashboard. The sendable chooser code works with the Java SmartDashboard. If you prefer the LabVIEW
-	 * Dashboard, remove all of the chooser code and uncomment the getString line to get the auto name from the text box
-	 * below the Gyro
-	 *
-	 * You can add additional auto modes by adding additional comparisons to the switch structure below with additional strings.
-	 * If using the SendableChooser make sure to add them to the chooser code above as well.
-	 */
-    @Override
-    public void autonomousInit() 
-    {
-        System.out.println("Running SimsBot autonomousInit()");
-    	
-        // Reset all state
-        zeroAllSensors();
-    }
-
-    private boolean autoFirstRun = true;
-    
-    /**
-     * This function is called periodically during autonomous
-     */
-    @Override
-    public void autonomousPeriodic() 
-    {
-        if (autoFirstRun) 
+	
+	/****************************************************************
+	 * DISABLED MODE
+	 ****************************************************************/
+	
+	
+	 @Override
+	 public void disabledInit() 
+	 {
+        try 
         {
-            System.out.println("Running SimsBot autoPeriodic()");
-            autoFirstRun = false;
+            CrashTracker.logDisabledInit();
+ /*
+            if (mAutoModeExecuter != null) 
+            {
+                mAutoModeExecuter.stop();
+            }
+            mAutoModeExecuter = null;
+*/
+            
+            loopList.stop();
 
-        }
-        
-        writeDataLogger();        
-     }
-
-    @Override
-    public void teleopInit()
-    {
-        System.out.println("Running SimsBot teleopInit()");
-    	
-         // Reset drive encoders
-        drive.resetEncoders();
-        
-        drive.setOpenLoop(DriveSignal.NEUTRAL);
-    	drive.setBrakeMode(false);
-    }
-    
-    
-    private boolean teleFirstRun = true;
-    
-    /**
-     * This function is called periodically during operator control
-     */
-    @Override
-    public void teleopPeriodic() 
-    {
-        if (teleFirstRun) 
+            drive.setOpenLoop(DriveSignal.NEUTRAL);
+            drive.setBrakeMode(true);
+            // Stop all actuators
+            stopAll();
+            
+        } 
+        catch (Throwable t) 
         {
-            System.out.println("Running SimsBot teleopPeriodic()");
-            teleFirstRun = false;
+            CrashTracker.logThrowableCrash(t);
+            throw t;
         }
-    	
-        drive.setOpenLoop(drive.tankDrive( controls.getThrottle(), controls.getTurn() ));
-    
-        writeDataLogger();        
-    }
-        
-    
-    /**
-     * This function is called periodically during test mode
-     */
-    @Override
-    public void testPeriodic()
-    {
-        
-        writeDataLogger();        
-    }
-    
-    private boolean dpFirstRun = true;
-    
+    }	
+	 
     @Override
     public void disabledPeriodic() 
     {
-        if (dpFirstRun) 
-        {
-            System.out.println("Running SimsBot disabledPeriodic()");
-            dpFirstRun = false;
-        }
-        drive.stop();
+    	try
+    	{
+    		stopAll();
+    		drive.resetEncoders();
+    	}
+    	catch (Throwable t)
+    	{
+            CrashTracker.logThrowableCrash(t);
+            throw t;
+    	}
+    }
+	
+    
+    
+
+	/****************************************************************
+	 * AUTONOMOUS MODE
+	 ****************************************************************/
+       
+	@Override
+    public void autonomousInit() 
+    {
+		try
+		{
+			CrashTracker.logAutoInit();
+			
+	        // Reset all sensors
+	        zeroAllSensors();
+
+            loopList.start();
+		}
+    	catch (Throwable t)
+    	{
+            CrashTracker.logThrowableCrash(t);
+            throw t;
+    	}
+    	
     }
 
- 
+     
+     @Override
+    public void autonomousPeriodic() 
+    {
+    	 try 
+    	 {
+	        writeDataLogger();        
+//             outputAllToSmartDashboard();
+//             updateDriverFeedback();
+         } 
+    	 catch (Throwable t) 
+    	 {
+             CrashTracker.logThrowableCrash(t);
+             throw t;
+         }
+     }
+       
     
+    
+    
+    
+	/****************************************************************
+	 * TELEOP MODE
+	 ****************************************************************/
+    
+    @Override
+    public void teleopInit()
+    {
+    	try
+    	{
+            CrashTracker.logTeleopInit();
+
+            // Reset drive
+            drive.resetEncoders();
+
+           // Configure loopList
+            loopList.start();
+            
+            drive.setOpenLoop(DriveSignal.NEUTRAL);
+            drive.setBrakeMode(false);
+        }
+    	catch (Throwable t) 
+    	{
+            CrashTracker.logThrowableCrash(t);
+            throw t;
+        }
+    		
+    }
+    
+    
+    @Override
+    public void teleopPeriodic() 
+    {
+    	try
+    	{
+            drive.setOpenLoop(drive.tankDrive( controls.getThrottle(), controls.getTurn() ));
+            
+            writeDataLogger();           		
+    	}
+    	catch (Throwable t) 
+    	{
+            CrashTracker.logThrowableCrash(t);
+            throw t;
+        }
+   	
+    } 
 }

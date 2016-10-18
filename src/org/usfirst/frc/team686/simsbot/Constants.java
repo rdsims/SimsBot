@@ -1,5 +1,9 @@
 package org.usfirst.frc.team686.simsbot;
 
+/**
+ * Attribution: adapted from FRC Team 254
+ */
+
 import org.usfirst.frc.team686.lib.util.ConstantsBase;
 
 /**
@@ -29,7 +33,7 @@ public class Constants extends ConstantsBase {
     // Drive constants
     public static double kDriveLowGearMaxSpeedInchesPerSec = 12.0 * 7.0;
 
-    public static double kLooperDt = 0.01;
+    public static double kLoopDt = 0.01;
 
     // CONTROL LOOP GAINS
 

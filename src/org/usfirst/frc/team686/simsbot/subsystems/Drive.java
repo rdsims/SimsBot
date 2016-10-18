@@ -2,9 +2,6 @@ package org.usfirst.frc.team686.simsbot.subsystems;
 
 //import java.util.Set;
 
-import org.usfirst.frc.team686.simsbot.Constants;
-import org.usfirst.frc.team686.lib.util.DriveSignal;
-
 import edu.wpi.first.wpilibj.CANTalon;
 //import edu.wpi.first.wpilibj.Counter;
 //import edu.wpi.first.wpilibj.DigitalInput;
@@ -13,6 +10,12 @@ import edu.wpi.first.wpilibj.DriverStation;
 //import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
+import org.usfirst.frc.team686.lib.util.DriveSignal;
+import org.usfirst.frc.team686.lib.util.Util;
+
+import org.usfirst.frc.team686.simsbot.Constants;
+import org.usfirst.frc.team686.simsbot.loops.Loop;
+
 /**
  * The robot's drivetrain, which implements the Superstructure abstract class.
  * The drivetrain has several states and builds on the abstract class by
@@ -20,7 +23,8 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
  * 
  * @see Subsystem.java
  */
-public class Drive extends Subsystem {
+public class Drive extends Subsystem 
+{
     protected static final int kVelocityControlSlot = 0;
     protected static final int kBaseLockControlSlot = 1;
 
@@ -39,6 +43,68 @@ public class Drive extends Subsystem {
     private boolean isBrakeMode_ = true;
 
     private DriveControlState driveControlState_;
+    
+    
+
+    // The main control loop (an implementation of Loop), which cycles
+    // through different robot states
+    private final Loop mLoop = new Loop() 
+    {
+        @Override
+        public void onStart() 
+        {
+            setOpenLoop(DriveSignal.NEUTRAL);
+//            pathFollowingController_ = null;
+            setBrakeMode(false);
+//            stopOnNextCount_ = false;
+        }
+
+        @Override
+        public void onLoop() 
+        {
+            synchronized (Drive.this) 
+            {
+/*            	
+                if (stopOnNextCount_ && getSeesLineCount() > lastSeesLineCount_) 
+                {
+                    poseWhenStoppedOnLine_ = RobotState.getInstance().getLatestFieldToVehicle().getValue();
+                    stopOnNextCount_ = false;
+                    stop();
+            	}
+*/
+                switch (driveControlState_) 
+                {
+                case OPEN_LOOP:
+                    return;
+                case BASE_LOCKED:
+                    return;
+                case VELOCITY_SETPOINT:
+                    // Talons are updating the control loop state
+                    return;
+                case VELOCITY_HEADING_CONTROL:
+//                    updateVelocityHeadingSetpoint();
+                    return;
+                case PATH_FOLLOWING_CONTROL:
+//                    updatePathFollower();
+//                    if (isFinishedPath()) {
+//                        stop();
+//                    }
+                    break;
+                default:
+                    System.out.println("Unexpected drive control state: " + driveControlState_);
+                    break;
+                }
+            }
+        }
+
+        @Override
+        public void onStop() {
+            setOpenLoop(DriveSignal.NEUTRAL);
+        }
+    };
+
+    
+    
     
     // The constructor instantiates all of the drivetrain components when the
     // robot powers up
@@ -94,29 +160,17 @@ public class Drive extends Subsystem {
         setOpenLoop(DriveSignal.NEUTRAL);
     }
 
-    /**
-     * Limit motor values to the -1.0 to +1.0 range.
-     */
-    protected static double limit(double num) 
-    {
-      if (num > 1.0) 
-      {
-        return 1.0;
-      }
-      if (num < -1.0) 
-      {
-        return -1.0;
-      }
-      return num;
-    }    
-    
+    public Loop getLoop() {
+        return mLoop;
+    }
+
     
     public DriveSignal tankDrive(double throttle, double turn)
     {
 	    boolean squaredInputs = true;
 	    
-	    double moveValue = limit(throttle);
-	    double rotateValue = limit(turn);
+	    double moveValue   = Util.limit(throttle, 1.0);
+	    double rotateValue = Util.limit(turn,     1.0);
 	    double leftMotorSpeed, rightMotorSpeed;
 	    
 	    if (squaredInputs) {
