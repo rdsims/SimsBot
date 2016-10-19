@@ -36,7 +36,7 @@ public class Constants extends ConstantsBase {
     // Drive constants
     public static double kDriveLowGearMaxSpeedInchesPerSec = 12.0 * 7.0;
 
-    public static double kLooperDt = 0.01;
+    public static double kLoopDt = 0.01;
 
     // CONTROL LOOP GAINS
 

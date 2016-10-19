@@ -10,6 +10,8 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.PrintStream;
 
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+
 // TODO: script file to move logs off of flash drive (not just copy) but only if successfully transferred
 
 public class DataLogger 
@@ -70,32 +72,41 @@ public class DataLogger
 	
 	List<String> dataNames = new ArrayList<>();
 	List<String> dataValues = new ArrayList<>();
-	public void addDataItem(String name, double value)
+	
+	public void putBoolean(String name, boolean value)
 	{
 		String valueString = String.valueOf(value);
 		dataNames.add(name);
 		dataValues.add(valueString);
+		
+		SmartDashboard.putBoolean(name, value);
 	}
 	
-	public void addDataItem(String name, int value)
+	public void putNumber(String name, double value)
 	{
 		String valueString = String.valueOf(value);
 		dataNames.add(name);
 		dataValues.add(valueString);
+		
+		SmartDashboard.putNumber(name, value);
 	}
 	
-	public void addDataItem(String name, boolean value)
+	public void putNumber(String name, int value)
 	{
 		String valueString = String.valueOf(value);
 		dataNames.add(name);
 		dataValues.add(valueString);
+		
+		SmartDashboard.putNumber(name, value);
 	}
 	
-	public void addDataItem(String name, String value)
+	public void putString(String name, String value)
 	{
 		String valueString = String.valueOf(value);
 		dataNames.add(name);
 		dataValues.add(valueString);
+		
+		SmartDashboard.putString(name, value);
 	}
 	
 	PrintStream ps;

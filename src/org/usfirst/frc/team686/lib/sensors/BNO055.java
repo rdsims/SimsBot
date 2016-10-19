@@ -2,14 +2,10 @@ package org.usfirst.frc.team686.lib.sensors;
 
 import java.util.TimerTask;
 
-import org.usfirst.frc.team686.lib.sensors.BNO055.reg_t;
 import org.usfirst.frc.team686.simsbot.Constants;
 
-import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.GyroBase;
 import edu.wpi.first.wpilibj.I2C;
 import edu.wpi.first.wpilibj.Timer;
-import edu.wpi.first.wpilibj.interfaces.Gyro;
 import edu.wpi.first.wpilibj.networktables.NetworkTable;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 

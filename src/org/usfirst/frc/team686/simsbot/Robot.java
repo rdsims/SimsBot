@@ -34,7 +34,9 @@ public class Robot extends IterativeRobot
     
 	LoopList loopList  = new LoopList();
 	
-	
+    SmartDashboardInteractions mSmartDashboardInteractions = new SmartDashboardInteractions();
+
+    
    public Robot()
    {
 	   CrashTracker.logRobotConstruction();
@@ -66,7 +68,9 @@ public class Robot extends IterativeRobot
 	    	// Set dataLogger and Time information
 	    	TimeZone.setDefault(TimeZone.getTimeZone("America/New_York"));
 	
-	    	// Determine folder for log files
+	        mSmartDashboardInteractions.initWithDefaults();
+
+	        // Determine folder for log files
 	    	dataLogger.findLogDirectory();
 		}
 		catch (Throwable t)
@@ -86,13 +90,10 @@ public class Robot extends IterativeRobot
 	
 	public void log()
 	{
-		if (dataLogger.shouldLogData())
-		{
-			dataLogger.addDataItem("lMotorCurrent",  pdp.getCurrent(15));
-			dataLogger.addDataItem("rMotorCurrent",  pdp.getCurrent(0));
-			drive.log();
-			dataLogger.saveDataItems();
-		}
+		dataLogger.putNumber("lMotorCurrent",  pdp.getCurrent(15));
+		dataLogger.putNumber("rMotorCurrent",  pdp.getCurrent(0));
+		drive.log();
+		dataLogger.saveDataItems();
 	}	
 	
 	
