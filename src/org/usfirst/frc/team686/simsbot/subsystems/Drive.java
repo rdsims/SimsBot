@@ -3,18 +3,22 @@ package org.usfirst.frc.team686.simsbot.subsystems;
 //import java.util.Set;
 
 import edu.wpi.first.wpilibj.CANTalon;
-//import edu.wpi.first.wpilibj.Counter;
-//import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.DriverStation;
-//import edu.wpi.first.wpilibj.Solenoid;
-//import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj.Timer;
 
 import org.usfirst.frc.team686.lib.sensors.BNO055;
+import org.usfirst.frc.team686.lib.util.AdaptivePurePursuitController;
 import org.usfirst.frc.team686.lib.util.DriveSignal;
+import org.usfirst.frc.team686.lib.util.Path;
+import org.usfirst.frc.team686.lib.util.RigidTransform2d;
+import org.usfirst.frc.team686.lib.util.Rotation2d;
+import org.usfirst.frc.team686.lib.util.SynchronousPID;
 import org.usfirst.frc.team686.lib.util.Util;
 
 import org.usfirst.frc.team686.simsbot.Constants;
 import org.usfirst.frc.team686.simsbot.DataLogger;
+import org.usfirst.frc.team686.simsbot.Kinematics;
+import org.usfirst.frc.team686.simsbot.RobotState;
 import org.usfirst.frc.team686.simsbot.loops.Loop;
 
 
@@ -36,6 +40,8 @@ public class Drive extends Subsystem
         return instance_;
     }
 
+    private double mLastHeadingErrorDegrees;
+    
     // The robot drivetrain's various states
     public enum DriveControlState {
         OPEN_LOOP, BASE_LOCKED, VELOCITY_SETPOINT, VELOCITY_HEADING_CONTROL, PATH_FOLLOWING_CONTROL
@@ -45,6 +51,9 @@ public class Drive extends Subsystem
     private boolean isBrakeMode_ = true;
 
     private DriveControlState driveControlState_;
+    private VelocityHeadingSetpoint velocityHeadingSetpoint_;
+    private AdaptivePurePursuitController pathFollowingController_;
+    private SynchronousPID velocityHeadingPid_;
     
     private static BNO055 imu = BNO055.getInstance(Constants.BNO055_PORT);
 
@@ -56,7 +65,7 @@ public class Drive extends Subsystem
         public void onStart() 
         {
             setOpenLoop(DriveSignal.NEUTRAL);
-//            pathFollowingController_ = null;
+            pathFollowingController_ = null;
             setBrakeMode(false);
 //            stopOnNextCount_ = false;
         }
@@ -84,13 +93,13 @@ public class Drive extends Subsystem
                     // Talons are updating the control loop state
                     return;
                 case VELOCITY_HEADING_CONTROL:
-//                    updateVelocityHeadingSetpoint();
+                    updateVelocityHeadingSetpoint();
                     return;
                 case PATH_FOLLOWING_CONTROL:
-//                    updatePathFollower();
-//                    if (isFinishedPath()) {
-//                        stop();
-//                    }
+                    updatePathFollower();
+                    if (isFinishedPath()) {
+                        stop();
+                    }
                     break;
                 default:
                     System.out.println("Unexpected drive control state: " + driveControlState_);
@@ -159,9 +168,13 @@ public class Drive extends Subsystem
                 Constants.kDriveBaseLockKf, Constants.kDriveBaseLockIZone, Constants.kDriveBaseLockRampRate,
                 kBaseLockControlSlot);
 
+
+
+        velocityHeadingPid_ = new SynchronousPID(Constants.kDriveHeadingVelocityKp, Constants.kDriveHeadingVelocityKi,
+                Constants.kDriveHeadingVelocityKd);
+        velocityHeadingPid_.setOutputRange(-30, 30);
+
         setOpenLoop(DriveSignal.NEUTRAL);
-        
-        
     }
 
     public Loop getLoop() {
@@ -253,6 +266,33 @@ public class Drive extends Subsystem
         updateVelocitySetpoint(left_inches_per_sec, right_inches_per_sec);
     }
 
+    /**
+     * The robot follows a set path, which is defined by Waypoint objects.
+     * 
+     * @param Path
+     *            to follow
+     * @param reversed
+     * @see com.team254.lib.util/Path.java
+     */
+    public synchronized void followPath(Path path, boolean reversed) {
+        if (driveControlState_ != DriveControlState.PATH_FOLLOWING_CONTROL) {
+            configureTalonsForSpeedControl();
+            driveControlState_ = DriveControlState.PATH_FOLLOWING_CONTROL;
+            velocityHeadingPid_.reset();
+        }
+        pathFollowingController_ = new AdaptivePurePursuitController(Constants.kPathFollowingLookahead,
+                Constants.kPathFollowingMaxAccel, Constants.kLoopDt, path, reversed, 0.25);
+        updatePathFollower();
+    }
+
+    /**
+     * @return Returns if the robot mode is Path Following Control and the set
+     *         path is complete.
+     */
+    public synchronized boolean isFinishedPath() {
+        return (driveControlState_ == DriveControlState.PATH_FOLLOWING_CONTROL && pathFollowingController_.isDone())
+                || driveControlState_ != DriveControlState.PATH_FOLLOWING_CONTROL;
+    }
 
     public double getLeftDistanceInches() {
         return rotationsToInches(lMotor_.getPosition());
@@ -282,8 +322,12 @@ public class Drive extends Subsystem
         return driveControlState_;
     }
 
-    public synchronized BNO055 getImu() {
+    public BNO055 getImu() {
         return imu;
+    }
+    
+    public double getHeading() {
+        return imu.getHeading();
     }
     
     @Override
@@ -342,6 +386,34 @@ public class Drive extends Subsystem
         }
     }
 
+    private void updateVelocityHeadingSetpoint() {
+        Rotation2d actualGyroAngle = Rotation2d.fromDegrees(getHeading());
+
+        mLastHeadingErrorDegrees = velocityHeadingSetpoint_.getHeading().rotateBy(actualGyroAngle.inverse())
+                .getDegrees();
+
+        double deltaSpeed = velocityHeadingPid_.calculate(mLastHeadingErrorDegrees);
+        updateVelocitySetpoint(velocityHeadingSetpoint_.getLeftSpeed() + deltaSpeed / 2,
+                velocityHeadingSetpoint_.getRightSpeed() - deltaSpeed / 2);
+    }
+
+    private void updatePathFollower() {
+        RigidTransform2d robot_pose = RobotState.getInstance().getLatestFieldToVehicle().getValue();
+        RigidTransform2d.Delta command = pathFollowingController_.update(robot_pose, Timer.getFPGATimestamp());
+        Kinematics.DriveVelocity setpoint = Kinematics.inverseKinematics(command);
+
+        // Scale the command to respect the max velocity limits
+        double max_vel = 0.0;
+        max_vel = Math.max(max_vel, Math.abs(setpoint.left));
+        max_vel = Math.max(max_vel, Math.abs(setpoint.right));
+        if (max_vel > Constants.kPathFollowingMaxVel) {
+            double scaling = Constants.kPathFollowingMaxVel / max_vel;
+            setpoint = new Kinematics.DriveVelocity(setpoint.left * scaling, setpoint.right * scaling);
+        }
+        updateVelocitySetpoint(setpoint.left, setpoint.right);
+    }
+
+    
     private static double rotationsToInches(double rotations) {
         return rotations * (Constants.kDriveWheelDiameterInches * Math.PI);
     }
@@ -365,4 +437,36 @@ public class Drive extends Subsystem
             isBrakeMode_ = on;
         }
     }
+    
+    
+    /**
+     * VelocityHeadingSetpoints are used to calculate the robot's path given the
+     * speed of the robot in each wheel and the polar coordinates. Especially
+     * useful if the robot is negotiating a turn and to forecast the robot's
+     * location.
+     */
+    public static class VelocityHeadingSetpoint {
+        private final double leftSpeed_;
+        private final double rightSpeed_;
+        private final Rotation2d headingSetpoint_;
+
+        // Constructor for straight line motion
+        public VelocityHeadingSetpoint(double leftSpeed, double rightSpeed, Rotation2d headingSetpoint) {
+            leftSpeed_ = leftSpeed;
+            rightSpeed_ = rightSpeed;
+            headingSetpoint_ = headingSetpoint;
+        }
+
+        public double getLeftSpeed() {
+            return leftSpeed_;
+        }
+
+        public double getRightSpeed() {
+            return rightSpeed_;
+        }
+
+        public Rotation2d getHeading() {
+            return headingSetpoint_;
+        }
+    }    
 }

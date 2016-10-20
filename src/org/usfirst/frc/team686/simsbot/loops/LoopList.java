@@ -14,6 +14,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import org.usfirst.frc.team686.lib.util.CrashTrackingRunnable;
 
 import org.usfirst.frc.team686.simsbot.Constants;
+import org.usfirst.frc.team686.simsbot.DataLogger;
 
 
 /**
@@ -111,9 +112,11 @@ public class LoopList {
         }
     }
 
-    public void outputToSmartDashboard() 
+    public void log() 
     {
-        SmartDashboard.putNumber("LoopList_dt", dt_);
+    	DataLogger dataLogger = DataLogger.getInstance();
+    	    	
+    	dataLogger.putNumber("LoopList_dt", dt_);
     }
    
     

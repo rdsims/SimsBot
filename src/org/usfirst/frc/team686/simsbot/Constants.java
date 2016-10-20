@@ -69,8 +69,11 @@ public class Constants extends ConstantsBase {
 
     // Path following constants
     public static double kPathFollowingLookahead = 24.0; // inches
-    public static double kPathFollowingMaxVel    = 90.0; // inches/sec  		// RS measured ~100 inches/sec on carpet
-    public static double kPathFollowingMaxAccel  = 90.0; // inches/sec^2		// RS measured 800-1000 inches/sec^2 on carpet
+//    public static double kPathFollowingMaxVel    = 90.0; // inches/sec  		// RS measured ~100 inches/sec on carpet
+//    public static double kPathFollowingMaxAccel  = 90.0; // inches/sec^2		// RS measured 800-1000 inches/sec^2 on carpet
+// slow things down for auto testing    
+    public static double kPathFollowingMaxVel    = 6.0; // inches/sec  		// RS measured ~100 inches/sec on carpet
+    public static double kPathFollowingMaxAccel  = 4.0; // inches/sec^2		// RS measured 800-1000 inches/sec^2 on carpet
 
     // BNO055 accelerometer calibration constants
     // ( -7, -34,  33, -24) - taken 10/14/2016

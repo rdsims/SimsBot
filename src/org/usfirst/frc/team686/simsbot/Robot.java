@@ -7,12 +7,15 @@ import java.util.TimeZone;
 
 import edu.wpi.first.wpilibj.IterativeRobot;
 import edu.wpi.first.wpilibj.PowerDistributionPanel;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 import org.usfirst.frc.team686.lib.util.*;
 
+import org.usfirst.frc.team686.simsbot.auto.AutoModeExecuter;
 import org.usfirst.frc.team686.simsbot.JoystickControls;
 import org.usfirst.frc.team686.simsbot.loops.LoopList;
+import org.usfirst.frc.team686.simsbot.loops.RobotStateEstimator;
 import org.usfirst.frc.team686.simsbot.subsystems.Drive;
 
 
@@ -28,9 +31,11 @@ public class Robot extends IterativeRobot
 	PowerDistributionPanel pdp = new PowerDistributionPanel();
 	
 	Drive drive = Drive.getInstance();
-	JoystickControls controls = JoystickControls.getInstance();
+	AutoModeExecuter mAutoModeExecuter = null;
 	
+	JoystickControls controls = JoystickControls.getInstance();
 	DataLogger dataLogger = DataLogger.getInstance();
+    RobotState mRobotState = RobotState.getInstance();
     
 	LoopList loopList  = new LoopList();
 	
@@ -45,6 +50,7 @@ public class Robot extends IterativeRobot
 	
    public void zeroAllSensors() {
         drive.zeroSensors();
+        mRobotState.reset(Timer.getFPGATimestamp(), new RigidTransform2d(), new Rotation2d());
     }
 
 	
@@ -64,7 +70,8 @@ public class Robot extends IterativeRobot
 	        
 	        // Configure LoopLists
 	        loopList.register(drive.getLoop());
-	
+	        loopList.register(RobotStateEstimator.getInstance());
+            
 	    	// Set dataLogger and Time information
 	    	TimeZone.setDefault(TimeZone.getTimeZone("America/New_York"));
 	
@@ -93,6 +100,8 @@ public class Robot extends IterativeRobot
 		dataLogger.putNumber("lMotorCurrent",  pdp.getCurrent(15));
 		dataLogger.putNumber("rMotorCurrent",  pdp.getCurrent(0));
 		drive.log();
+		mRobotState.log();
+		loopList.log();
 		dataLogger.saveDataItems();
 	}	
 	
@@ -160,11 +169,19 @@ public class Robot extends IterativeRobot
 		try
 		{
 			CrashTracker.logAutoInit();
+            if (mAutoModeExecuter != null) {
+                mAutoModeExecuter.stop();
+            }
+            mAutoModeExecuter = null;
 			
 	        // Reset all sensors
 	        zeroAllSensors();
 
             loopList.start();
+
+            mAutoModeExecuter = new AutoModeExecuter();
+            mAutoModeExecuter.setAutoMode(mSmartDashboardInteractions.getSelectedAutonMode());
+            mAutoModeExecuter.start();
 		}
     	catch (Throwable t)
     	{
