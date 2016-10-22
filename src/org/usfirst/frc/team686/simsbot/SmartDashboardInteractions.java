@@ -6,7 +6,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import org.usfirst.frc.team686.simsbot.auto.AutoModeBase;
 import org.usfirst.frc.team686.simsbot.auto.AutoModeEndedException;
 import org.usfirst.frc.team686.simsbot.auto.modes.*;
-//import org.usfirst.frc.team686.util.Rotation2d;
+
 
 
 /**
@@ -22,8 +22,9 @@ public class SmartDashboardInteractions {
 
     enum AutonOption 
     {
-        SQUARE_PATTERN("Square Pattern"), //
-        STAND_STILL("Stand Still");
+        STAND_STILL("Stand Still"),
+        DRIVE_STRAIGHT("Drive Straight"),
+        SQUARE_PATTERN("Square Pattern");
 
         public final String name;
 
@@ -50,6 +51,7 @@ public class SmartDashboardInteractions {
     {
     	autoModeChooser = new SendableChooser();
     	autoModeChooser.addDefault(AutonOption.STAND_STILL.toString(),    AutonOption.STAND_STILL);
+    	autoModeChooser.addObject( AutonOption.DRIVE_STRAIGHT.toString(), AutonOption.DRIVE_STRAIGHT);
     	autoModeChooser.addObject( AutonOption.SQUARE_PATTERN.toString(), AutonOption.SQUARE_PATTERN);
     	SmartDashboard.putData("Auto Mode Chooser", autoModeChooser);
     	
@@ -71,6 +73,9 @@ public class SmartDashboardInteractions {
     	{
     	case STAND_STILL:
 			return new StandStillMode();
+			
+    	case DRIVE_STRAIGHT:
+			return new DriveStraightMode(selLane, false);
 			
     	case SQUARE_PATTERN:
     		return new SquarePatternMode(selLane, false);

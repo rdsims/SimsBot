@@ -266,6 +266,17 @@ public class Drive extends Subsystem
         updateVelocitySetpoint(left_inches_per_sec, right_inches_per_sec);
     }
 
+    public synchronized void setVelocityHeadingSetpoint(double forward_inches_per_sec, Rotation2d headingSetpoint) {
+        if (driveControlState_ != DriveControlState.VELOCITY_HEADING_CONTROL) {
+            configureTalonsForSpeedControl();
+            driveControlState_ = DriveControlState.VELOCITY_HEADING_CONTROL;
+            velocityHeadingPid_.reset();
+        }
+        velocityHeadingSetpoint_ = new VelocityHeadingSetpoint(forward_inches_per_sec, forward_inches_per_sec,
+                headingSetpoint);
+        updateVelocityHeadingSetpoint();
+    }
+
     /**
      * The robot follows a set path, which is defined by Waypoint objects.
      * 
