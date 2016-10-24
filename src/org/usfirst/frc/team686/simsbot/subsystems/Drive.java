@@ -20,6 +20,7 @@ import org.usfirst.frc.team686.simsbot.DataLogger;
 import org.usfirst.frc.team686.simsbot.Kinematics;
 import org.usfirst.frc.team686.simsbot.RobotState;
 import org.usfirst.frc.team686.simsbot.loops.Loop;
+import org.usfirst.frc.team686.simsbot.subsystems.Drive.DriveControlState;
 
 
 /**
@@ -48,6 +49,8 @@ public class Drive extends Subsystem
     }
 
     public final CANTalon lMotor_, rMotor_;
+    private double lMotorCtrl, rMotorCtrl;
+    
     private boolean isBrakeMode_ = true;
 
     private DriveControlState driveControlState_;
@@ -130,27 +133,21 @@ public class Drive extends Subsystem
 
         // Start in open loop mode
         lMotor_.changeControlMode(CANTalon.TalonControlMode.PercentVbus);
-        lMotor_.set(0);
         rMotor_.changeControlMode(CANTalon.TalonControlMode.PercentVbus);
-        rMotor_.set(0);
+        setLeftRightPower(0,0);
         setBrakeMode(false);
 
         // Set up the encoders
-        lMotor_.setFeedbackDevice(CANTalon.FeedbackDevice.CtreMagEncoder_Relative);
-        if (lMotor_.isSensorPresent(
-                CANTalon.FeedbackDevice.CtreMagEncoder_Relative) != CANTalon.FeedbackDeviceStatus.FeedbackStatusPresent) {
-            DriverStation.reportError("Could not detect left drive encoder!", false);
-        }
+        lMotor_.setFeedbackDevice(CANTalon.FeedbackDevice.QuadEncoder);
+        lMotor_.configEncoderCodesPerRev(Constants.kQuadEncoderCodesPerRev);
         lMotor_.setInverted(false);
-        lMotor_.reverseSensor(true);
+        lMotor_.reverseSensor(false);
         lMotor_.reverseOutput(false);
-        rMotor_.setFeedbackDevice(CANTalon.FeedbackDevice.CtreMagEncoder_Relative);
-        if (rMotor_.isSensorPresent(
-                CANTalon.FeedbackDevice.CtreMagEncoder_Relative) != CANTalon.FeedbackDeviceStatus.FeedbackStatusPresent) {
-            DriverStation.reportError("Could not detect right drive encoder!", false);
-        }
-        lMotor_.setInverted(true);		// right motor is flipped with respect to left motor.  Need to reverse direction of rotation in PercentVbus mode
-        rMotor_.reverseSensor(false);	// inverts feedback in closed loop modes
+
+        rMotor_.setFeedbackDevice(CANTalon.FeedbackDevice.QuadEncoder);
+        rMotor_.configEncoderCodesPerRev(Constants.kQuadEncoderCodesPerRev);
+        rMotor_.setInverted(false);		// right motor is flipped with respect to left motor.  Only works in PercentVbus mode
+        rMotor_.reverseSensor(true);	// inverts feedback in closed loop modes
         rMotor_.reverseOutput(true);	// reverse direction of rotation in closed loop modes
 
         // Load velocity control gains
@@ -223,21 +220,32 @@ public class Drive extends Subsystem
 	      }
 	    }
 	    
-	    DriveSignal signal = new DriveSignal(lMotorSpeed, rMotorSpeed);
+	    DriveSignal signal = new DriveSignal(-lMotorSpeed, rMotorSpeed);
 	   	    
 	    return signal;
     }
 
     
+    public void testDriveSpeedControl() {
+    	double left_inches_per_second = Constants.kDriveWheelCircumInches;
+    	double right_inches_per_second = Constants.kDriveWheelCircumInches;
+    	
+    	setVelocitySetpoint(left_inches_per_second, right_inches_per_second);
+    	
+    }
     
     
     protected synchronized void setLeftRightPower(double left, double right) {
-        lMotor_.set(left);
-        rMotor_.set(right);
+    	// single location to correct inverted motor controls
+    	lMotorCtrl = +left;	// store for logging
+    	rMotorCtrl = +right;// store for logging
+        lMotor_.set(lMotorCtrl);
+        rMotor_.set(rMotorCtrl);	
     }
 
     public synchronized void setOpenLoop(DriveSignal signal) {
-        if (driveControlState_ != DriveControlState.OPEN_LOOP) {
+        if (driveControlState_ != DriveControlState.OPEN_LOOP) 
+        {
             lMotor_.changeControlMode(CANTalon.TalonControlMode.PercentVbus);
             rMotor_.changeControlMode(CANTalon.TalonControlMode.PercentVbus);
             driveControlState_ = DriveControlState.OPEN_LOOP;
@@ -246,34 +254,39 @@ public class Drive extends Subsystem
     }
 
     public synchronized void setBaseLockOn() {
-        if (driveControlState_ != DriveControlState.BASE_LOCKED) {
+        if (driveControlState_ != DriveControlState.BASE_LOCKED) 
+        {
             lMotor_.setProfile(kBaseLockControlSlot);
             lMotor_.changeControlMode(CANTalon.TalonControlMode.Position);
             lMotor_.setAllowableClosedLoopErr(Constants.kDriveBaseLockAllowableError);
             lMotor_.set(lMotor_.getPosition());
+            
             rMotor_.setProfile(kBaseLockControlSlot);
             rMotor_.changeControlMode(CANTalon.TalonControlMode.Position);
             rMotor_.setAllowableClosedLoopErr(Constants.kDriveBaseLockAllowableError);
             rMotor_.set(rMotor_.getPosition());
+            
             driveControlState_ = DriveControlState.BASE_LOCKED;
             setBrakeMode(true);
         }
     }
 
-    public synchronized void setVelocitySetpoint(double left_inches_per_sec, double right_inches_per_sec) {
+    public synchronized void setVelocitySetpoint(double left_inches_per_sec, double right_inches_per_sec) 
+    {
         configureTalonsForSpeedControl();
         driveControlState_ = DriveControlState.VELOCITY_SETPOINT;
         updateVelocitySetpoint(left_inches_per_sec, right_inches_per_sec);
     }
 
-    public synchronized void setVelocityHeadingSetpoint(double forward_inches_per_sec, Rotation2d headingSetpoint) {
-        if (driveControlState_ != DriveControlState.VELOCITY_HEADING_CONTROL) {
+    public synchronized void setVelocityHeadingSetpoint(double forward_inches_per_sec, Rotation2d headingSetpoint) 
+    {
+        if (driveControlState_ != DriveControlState.VELOCITY_HEADING_CONTROL) 
+        {
             configureTalonsForSpeedControl();
             driveControlState_ = DriveControlState.VELOCITY_HEADING_CONTROL;
             velocityHeadingPid_.reset();
         }
-        velocityHeadingSetpoint_ = new VelocityHeadingSetpoint(forward_inches_per_sec, forward_inches_per_sec,
-                headingSetpoint);
+        velocityHeadingSetpoint_ = new VelocityHeadingSetpoint(forward_inches_per_sec, forward_inches_per_sec, headingSetpoint);
         updateVelocityHeadingSetpoint();
     }
 
@@ -338,7 +351,10 @@ public class Drive extends Subsystem
     }
     
     public double getHeading() {
-        return imu.getHeading();
+    	// measured angle decreases with clockwise rotation
+    	// it should increase with clockwise rotation (according to documentation, and standard right hand rule convention
+    	// negate it here to correct
+        return -imu.getHeading();
     }
     
     @Override
@@ -346,38 +362,22 @@ public class Drive extends Subsystem
         setOpenLoop(DriveSignal.NEUTRAL);
     }
 
-    @Override
-    public void log() {
-    	DataLogger dataLogger = DataLogger.getInstance();
-    	
-  		dataLogger.putNumber("lMotorCurrent",  	lMotor_.getOutputCurrent());
-		dataLogger.putNumber("rMotorCurrent",  	rMotor_.getOutputCurrent());
-		dataLogger.putNumber("lMotorCtrl",     	lMotor_.get());
-		dataLogger.putNumber("rMotorCtrl",		rMotor_.get());
-		dataLogger.putNumber("lDistance",      	getLeftDistanceInches());
-		dataLogger.putNumber("rDistance",      	getRightDistanceInches());
-		dataLogger.putNumber("lVelocity", 	 	getLeftVelocityInchesPerSec());
-		dataLogger.putNumber("rVelocity", 	 	getRightVelocityInchesPerSec());
-		//TODO: add closed loop error
-		dataLogger.putNumber("Heading", 	 	getImu().getHeading());
-		//TODO: add heading error
-    }
-/*    
-        SmartDashboard.putNumber("left_distance", getLeftDistanceInches());
-*/
 
     @Override
     public synchronized void zeroSensors() {
         resetEncoders();
     }
 
-    private void configureTalonsForSpeedControl() {
+    private void configureTalonsForSpeedControl() 
+    {
         if (driveControlState_ != DriveControlState.VELOCITY_HEADING_CONTROL
                 && driveControlState_ != DriveControlState.VELOCITY_SETPOINT
-                && driveControlState_ != DriveControlState.PATH_FOLLOWING_CONTROL) {
+                && driveControlState_ != DriveControlState.PATH_FOLLOWING_CONTROL) 
+        {
             lMotor_.changeControlMode(CANTalon.TalonControlMode.Speed);
             lMotor_.setProfile(kVelocityControlSlot);
             lMotor_.setAllowableClosedLoopErr(Constants.kDriveVelocityAllowableError);
+            
             rMotor_.changeControlMode(CANTalon.TalonControlMode.Speed);
             rMotor_.setProfile(kVelocityControlSlot);
             rMotor_.setAllowableClosedLoopErr(Constants.kDriveVelocityAllowableError);
@@ -387,25 +387,24 @@ public class Drive extends Subsystem
     private synchronized void updateVelocitySetpoint(double left_inches_per_sec, double right_inches_per_sec) {
         if (driveControlState_ == DriveControlState.VELOCITY_HEADING_CONTROL
                 || driveControlState_ == DriveControlState.VELOCITY_SETPOINT
-                || driveControlState_ == DriveControlState.PATH_FOLLOWING_CONTROL) {
-            lMotor_.set(inchesPerSecondToRpm(left_inches_per_sec));
-            rMotor_.set(inchesPerSecondToRpm(right_inches_per_sec));
+                || driveControlState_ == DriveControlState.PATH_FOLLOWING_CONTROL) 
+        {
+            setLeftRightPower(inchesPerSecondToRpm(left_inches_per_sec), 
+            		          inchesPerSecondToRpm(right_inches_per_sec));
         } else {
             System.out.println("Hit a bad velocity control state");
-            lMotor_.set(0);
-            rMotor_.set(0);
+            setLeftRightPower(0,0);
         }
     }
 
     private void updateVelocityHeadingSetpoint() {
         Rotation2d actualGyroAngle = Rotation2d.fromDegrees(getHeading());
 
-        mLastHeadingErrorDegrees = velocityHeadingSetpoint_.getHeading().rotateBy(actualGyroAngle.inverse())
-                .getDegrees();
+        mLastHeadingErrorDegrees = velocityHeadingSetpoint_.getHeading().rotateBy(actualGyroAngle.inverse()).getDegrees();
 
         double deltaSpeed = velocityHeadingPid_.calculate(mLastHeadingErrorDegrees);
-        updateVelocitySetpoint(velocityHeadingSetpoint_.getLeftSpeed() + deltaSpeed / 2,
-                velocityHeadingSetpoint_.getRightSpeed() - deltaSpeed / 2);
+        updateVelocitySetpoint(velocityHeadingSetpoint_.getLeftSpeed()  + deltaSpeed / 2,
+                               velocityHeadingSetpoint_.getRightSpeed() - deltaSpeed / 2);
     }
 
     private void updatePathFollower() {
@@ -426,7 +425,7 @@ public class Drive extends Subsystem
 
     
     private static double rotationsToInches(double rotations) {
-        return rotations * (Constants.kDriveWheelDiameterInches * Math.PI);
+        return rotations * Constants.kDriveWheelCircumInches;
     }
 
     private static double rpmToInchesPerSecond(double rpm) {
@@ -434,14 +433,14 @@ public class Drive extends Subsystem
     }
 
     private static double inchesToRotations(double inches) {
-        return inches / (Constants.kDriveWheelDiameterInches * Math.PI);
+        return inches / Constants.kDriveWheelCircumInches;
     }
 
     private static double inchesPerSecondToRpm(double inches_per_second) {
-        return inchesToRotations(inches_per_second) * 60;
+       return inchesToRotations(inches_per_second) * 60;
     }
 
-    public void setBrakeMode(boolean on) {
+     public void setBrakeMode(boolean on) {
         if (isBrakeMode_ != on) {
             lMotor_.enableBrakeMode(on);
             rMotor_.enableBrakeMode(on);
@@ -480,4 +479,29 @@ public class Drive extends Subsystem
             return headingSetpoint_;
         }
     }    
+
+
+    @Override
+    public void log() {
+    	DataLogger dataLogger = DataLogger.getInstance();
+    	
+  		dataLogger.putNumber("lMotorCurrent",  	lMotor_.getOutputCurrent());
+		dataLogger.putNumber("rMotorCurrent",  	rMotor_.getOutputCurrent());
+		dataLogger.putNumber("lMotorCtrl",   	lMotorCtrl);
+		dataLogger.putNumber("rMotorCtrl",		rMotorCtrl);
+		dataLogger.putNumber("lMotorStatus",   	lMotor_.get());
+		dataLogger.putNumber("rMotorStatus",	rMotor_.get());
+		dataLogger.putNumber("lVelocity", 	 	getLeftVelocityInchesPerSec());
+		dataLogger.putNumber("rVelocity", 	 	getRightVelocityInchesPerSec());
+		dataLogger.putNumber("lDistance",      	getLeftDistanceInches());
+		dataLogger.putNumber("rDistance",      	getRightDistanceInches());
+		dataLogger.putNumber("Left PID Error",  lMotor_.getClosedLoopError());
+		dataLogger.putNumber("Right PID Error", rMotor_.getClosedLoopError());
+		dataLogger.putNumber("Heading", 	 	getHeading());
+		dataLogger.putNumber("Heading Error",	mLastHeadingErrorDegrees);
+		dataLogger.putNumber("Heading PID Error",	velocityHeadingPid_.getError());		
+		dataLogger.putNumber("Heading PID Output",	velocityHeadingPid_.get());		
+    }
+
+
 }

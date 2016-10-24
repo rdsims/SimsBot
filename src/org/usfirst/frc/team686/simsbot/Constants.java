@@ -13,45 +13,46 @@ import edu.wpi.first.wpilibj.I2C;
  * constants as well as constants determined through calibrations.
  */
 public class Constants extends ConstantsBase {
-    public static double kCenterOfTargetHeight = 89.0; // inches
+    public static double kLoopDt = 0.01;
 
-    // Pose of the camera frame w.r.t. the turret frame
-    public static double kCameraXOffset = -6.454;
-    public static double kCameraYOffset = 0.0;
-    public static double kCameraZOffset = 19.75;
-    public static double kCameraPitchAngleDegrees = 35.75; // calibrated 4/22
-    public static double kCameraYawAngleDegrees = -1.0;
-    public static double kCameraDeadband = 0.0;
-
-    // Wheels
-    public static double kDriveWheelDiameterInches = 13.00 / Math.PI; //RS
-    public static double kTrackLengthInches = 8.265;
-    public static double kTrackWidthInches = 23.8;
+	// Wheels
+    public static double kDriveWheelCircumInches = 13.00;
+    public static double kDriveWheelDiameterInches = kDriveWheelCircumInches / Math.PI;
+    public static double kTrackLengthInches = 9.625;
+    public static double kTrackWidthInches = 25.125;
     public static double kTrackEffectiveDiameter = (kTrackWidthInches * kTrackWidthInches + kTrackLengthInches * kTrackLengthInches) / kTrackWidthInches;
     public static double kTrackScrubFactor = 0.5;
 
     // Wheel Encoder
-    public static double kQuadEncoderTicksPerRev = 4.0 * 256.0;
+    public static int kQuadEncoderCodesPerRev = 256;
+    public static int kQuadEncoderPulsesPerRev = 4*kQuadEncoderCodesPerRev;
+    public static double kQuadEncoderStatusFramePeriod = 0.100;	// 100ms
     
-    // Drive constants
-    public static double kDriveLowGearMaxSpeedInchesPerSec = 12.0 * 7.0;
-
-    public static double kLoopDt = 0.01;
-
     // CONTROL LOOP GAINS
 
-    // PID gains for drive velocity loop (LOW GEAR)
-    // Units: error is 4096 counts/rev. Max output is +/- 1023 units.
+    // Path following constants
+//    public static double kPathFollowingLookahead = 24.0; // inches
+// shorten for testing
+    public static double kPathFollowingLookahead = 3.0; // inches
+    public static double kPathFollowingMaxVel    = 90.0; // inches/sec  		// RS measured ~100 inches/sec on carpet
+//    public static double kPathFollowingMaxAccel  = 90.0; // inches/sec^2		// RS measured 800-1000 inches/sec^2 on carpet
+//slow down for testing
+    public static double kPathFollowingMaxAccel  = 12.0; // inches/sec^2		// RS measured 800-1000 inches/sec^2 on carpet
+    public static double kPathFollowingMaxVelPulsePer100ms = kPathFollowingMaxVel / kDriveWheelCircumInches * kQuadEncoderStatusFramePeriod * kQuadEncoderPulsesPerRev; 
+
+    
+    // PID gains for drive velocity loop (sent to Talon)
+    // Units: error is 4*256 counts/rev. Max output is +/- 1023 units.
     public static double kDriveVelocityKp = 1.0;
     public static double kDriveVelocityKi = 0.0;
     public static double kDriveVelocityKd = 6.0;
-    public static double kDriveVelocityKf = 0.5;
+    public static double kDriveVelocityKf = 1023.0 / kPathFollowingMaxVelPulsePer100ms;
     public static int kDriveVelocityIZone = 0;
     public static double kDriveVelocityRampRate = 0.0;
     public static int kDriveVelocityAllowableError = 0;
 
     // PID gains for drive base lock loop
-    // Units: error is 4096 counts/rev. Max output is +/- 1023 units.
+    // Units: error is 4*256 counts/rev. Max output is +/- 1023 units.
     public static double kDriveBaseLockKp = 0.5;
     public static double kDriveBaseLockKi = 0;
     public static double kDriveBaseLockKd = 0;
@@ -63,22 +64,16 @@ public class Constants extends ConstantsBase {
     // PID gains for constant heading velocity control
     // Units: Error is degrees. Output is inches/second difference to
     // left/right.
-    public static double kDriveHeadingVelocityKp = 4.0; // 6.0;
+    public static double kDriveHeadingVelocityKp = 0.0;
     public static double kDriveHeadingVelocityKi = 0.0;
-    public static double kDriveHeadingVelocityKd = 50.0;
+    public static double kDriveHeadingVelocityKd = 0.0;
 
-    // Path following constants
-    public static double kPathFollowingLookahead = 24.0; // inches
-//    public static double kPathFollowingMaxVel    = 90.0; // inches/sec  		// RS measured ~100 inches/sec on carpet
-//    public static double kPathFollowingMaxAccel  = 90.0; // inches/sec^2		// RS measured 800-1000 inches/sec^2 on carpet
-// slow things down for auto testing    
-    public static double kPathFollowingMaxVel    = 1.0; // inches/sec  		// RS measured ~100 inches/sec on carpet
-    public static double kPathFollowingMaxAccel  = 1.0; // inches/sec^2		// RS measured 800-1000 inches/sec^2 on carpet
-
+    
     // BNO055 accelerometer calibration constants
     // ( -7, -34,  33, -24) - taken 10/14/2016
     // (-13, -53,  18, -24) - taken 10/14/2016
     // (  0, -59,  25, -24) - taken 10/14/2016
+    // using average of the above
     public static short kAccelOffsetX =  -7;
     public static short kAccelOffsetY = -53;
     public static short kAccelOffsetZ =  25;
@@ -91,7 +86,7 @@ public class Constants extends ConstantsBase {
     // (Note that if multiple Talons are dedicated to a mechanism, any sensors
     // are attached to the master)
     // TALONS
-    public static final int kLeftMotorTalonId = 1;
+    public static final int kLeftMotorTalonId  = 1;
     public static final int kRightMotorTalonId = 2;
     
 	// The I2C port the BNO055 is connected to

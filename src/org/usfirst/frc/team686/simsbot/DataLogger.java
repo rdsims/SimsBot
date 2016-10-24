@@ -25,6 +25,11 @@ public class DataLogger
 	File parentDirectory;
 	long minimumInterval = 0;	// 0: write as fast as possible
 
+	public enum OutputMode {
+		SMARTDASHBOARD_ONLY, FILE_ONLY, SMARTDASHBOARD_AND_FILE
+	}
+	
+	private static OutputMode mOutputMode = OutputMode.SMARTDASHBOARD_ONLY;
 	
 	public void findLogDirectory()
 	{
@@ -78,8 +83,13 @@ public class DataLogger
 		String valueString = String.valueOf(value);
 		dataNames.add(name);
 		dataValues.add(valueString);
-		
+
 		SmartDashboard.putBoolean(name, value);
+	}
+	
+	
+	public static void setOutputMode(OutputMode loc) {
+		mOutputMode = loc;
 	}
 	
 	public void putNumber(String name, double value)
@@ -87,7 +97,7 @@ public class DataLogger
 		String valueString = String.valueOf(value);
 		dataNames.add(name);
 		dataValues.add(valueString);
-		
+
 		SmartDashboard.putNumber(name, value);
 	}
 	
@@ -153,13 +163,16 @@ public class DataLogger
 				}
 				if (ps != null)
 				{
-					timeUpdated = (System.currentTimeMillis()-startTime);
-					ps.print(getDate());
-					ps.print(',');
-					ps.print(timeUpdated);
-					writeList(ps, dataValues);
-					ps.flush();
-					timeSinceLog = System.currentTimeMillis();
+					if ((mOutputMode==OutputMode.FILE_ONLY) || (mOutputMode==OutputMode.SMARTDASHBOARD_AND_FILE))
+					{
+						timeUpdated = (System.currentTimeMillis()-startTime);
+						ps.print(getDate());
+						ps.print(',');
+						ps.print(timeUpdated);
+						writeList(ps, dataValues);
+						ps.flush();
+						timeSinceLog = System.currentTimeMillis();
+					}
 				}
 			}
 			catch(IOException e)

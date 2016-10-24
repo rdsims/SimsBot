@@ -21,6 +21,6 @@ public class DriveStraightMode extends AutoModeBase {
     {
     	System.out.println("Starting Auto Mode: Drive Straight");
     	
-        runAction(new DriveStraightAction(24.0, 1.0));       		         
+        runAction(new DriveStraightAction(24.0, 12.0));       		         
     }
 }

@@ -65,9 +65,6 @@ public class RobotState {
     public static final int kObservationBufferSize = 100;
     public static final double kMaxTargetAge = 0.4;
 
-    public static final RigidTransform2d kTurretRotatingToCamera = new RigidTransform2d(
-            new Translation2d(Constants.kCameraXOffset, Constants.kCameraYOffset), new Rotation2d());
-
     // FPGATimestamp -> RigidTransform2d or Rotation2d
     protected InterpolatingTreeMap<InterpolatingDouble, RigidTransform2d> field_to_vehicle_;
     protected RigidTransform2d.Delta vehicle_velocity_;

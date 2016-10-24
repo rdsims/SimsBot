@@ -97,8 +97,6 @@ public class Robot extends IterativeRobot
 	
 	public void log()
 	{
-		dataLogger.putNumber("lMotorCurrent",  pdp.getCurrent(15));
-		dataLogger.putNumber("rMotorCurrent",  pdp.getCurrent(0));
 		drive.log();
 		mRobotState.log();
 		loopList.log();
@@ -117,21 +115,20 @@ public class Robot extends IterativeRobot
         try 
         {
             CrashTracker.logDisabledInit();
- /*
             if (mAutoModeExecuter != null) 
             {
                 mAutoModeExecuter.stop();
             }
             mAutoModeExecuter = null;
-*/
             
             loopList.stop();
 
             drive.setOpenLoop(DriveSignal.NEUTRAL);
             drive.setBrakeMode(true);
-            // Stop all actuators
-            stopAll();
             
+            stopAll();	// Stop all actuators
+
+    		DataLogger.setOutputMode(DataLogger.OutputMode.SMARTDASHBOARD_ONLY);
         } 
         catch (Throwable t) 
         {
@@ -147,7 +144,10 @@ public class Robot extends IterativeRobot
     	try
     	{
     		stopAll();
-    		drive.resetEncoders();
+            drive.resetEncoders();
+	        log();            		
+    		
+    		System.gc(); 	// runs garbage collector
     	}
     	catch (Throwable t)
     	{
@@ -175,13 +175,17 @@ public class Robot extends IterativeRobot
             mAutoModeExecuter = null;
 			
 	        // Reset all sensors
+    		drive.resetEncoders();
 	        zeroAllSensors();
 
+    		DataLogger.setOutputMode(DataLogger.OutputMode.SMARTDASHBOARD_AND_FILE);
+	        
             loopList.start();
 
             mAutoModeExecuter = new AutoModeExecuter();
             mAutoModeExecuter.setAutoMode(mSmartDashboardInteractions.getSelectedAutonMode());
             mAutoModeExecuter.start();
+                        
 		}
     	catch (Throwable t)
     	{
@@ -230,7 +234,9 @@ public class Robot extends IterativeRobot
             
             drive.setOpenLoop(DriveSignal.NEUTRAL);
             drive.setBrakeMode(false);
-        }
+
+    		DataLogger.setOutputMode(DataLogger.OutputMode.SMARTDASHBOARD_AND_FILE);
+    	}
     	catch (Throwable t) 
     	{
             CrashTracker.logThrowableCrash(t);

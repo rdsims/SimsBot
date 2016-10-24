@@ -68,7 +68,7 @@ public class SmartDashboardInteractions {
     {
     	AutonOption selMode = (AutonOption)autoModeChooser.getSelected(); 
     	int selLane = (int)autoLaneChooser.getSelected();
-
+    	
     	switch (selMode)
     	{
     	case STAND_STILL:
