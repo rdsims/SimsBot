@@ -146,9 +146,9 @@ public class Drive extends Subsystem
 
         rMotor_.setFeedbackDevice(CANTalon.FeedbackDevice.QuadEncoder);
         rMotor_.configEncoderCodesPerRev(Constants.kQuadEncoderCodesPerRev);
-        rMotor_.setInverted(false);		// right motor is flipped with respect to left motor.  Only works in PercentVbus mode
+        rMotor_.setInverted(false);		
         rMotor_.reverseSensor(true);	// inverts feedback in closed loop modes
-        rMotor_.reverseOutput(true);	// reverse direction of rotation in closed loop modes
+        rMotor_.reverseOutput(false);	
 
         // Load velocity control gains
         lMotor_.setPID(Constants.kDriveVelocityKp, Constants.kDriveVelocityKi, Constants.kDriveVelocityKd,
@@ -220,7 +220,7 @@ public class Drive extends Subsystem
 	      }
 	    }
 	    
-	    DriveSignal signal = new DriveSignal(-lMotorSpeed, rMotorSpeed);
+	    DriveSignal signal = new DriveSignal(lMotorSpeed, rMotorSpeed);
 	   	    
 	    return signal;
     }

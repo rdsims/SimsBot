@@ -12,7 +12,6 @@ import org.usfirst.frc.team686.simsbot.auto.AutoModeBase;
 import org.usfirst.frc.team686.simsbot.auto.AutoModeEndedException;
 import org.usfirst.frc.team686.simsbot.auto.actions.*;
 import org.usfirst.frc.team686.simsbot.subsystems.Drive.DriveControlState;
-
 import org.usfirst.frc.team686.simsbot.subsystems.Drive;
 
 
@@ -20,9 +19,9 @@ import org.usfirst.frc.team686.simsbot.subsystems.Drive;
  * Go over the defenses in the starting configuration, then launch one ball (in
  * the robot at start)
  */
-public class SquarePatternMode extends AutoModeBase {
+public class SimplePathMode extends AutoModeBase {
 
-    public SquarePatternMode(int lane, boolean shouldDriveBack) 
+    public SimplePathMode(int lane, boolean shouldDriveBack) 
     {
     }
 
@@ -31,26 +30,33 @@ public class SquarePatternMode extends AutoModeBase {
     {
     	System.out.println("Starting Auto Mode: Square Pattern");
 
-    	double vel = 36.0;
-    	 
-    	double D = 72.0;
+
+    	double vel = 48.0;
+    	
+       	double XX = 24.0;
+       	double X = 72.0;
+        double Y = 18.0;
+    	/* hit Matthew
+       	double XX = 36.0;
+       	double X = 96.0;
+        double Y = 48.0;
+    	*/
     	
         List<Waypoint> first_path = new ArrayList<>();
-        first_path.add(new Waypoint(new Translation2d( 0, 0), vel));
-        first_path.add(new Waypoint(new Translation2d( D, 0), vel));
-        first_path.add(new Waypoint(new Translation2d( D, D), vel));
-        first_path.add(new Waypoint(new Translation2d( 0, D), vel));
-        first_path.add(new Waypoint(new Translation2d( 0, 0), vel));
-        
+        first_path.add(new Waypoint(new Translation2d(  0, 0), vel));
+        first_path.add(new Waypoint(new Translation2d( XX, 0), vel));
+        first_path.add(new Waypoint(new Translation2d( XX, Y), vel));
+        first_path.add(new Waypoint(new Translation2d(  X, Y), vel));
+
         List<Waypoint> return_path = new ArrayList<>();
-        return_path.add(new Waypoint(new Translation2d( 0, 0), vel));
-        return_path.add(new Waypoint(new Translation2d( 0, D), vel));
-        return_path.add(new Waypoint(new Translation2d( D, D), vel));
-        return_path.add(new Waypoint(new Translation2d( D, 0), vel));
-        return_path.add(new Waypoint(new Translation2d( 0, 0), vel));
+        return_path.add(new Waypoint(new Translation2d(  X, Y), vel));
+        return_path.add(new Waypoint(new Translation2d( XX, Y), vel));
+        return_path.add(new Waypoint(new Translation2d( XX, 0), vel));
+        return_path.add(new Waypoint(new Translation2d(  0, 0), vel));
         
-        runAction(new FollowPathAction(new Path(first_path), false));   
         
+        runAction(new FollowPathAction(new Path(first_path), false));       		         
+
         runAction(new FollowPathAction(new Path(return_path), true));       		         
     }
 }

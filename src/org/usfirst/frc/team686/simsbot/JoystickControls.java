@@ -22,11 +22,11 @@ public class JoystickControls {
 
     // DRIVER CONTROLS
     public double getThrottle() {
-        return mStick.getY();	// TODO: figure out why X-axis is throttle
+        return -mStick.getY();	// TODO: figure out why Y-axis is negated
     }
 
     public double getTurn() {
-        return mStick.getX();	// TODO: figure out why Y-axis is turning
+        return -mStick.getX();	// TODO: figure out why X-axis is negated
     }
 
     public boolean getQuickTurn() {

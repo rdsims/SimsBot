@@ -15,7 +15,7 @@ public class Util
      */
     public static double limit(double val, double limit) 
     {
-        return (Math.abs(val) < limit) ? val : limit * (val < 0 ? -1 : 1);
+        return (Math.abs(val) < limit) ? val : Math.signum(val) * limit;
     }
 
     public static String joinStrings(String delim, List<?> strings) 

@@ -36,41 +36,49 @@ public class AdaptivePurePursuitController {
         mPathCompletionTolerance = path_completion_tolerance;
     }
 
-    public boolean isDone() {
+    public boolean isDone() 
+    {
         double remainingLength = mPath.getRemainingLength();
         return remainingLength <= mPathCompletionTolerance;
     }
 
-    public RigidTransform2d.Delta update(RigidTransform2d robot_pose, double now) {
+    public RigidTransform2d.Delta update(RigidTransform2d robot_pose, double now) 
+    {
         RigidTransform2d pose = robot_pose;
-        if (mReversed) {
+        if (mReversed) 
+        {
             pose = new RigidTransform2d(robot_pose.getTranslation(),
                     robot_pose.getRotation().rotateBy(Rotation2d.fromRadians(Math.PI)));
         }
 
         double distance_from_path = mPath.update(robot_pose.getTranslation());
-        if (this.isDone()) {
+        if (this.isDone()) 
+        {
             return new RigidTransform2d.Delta(0, 0, 0);
         }
 
-        PathSegment.Sample lookahead_point = mPath.getLookaheadPoint(robot_pose.getTranslation(),
-                distance_from_path + mFixedLookahead);
+        PathSegment.Sample lookahead_point = mPath.getLookaheadPoint(robot_pose.getTranslation(), distance_from_path + mFixedLookahead);
         Optional<Circle> circle = joinPath(pose, lookahead_point.translation);
 
         double speed = lookahead_point.speed;
-        if (mReversed) {
+        if (mReversed) 
+        {
             speed *= -1;
         }
         // Ensure we don't accelerate too fast from the previous command
         double dt = now - mLastTime;
-        if (mLastCommand == null) {
+        if (mLastCommand == null) 
+        {
             mLastCommand = new RigidTransform2d.Delta(0, 0, 0);
             dt = mDt;
         }
         double accel = (speed - mLastCommand.dx) / dt;
-        if (accel < -mMaxAccel) {
+        if (accel < -mMaxAccel) 
+        {
             speed = mLastCommand.dx - mMaxAccel * dt;
-        } else if (accel > mMaxAccel) {
+        } 
+        else if (accel > mMaxAccel) 
+        {
             speed = mLastCommand.dx + mMaxAccel * dt;
         }
 
@@ -79,25 +87,34 @@ public class AdaptivePurePursuitController {
         // 0 = v^2 + 2*a*d
         double remaining_distance = mPath.getRemainingLength();
         double max_allowed_speed = Math.sqrt(2 * mMaxAccel * remaining_distance);
-        if (Math.abs(speed) > max_allowed_speed) {
+        if (Math.abs(speed) > max_allowed_speed) 
+        {
             speed = max_allowed_speed * Math.signum(speed);
         }
         final double kMinSpeed = 4.0;
-        if (Math.abs(speed) < kMinSpeed) {
-            // Hack for dealing with problems tracking very low speeds with
-            // Talons
+        if (Math.abs(speed) < kMinSpeed) 
+        {
+            // Hack for dealing with problems tracking very low speeds with Talons
             speed = kMinSpeed * Math.signum(speed);
         }
 
         RigidTransform2d.Delta rv;
         if (circle.isPresent()) {
-            rv = new RigidTransform2d.Delta(speed, 0,
-                    (circle.get().turn_right ? -1 : 1) * Math.abs(speed) / circle.get().radius);
+            rv = new RigidTransform2d.Delta(speed, 0, (circle.get().turn_right ? -1 : 1) * Math.abs(speed) / circle.get().radius);
         } else {
             rv = new RigidTransform2d.Delta(speed, 0, 0);
         }
         mLastTime = now;
         mLastCommand = rv;
+        
+//DEBUG
+System.out.printf("Loc=(%.1f,%.1f), " ,robot_pose.getTranslation().getX(), robot_pose.getTranslation().getY());
+System.out.printf("DistFromPath=%.1f, ", distance_from_path);
+System.out.printf("Lookahead=(%.1f,%.1f), ", lookahead_point.translation.getX(), lookahead_point.translation.getY());
+System.out.printf("Speed=%.2f, ",  speed);
+System.out.printf("Cmd=(%.2f,%.2f)\n", rv.dx, rv.dtheta);
+
+
         return rv;
     }
 
@@ -105,19 +122,22 @@ public class AdaptivePurePursuitController {
         return mPath.getMarkersCrossed();
     }
 
-    public static class Circle {
+    public static class Circle 
+    {
         public final Translation2d center;
         public final double radius;
         public final boolean turn_right;
 
-        public Circle(Translation2d center, double radius, boolean turn_right) {
+        public Circle(Translation2d center, double radius, boolean turn_right) 
+        {
             this.center = center;
             this.radius = radius;
             this.turn_right = turn_right;
         }
     }
 
-    public static Optional<Circle> joinPath(RigidTransform2d robot_pose, Translation2d lookahead_point) {
+    public static Optional<Circle> joinPath(RigidTransform2d robot_pose, Translation2d lookahead_point) 
+    {
         double x1 = robot_pose.getTranslation().getX();
         double y1 = robot_pose.getTranslation().getY();
         double x2 = lookahead_point.getX();
@@ -125,19 +145,21 @@ public class AdaptivePurePursuitController {
 
         Translation2d pose_to_lookahead = robot_pose.getTranslation().inverse().translateBy(lookahead_point);
         double cross_product = pose_to_lookahead.getX() * robot_pose.getRotation().sin()
-                - pose_to_lookahead.getY() * robot_pose.getRotation().cos();
-        if (Math.abs(cross_product) < kEpsilon) {
+                             - pose_to_lookahead.getY() * robot_pose.getRotation().cos();
+        if (Math.abs(cross_product) < kEpsilon) 
+        {
             return Optional.empty();
         }
 
         double dx = x1 - x2;
         double dy = y1 - y2;
-        double my = (cross_product > 0 ? -1 : 1) * robot_pose.getRotation().cos();
-        double mx = (cross_product > 0 ? 1 : -1) * robot_pose.getRotation().sin();
+        double mx =  Math.signum(cross_product) * robot_pose.getRotation().sin();
+        double my = -Math.signum(cross_product) * robot_pose.getRotation().cos();
 
         double cross_term = mx * dx + my * dy;
 
-        if (Math.abs(cross_term) < kEpsilon) {
+        if (Math.abs(cross_term) < kEpsilon) 
+        {
             // Points are colinear
             return Optional.empty();
         }
@@ -145,7 +167,7 @@ public class AdaptivePurePursuitController {
         return Optional.of(new Circle(
                 new Translation2d((mx * (x1 * x1 - x2 * x2 - dy * dy) + 2 * my * x1 * dy) / (2 * cross_term),
                         (-my * (-y1 * y1 + y2 * y2 + dx * dx) + 2 * mx * y1 * dx) / (2 * cross_term)),
-                .5 * Math.abs((dx * dx + dy * dy) / cross_term), cross_product > 0));
+                		(0.5 * Math.abs((dx * dx + dy * dy) / cross_term)), (cross_product > 0)));
     }
 
 }

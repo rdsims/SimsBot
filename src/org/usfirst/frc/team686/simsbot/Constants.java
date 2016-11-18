@@ -31,13 +31,11 @@ public class Constants extends ConstantsBase {
     // CONTROL LOOP GAINS
 
     // Path following constants
-//    public static double kPathFollowingLookahead = 24.0; // inches
-// shorten for testing
-    public static double kPathFollowingLookahead = 3.0; // inches
+    public static double kPathFollowingLookahead = 24.0; // inches
     public static double kPathFollowingMaxVel    = 90.0; // inches/sec  		// RS measured ~100 inches/sec on carpet
 //    public static double kPathFollowingMaxAccel  = 90.0; // inches/sec^2		// RS measured 800-1000 inches/sec^2 on carpet
 //slow down for testing
-    public static double kPathFollowingMaxAccel  = 12.0; // inches/sec^2		// RS measured 800-1000 inches/sec^2 on carpet
+    public static double kPathFollowingMaxAccel  = 24.0; // inches/sec^2		// RS measured 800-1000 inches/sec^2 on carpet
     public static double kPathFollowingMaxVelPulsePer100ms = kPathFollowingMaxVel / kDriveWheelCircumInches * kQuadEncoderStatusFramePeriod * kQuadEncoderPulsesPerRev; 
 
     
