@@ -20,7 +20,7 @@ public class DistanceBangBangControlAction implements Action {
     
     public DistanceBangBangControlAction() 
     {
-    	mTargetDistance = getCurrentDistance() + 36.0;	// inches
+    	mTargetDistance = getCurrentDistance() + 48.0;	// inches
         mVelocity = 24.0;								// inches/sec
         mHeading = 0.0;									// degrees
         mDemoState = DemoState.DEMO;
@@ -37,17 +37,24 @@ public class DistanceBangBangControlAction implements Action {
     	switch (mDemoState)
     	{
     	case DEMO:
+        	double error = mTargetDistance - getCurrentDistance();
         	// Bang-Bang Control
         	// =================
         	// Motor speed is set to full power, in the direction of the target
         	
         	double currentDistance = getCurrentDistance();
         	
-        	if (currentDistance < mTargetDistance)
+        	if (error > .25)
+        	{
         		mDrive.setVelocityHeadingSetpoint(+mVelocity, Rotation2d.fromDegrees(mHeading));
-        	else
+        	}
+        	else if (error < -.25)
+        	{
         		mDrive.setVelocityHeadingSetpoint(-mVelocity, Rotation2d.fromDegrees(mHeading));
-
+        	}
+        	else
+        		mDemoState = DemoState.WAIT;
+        		
             if (currentDistance == mTargetDistance)
             	mDemoState = DemoState.WAIT;
         	break;

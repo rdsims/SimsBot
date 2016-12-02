@@ -33,8 +33,8 @@ public class SimplePathMode extends AutoModeBase {
 
     	double vel = 48.0;
     	
-       	double XX = 24.0;
-       	double X = 72.0;
+       	double XX = 48.0;
+       	double X = 96.0;
         double Y = 18.0;
     	/* hit Matthew
        	double XX = 36.0;

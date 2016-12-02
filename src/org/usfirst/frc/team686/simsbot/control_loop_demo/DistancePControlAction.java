@@ -27,7 +27,7 @@ public class DistancePControlAction implements Action {
     
     public DistancePControlAction(double _kp) 
     {
-    	mTargetDistance = getCurrentDistance() + 36.0;	// inches
+    	mTargetDistance = getCurrentDistance() + 48.0;	// inches
         mVelocity = 24.0;								// inches/sec
         mHeading = 0.0;									// degrees
         mDemoState = DemoState.DEMO;

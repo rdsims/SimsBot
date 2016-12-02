@@ -251,7 +251,8 @@ public class Robot extends IterativeRobot
     {
     	try
     	{
-            drive.setOpenLoop(drive.tankDrive( controls.getThrottle(), controls.getTurn() ));
+    		// CHANGED TO TRIGGERDRIVE
+            drive.setOpenLoop(drive.triggerDrive( controls.getThrottle(), controls.getTurn() ));
             
             log();           		
     	}
