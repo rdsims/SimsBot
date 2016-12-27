@@ -3,6 +3,8 @@ package org.usfirst.frc.team686.simsbot;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
+import org.usfirst.frc.team686.lib.joystick.*;
+
 import org.usfirst.frc.team686.simsbot.auto.AutoModeBase;
 import org.usfirst.frc.team686.simsbot.auto.AutoModeEndedException;
 import org.usfirst.frc.team686.simsbot.auto.modes.*;
@@ -20,7 +22,7 @@ public class SmartDashboardInteractions {
 
     SendableChooser autoModeChooser;
     SendableChooser autoLaneChooser;
-
+    
     enum AutonOption 
     {
         STAND_STILL("Stand Still"),
@@ -48,6 +50,23 @@ public class SmartDashboardInteractions {
         }
     }
     
+    
+    SendableChooser joystickModeChooser;
+    
+    enum JoystickOption 
+    {
+        ARCADE_DRIVE("Arcade Drive"),
+        TRIGGER_DRIVE("Trigger Drive"),
+        STEERING_WHEEL_DRIVE("Steering Wheel Drive");
+
+        public final String name;
+
+        JoystickOption(String name) {
+            this.name = name;
+        }
+    }
+    
+    
     public void initWithDefaults() 
     {
     	autoModeChooser = new SendableChooser();
@@ -63,6 +82,12 @@ public class SmartDashboardInteractions {
     	autoLaneChooser.addDefault("Lane 4", 4);
     	autoLaneChooser.addObject( "Lane 5", 5);
     	SmartDashboard.putData("Auto Lane Chooser", autoLaneChooser);
+    	
+    	joystickModeChooser = new SendableChooser();
+    	joystickModeChooser.addDefault(JoystickOption.ARCADE_DRIVE.toString(),         JoystickOption.ARCADE_DRIVE);
+    	joystickModeChooser.addDefault(JoystickOption.TRIGGER_DRIVE.toString(),        JoystickOption.TRIGGER_DRIVE);
+    	joystickModeChooser.addDefault(JoystickOption.STEERING_WHEEL_DRIVE.toString(), JoystickOption.STEERING_WHEEL_DRIVE);
+    	
      }
     
     public AutoModeBase getSelectedAutonMode() 
@@ -84,6 +109,28 @@ public class SmartDashboardInteractions {
 		default:
             System.out.println("ERROR: unexpected auto mode: " + selMode);
 			return new StandStillMode();
+    	}
+    }
+
+
+    public JoystickControlsBase getJoystickControlsMode() 
+    {
+    	JoystickOption selMode = (JoystickOption)joystickModeChooser.getSelected(); 
+    	
+    	switch (selMode)
+    	{
+    	case ARCADE_DRIVE:
+			return ArcadeDriveJoystick.getInstance();
+			
+    	case TRIGGER_DRIVE:
+			return new TriggerDriveJoystick();
+			
+    	case STEERING_WHEEL_DRIVE:
+    		return new SteeringWheelDriveJoystick();
+    		
+		default:
+            System.out.println("ERROR: unexpected joystick selection: " + selMode);
+			return new ArcadeDriveJoystick();
     	}
     }
 }

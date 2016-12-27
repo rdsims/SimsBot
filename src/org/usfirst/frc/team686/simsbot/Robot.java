@@ -10,10 +10,10 @@ import edu.wpi.first.wpilibj.PowerDistributionPanel;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
+import org.usfirst.frc.team686.lib.joystick.*;
 import org.usfirst.frc.team686.lib.util.*;
 
 import org.usfirst.frc.team686.simsbot.auto.AutoModeExecuter;
-import org.usfirst.frc.team686.simsbot.JoystickControls;
 import org.usfirst.frc.team686.simsbot.loops.LoopList;
 import org.usfirst.frc.team686.simsbot.loops.RobotStateEstimator;
 import org.usfirst.frc.team686.simsbot.subsystems.Drive;
@@ -33,7 +33,7 @@ public class Robot extends IterativeRobot
 	Drive drive = Drive.getInstance();
 	AutoModeExecuter mAutoModeExecuter = null;
 	
-	JoystickControls controls = JoystickControls.getInstance();
+	JoystickControlsBase controls;
 	DataLogger dataLogger = DataLogger.getInstance();
     RobotState mRobotState = RobotState.getInstance();
     
@@ -226,6 +226,9 @@ public class Robot extends IterativeRobot
     	{
             CrashTracker.logTeleopInit();
 
+            // Select joystick control method
+            controls = mSmartDashboardInteractions.getJoystickControlsMode();
+            
             // Reset drive
             drive.resetEncoders();
 
@@ -252,7 +255,7 @@ public class Robot extends IterativeRobot
     	try
     	{
     		// CHANGED TO TRIGGERDRIVE
-            drive.setOpenLoop(drive.triggerDrive( controls.getThrottle(), controls.getTurn() ));
+            drive.setOpenLoop( controls.getDriveSignal() );
             
             log();           		
     	}
