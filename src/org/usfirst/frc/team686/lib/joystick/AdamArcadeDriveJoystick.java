@@ -5,13 +5,13 @@ import org.usfirst.frc.team686.lib.util.DriveSignal;
 import org.usfirst.frc.team686.lib.util.Util;
 
 /**
- * For use with Xbox steering wheel
+ * Implements a simple arcade drive, where single stick is used for throttle and turn.
  */
-public class SteeringWheelDriveJoystick extends JoystickControlsBase 
+public class AdamArcadeDriveJoystick extends JoystickControlsBase 
 {
-    private static JoystickControlsBase mInstance = new SteeringWheelDriveJoystick();
+    private static JoystickControlsBase mInstance = new AdamArcadeDriveJoystick();
 
-    public JoystickControlsBase getInstance() 
+    public static JoystickControlsBase getInstance() 
     {
         return mInstance;
     }
@@ -23,7 +23,13 @@ public class SteeringWheelDriveJoystick extends JoystickControlsBase
 	    
     	double throttle = -mStick.getY();	// TODO: figure out why Y-axis is negated
         double turn     = -mStick.getX();	// TODO: figure out why X-axis is negated
-     	
+
+        // negate turning direction when driving backwards
+        // because that makes sense.  really.
+        if (throttle < 0)
+        	turn = -turn;
+        
+        
 	    double moveValue   = Util.limit(throttle, 1.0);
 	    double rotateValue = Util.limit(turn,     1.0);
 	    double lMotorSpeed, rMotorSpeed;

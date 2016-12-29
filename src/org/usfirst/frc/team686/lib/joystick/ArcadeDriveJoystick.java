@@ -23,7 +23,7 @@ public class ArcadeDriveJoystick extends JoystickControlsBase
 	    
     	double throttle = -mStick.getY();	// TODO: figure out why Y-axis is negated
         double turn     = -mStick.getX();	// TODO: figure out why X-axis is negated
-     	
+     
 	    double moveValue   = Util.limit(throttle, 1.0);
 	    double rotateValue = Util.limit(turn,     1.0);
 	    double lMotorSpeed, rMotorSpeed;

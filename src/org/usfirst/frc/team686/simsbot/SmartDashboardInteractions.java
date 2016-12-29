@@ -56,8 +56,9 @@ public class SmartDashboardInteractions {
     enum JoystickOption 
     {
         ARCADE_DRIVE("Arcade Drive"),
+        ADAM_ARCADE_DRIVE("Adam Arcade Drive"),
         TRIGGER_DRIVE("Trigger Drive"),
-        STEERING_WHEEL_DRIVE("Steering Wheel Drive");
+        TANK_DRIVE("Tank Drive");
 
         public final String name;
 
@@ -84,9 +85,11 @@ public class SmartDashboardInteractions {
     	SmartDashboard.putData("Auto Lane Chooser", autoLaneChooser);
     	
     	joystickModeChooser = new SendableChooser();
-    	joystickModeChooser.addDefault(JoystickOption.ARCADE_DRIVE.toString(),         JoystickOption.ARCADE_DRIVE);
-    	joystickModeChooser.addDefault(JoystickOption.TRIGGER_DRIVE.toString(),        JoystickOption.TRIGGER_DRIVE);
-    	joystickModeChooser.addDefault(JoystickOption.STEERING_WHEEL_DRIVE.toString(), JoystickOption.STEERING_WHEEL_DRIVE);
+    	joystickModeChooser.addDefault(JoystickOption.ARCADE_DRIVE.toString(),        JoystickOption.ARCADE_DRIVE);
+    	joystickModeChooser.addObject(JoystickOption.ADAM_ARCADE_DRIVE.toString(),    JoystickOption.ADAM_ARCADE_DRIVE);
+    	joystickModeChooser.addObject(JoystickOption.TRIGGER_DRIVE.toString(),        JoystickOption.TRIGGER_DRIVE);
+    	joystickModeChooser.addObject(JoystickOption.TANK_DRIVE.toString(), 	      JoystickOption.TANK_DRIVE);
+    	SmartDashboard.putData("Joystick Chooser", joystickModeChooser);
     	
      }
     
@@ -122,15 +125,18 @@ public class SmartDashboardInteractions {
     	case ARCADE_DRIVE:
 			return ArcadeDriveJoystick.getInstance();
 			
+    	case ADAM_ARCADE_DRIVE:
+			return AdamArcadeDriveJoystick.getInstance();
+
     	case TRIGGER_DRIVE:
-			return new TriggerDriveJoystick();
+			return TriggerDriveJoystick.getInstance();
 			
-    	case STEERING_WHEEL_DRIVE:
-    		return new SteeringWheelDriveJoystick();
+    	case TANK_DRIVE:
+    		return TankDriveJoystick.getInstance();
     		
 		default:
             System.out.println("ERROR: unexpected joystick selection: " + selMode);
-			return new ArcadeDriveJoystick();
+			return ArcadeDriveJoystick.getInstance();
     	}
     }
 }

@@ -33,7 +33,7 @@ public class Robot extends IterativeRobot
 	Drive drive = Drive.getInstance();
 	AutoModeExecuter mAutoModeExecuter = null;
 	
-	JoystickControlsBase controls;
+	JoystickControlsBase controls = ArcadeDriveJoystick.getInstance();
 	DataLogger dataLogger = DataLogger.getInstance();
     RobotState mRobotState = RobotState.getInstance();
     
@@ -254,7 +254,6 @@ public class Robot extends IterativeRobot
     {
     	try
     	{
-    		// CHANGED TO TRIGGERDRIVE
             drive.setOpenLoop( controls.getDriveSignal() );
             
             log();           		

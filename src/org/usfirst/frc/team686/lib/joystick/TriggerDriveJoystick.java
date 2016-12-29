@@ -11,7 +11,7 @@ public class TriggerDriveJoystick extends JoystickControlsBase
 {
     private static JoystickControlsBase mInstance = new TriggerDriveJoystick();
 
-    public JoystickControlsBase getInstance() 
+    public static JoystickControlsBase getInstance() 
     {
         return mInstance;
     }
