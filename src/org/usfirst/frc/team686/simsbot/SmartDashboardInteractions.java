@@ -58,7 +58,8 @@ public class SmartDashboardInteractions {
         ARCADE_DRIVE("Arcade Drive"),
         ADAM_ARCADE_DRIVE("Adam Arcade Drive"),
         TRIGGER_DRIVE("Trigger Drive"),
-        TANK_DRIVE("Tank Drive");
+        TANK_DRIVE("Tank Drive"),
+        POLAR_ARCADE_DRIVE("Polar Arcade Drive");
 
         public final String name;
 
@@ -86,9 +87,10 @@ public class SmartDashboardInteractions {
     	
     	joystickModeChooser = new SendableChooser();
     	joystickModeChooser.addDefault(JoystickOption.ARCADE_DRIVE.toString(),        JoystickOption.ARCADE_DRIVE);
-    	joystickModeChooser.addObject(JoystickOption.ADAM_ARCADE_DRIVE.toString(),    JoystickOption.ADAM_ARCADE_DRIVE);
     	joystickModeChooser.addObject(JoystickOption.TRIGGER_DRIVE.toString(),        JoystickOption.TRIGGER_DRIVE);
     	joystickModeChooser.addObject(JoystickOption.TANK_DRIVE.toString(), 	      JoystickOption.TANK_DRIVE);
+    	joystickModeChooser.addObject(JoystickOption.ADAM_ARCADE_DRIVE.toString(),    JoystickOption.ADAM_ARCADE_DRIVE);
+    	joystickModeChooser.addObject(JoystickOption.POLAR_ARCADE_DRIVE.toString(),   JoystickOption.POLAR_ARCADE_DRIVE);
     	SmartDashboard.putData("Joystick Chooser", joystickModeChooser);
     	
      }
@@ -133,6 +135,9 @@ public class SmartDashboardInteractions {
 			
     	case TANK_DRIVE:
     		return TankDriveJoystick.getInstance();
+    		
+    	case POLAR_ARCADE_DRIVE:
+    		return PolarArcadeDriveJoystick.getInstance();
     		
 		default:
             System.out.println("ERROR: unexpected joystick selection: " + selMode);

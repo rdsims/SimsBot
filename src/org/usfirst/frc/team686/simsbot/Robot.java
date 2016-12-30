@@ -41,6 +41,17 @@ public class Robot extends IterativeRobot
 	
     SmartDashboardInteractions mSmartDashboardInteractions = new SmartDashboardInteractions();
 
+    enum OperationalMode 
+    { 
+    	DISABLED(0), AUTONOMOUS(1), TELEOP(2), TEST(3);
+    
+    	private int val;
+    	private OperationalMode(int val) { this.val = val; }
+    	public int getVal() { return val; }
+    }
+
+    
+    
     
    public Robot()
    {
@@ -71,7 +82,7 @@ public class Robot extends IterativeRobot
 	        // Configure LoopLists
 	        loopList.register(drive.getLoop());
 	        loopList.register(RobotStateEstimator.getInstance());
-            
+	        
 	    	// Set dataLogger and Time information
 	    	TimeZone.setDefault(TimeZone.getTimeZone("America/New_York"));
 	
@@ -128,6 +139,7 @@ public class Robot extends IterativeRobot
             
             stopAll();	// Stop all actuators
 
+      		dataLogger.putNumber("OperationalMode", OperationalMode.DISABLED.getVal());
     		DataLogger.setOutputMode(DataLogger.OutputMode.SMARTDASHBOARD_ONLY);
         } 
         catch (Throwable t) 
@@ -178,6 +190,7 @@ public class Robot extends IterativeRobot
     		drive.resetEncoders();
 	        zeroAllSensors();
 
+      		dataLogger.putNumber("OperationalMode", OperationalMode.AUTONOMOUS.getVal());
     		DataLogger.setOutputMode(DataLogger.OutputMode.SMARTDASHBOARD_AND_FILE);
 	        
             loopList.start();
@@ -238,6 +251,7 @@ public class Robot extends IterativeRobot
             drive.setOpenLoop(DriveSignal.NEUTRAL);
             drive.setBrakeMode(false);
 
+      		dataLogger.putNumber("OperationalMode", OperationalMode.TELEOP.getVal());
     		DataLogger.setOutputMode(DataLogger.OutputMode.SMARTDASHBOARD_AND_FILE);
     	}
     	catch (Throwable t) 

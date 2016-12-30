@@ -37,14 +37,16 @@ public class RobotStateEstimator implements Loop {
     @Override
     public void onLoop() {
         double time = Timer.getFPGATimestamp();
-        double left_distance = drive_.getLeftDistanceInches();
+        double left_distance  = drive_.getLeftDistanceInches();
         double right_distance = drive_.getRightDistanceInches();
+        double left_speed  = drive_.getLeftVelocityInchesPerSec();
+        double right_speed = drive_.getRightVelocityInchesPerSec(); 
         Rotation2d gyro_angle = Rotation2d.fromDegrees(drive_.getHeading());
 
         RigidTransform2d odometry = robot_state_.generateOdometryFromSensors(
                 left_distance - left_encoder_prev_distance_, right_distance - right_encoder_prev_distance_, gyro_angle);
-        RigidTransform2d.Delta velocity = Kinematics.forwardKinematics(drive_.getLeftVelocityInchesPerSec(),
-                drive_.getRightVelocityInchesPerSec());
+        RigidTransform2d.Delta velocity = Kinematics.forwardKinematics(left_speed, right_speed);
+                
         robot_state_.addObservations(time, odometry, velocity);
         left_encoder_prev_distance_ = left_distance;
         right_encoder_prev_distance_ = right_distance;

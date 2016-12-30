@@ -7,9 +7,9 @@ import org.usfirst.frc.team686.lib.util.Util;
 /**
  * Implements a simple arcade drive, where single stick is used for throttle and turn.
  */
-public class ArcadeDriveJoystick extends JoystickControlsBase 
+public class PolarArcadeDriveJoystick extends JoystickControlsBase 
 {
-    private static JoystickControlsBase mInstance = new ArcadeDriveJoystick();
+    private static JoystickControlsBase mInstance = new PolarArcadeDriveJoystick();
 
     public static JoystickControlsBase getInstance() 
     {
@@ -19,11 +19,28 @@ public class ArcadeDriveJoystick extends JoystickControlsBase
     
     public DriveSignal getDriveSignal()
     {
-//	    boolean squaredInputs = true;	// set to true to increase fine control while permitting full power
 	    boolean squaredInputs = false;	// set to true to increase fine control while permitting full power
 	    
-    	double throttle = -mStick.getY();	// TODO: figure out why Y-axis is negated
-        double turn     = -mStick.getX();	// TODO: figure out why X-axis is negated
+	    double turn = 0;
+	    double throttle = 0;
+	    
+    	if (-mStick.getY() > 0)
+    	{
+    		double theta = Math.atan(-mStick.getX()/-mStick.getY());
+    		throttle = Math.sqrt(mStick.getY() * mStick.getY() + mStick.getX() * mStick.getX());
+    		turn = theta*2/Math.PI;
+    	}
+    	else if (-mStick.getY() < 0)
+    	{
+    		double theta = Math.atan(-(-mStick.getX()/-mStick.getY()));
+    		throttle = -Math.sqrt(mStick.getY() * mStick.getY() + mStick.getX() * mStick.getX());
+    		turn = theta*2/Math.PI;
+    	}
+    	else
+    	{
+    		throttle = Math.abs(mStick.getX());
+			turn = mStick.getX();
+    	}
      
 	    double moveValue   = Util.limit(throttle, 1.0);
 	    double rotateValue = Util.limit(turn,     1.0);
