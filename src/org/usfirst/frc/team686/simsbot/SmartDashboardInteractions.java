@@ -56,9 +56,12 @@ public class SmartDashboardInteractions {
     enum JoystickOption 
     {
         ARCADE_DRIVE("Arcade Drive"),
-        ADAM_ARCADE_DRIVE("Adam Arcade Drive"),
-        TRIGGER_DRIVE("Trigger Drive"),
+        TRIGGER_DRIVE("Trigger Drive"),				// works for Xbox controller and Xbox steering wheel
         TANK_DRIVE("Tank Drive"),
+        CHEESY_ARCADE_DRIVE("Cheesy Arcade Drive"),
+        CHEESY_TRIGGER_DRIVE("Cheesy Trigger Drive"),
+        CHEESY_2STICK_DRIVE("Cheesy Two-Stick Drive"),
+        ADAM_ARCADE_DRIVE("Adam Arcade Drive"),
         POLAR_ARCADE_DRIVE("Polar Arcade Drive");
 
         public final String name;
@@ -89,6 +92,9 @@ public class SmartDashboardInteractions {
     	joystickModeChooser.addDefault(JoystickOption.ARCADE_DRIVE.toString(),        JoystickOption.ARCADE_DRIVE);
     	joystickModeChooser.addObject(JoystickOption.TRIGGER_DRIVE.toString(),        JoystickOption.TRIGGER_DRIVE);
     	joystickModeChooser.addObject(JoystickOption.TANK_DRIVE.toString(), 	      JoystickOption.TANK_DRIVE);
+     	joystickModeChooser.addObject(JoystickOption.CHEESY_ARCADE_DRIVE.toString(),  JoystickOption.CHEESY_ARCADE_DRIVE);
+    	joystickModeChooser.addObject(JoystickOption.CHEESY_TRIGGER_DRIVE.toString(), JoystickOption.CHEESY_TRIGGER_DRIVE);
+    	joystickModeChooser.addObject(JoystickOption.CHEESY_2STICK_DRIVE.toString(),  JoystickOption.CHEESY_2STICK_DRIVE);
     	joystickModeChooser.addObject(JoystickOption.ADAM_ARCADE_DRIVE.toString(),    JoystickOption.ADAM_ARCADE_DRIVE);
     	joystickModeChooser.addObject(JoystickOption.POLAR_ARCADE_DRIVE.toString(),   JoystickOption.POLAR_ARCADE_DRIVE);
     	SmartDashboard.putData("Joystick Chooser", joystickModeChooser);
@@ -127,19 +133,28 @@ public class SmartDashboardInteractions {
     	case ARCADE_DRIVE:
 			return ArcadeDriveJoystick.getInstance();
 			
-    	case ADAM_ARCADE_DRIVE:
-			return AdamArcadeDriveJoystick.getInstance();
-
     	case TRIGGER_DRIVE:
 			return TriggerDriveJoystick.getInstance();
 			
     	case TANK_DRIVE:
     		return TankDriveJoystick.getInstance();
     		
+    	case CHEESY_ARCADE_DRIVE:
+    		return CheesyArcadeDriveJoystick.getInstance();
+    		
+    	case CHEESY_TRIGGER_DRIVE:
+    		return CheesyTriggerDriveJoystick.getInstance();
+    		
+    	case CHEESY_2STICK_DRIVE:
+    		return CheesyTwoStickDriveJoystick.getInstance();
+
+    	case ADAM_ARCADE_DRIVE:
+			return AdamArcadeDriveJoystick.getInstance();
+
     	case POLAR_ARCADE_DRIVE:
     		return PolarArcadeDriveJoystick.getInstance();
-    		
-		default:
+    		    		
+    	default:
             System.out.println("ERROR: unexpected joystick selection: " + selMode);
 			return ArcadeDriveJoystick.getInstance();
     	}
