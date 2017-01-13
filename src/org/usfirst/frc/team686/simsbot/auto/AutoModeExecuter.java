@@ -14,6 +14,10 @@ public class AutoModeExecuter {
         m_auto_mode = new_auto_mode;
     }
 
+    public AutoModeBase getAutoMode() {
+        return m_auto_mode;
+    }
+
     public void start() {
         if (m_thread == null) {
             m_thread = new Thread(new CrashTrackingRunnable() {

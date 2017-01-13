@@ -1,5 +1,6 @@
 package org.usfirst.frc.team686.simsbot.auto;
 
+import org.usfirst.frc.team686.lib.util.Translation2d;
 import org.usfirst.frc.team686.simsbot.auto.actions.Action;
 
 /**
@@ -10,6 +11,11 @@ public abstract class AutoModeBase {
     protected double m_update_rate = 1.0 / 50.0;
     protected boolean m_active = false;
 
+    public Translation2d getInitialPosition()
+    {
+    	return new Translation2d(0.0,0.0);
+    }
+    
     protected abstract void routine() throws AutoModeEndedException;
 
     public void run() {

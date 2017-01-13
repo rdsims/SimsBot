@@ -22,9 +22,11 @@ public class SmartDashboardInteractions {
 
     SendableChooser autoModeChooser;
     SendableChooser autoLaneChooser;
+    SendableChooser autoShootChooser;
     
     enum AutonOption 
     {
+        PLACE_PEG("Place Peg"),
         STAND_STILL("Stand Still"),
         DRIVE_STRAIGHT("Drive Straight"),
         SQUARE_PATTERN("Square Pattern");
@@ -76,17 +78,21 @@ public class SmartDashboardInteractions {
     {
     	autoModeChooser = new SendableChooser();
     	autoModeChooser.addDefault(AutonOption.STAND_STILL.toString(),    AutonOption.STAND_STILL);
+    	autoModeChooser.addObject( AutonOption.PLACE_PEG.toString(),      AutonOption.PLACE_PEG);
     	autoModeChooser.addObject( AutonOption.DRIVE_STRAIGHT.toString(), AutonOption.DRIVE_STRAIGHT);
     	autoModeChooser.addObject( AutonOption.SQUARE_PATTERN.toString(), AutonOption.SQUARE_PATTERN);
     	SmartDashboard.putData("Auto Mode Chooser", autoModeChooser);
     	
     	autoLaneChooser = new SendableChooser();
-    	autoLaneChooser.addObject( "Lane 1", 1);
+    	autoLaneChooser.addDefault("Lane 1", 1);
     	autoLaneChooser.addObject( "Lane 2", 2);
     	autoLaneChooser.addObject( "Lane 3", 3);
-    	autoLaneChooser.addDefault("Lane 4", 4);
-    	autoLaneChooser.addObject( "Lane 5", 5);
     	SmartDashboard.putData("Auto Lane Chooser", autoLaneChooser);
+    	
+    	autoShootChooser = new SendableChooser();
+    	autoShootChooser.addDefault("Do Not Shoot", 0);
+    	autoShootChooser.addObject( "Shoot", 1);
+    	SmartDashboard.putData("Shooting Chooser", autoShootChooser);
     	
     	joystickModeChooser = new SendableChooser();
     	joystickModeChooser.addDefault(JoystickOption.ARCADE_DRIVE.toString(),        JoystickOption.ARCADE_DRIVE);
@@ -110,6 +116,10 @@ public class SmartDashboardInteractions {
     	{
     	case STAND_STILL:
 			return new StandStillMode();
+			
+    	case PLACE_PEG:
+        	boolean isShooting = ((int)autoShootChooser.getSelected() == 1);
+			return new AutoPlacePegMode(selLane, isShooting);
 			
     	case DRIVE_STRAIGHT:
 			return new DriveStraightMode(selLane, false);

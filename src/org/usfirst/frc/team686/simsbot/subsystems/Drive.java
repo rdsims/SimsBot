@@ -2,6 +2,7 @@ package org.usfirst.frc.team686.simsbot.subsystems;
 
 //import java.util.Set;
 
+//import com.ctre.CANTalon;
 import edu.wpi.first.wpilibj.CANTalon;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Timer;
@@ -253,14 +254,16 @@ public class Drive extends Subsystem
      * @param reversed
      * @see com.team254.lib.util/Path.java
      */
-    public synchronized void followPath(Path path, boolean reversed) {
-        if (driveControlState_ != DriveControlState.PATH_FOLLOWING_CONTROL) {
+    public synchronized void followPath(Path path, boolean reversed) 
+    {
+        if (driveControlState_ != DriveControlState.PATH_FOLLOWING_CONTROL) 
+        {
             configureTalonsForSpeedControl();
             driveControlState_ = DriveControlState.PATH_FOLLOWING_CONTROL;
             velocityHeadingPid_.reset();
         }
         pathFollowingController_ = new AdaptivePurePursuitController(Constants.kPathFollowingLookahead,
-                Constants.kPathFollowingMaxAccel, Constants.kLoopDt, path, reversed, 0.25);
+                Constants.kPathFollowingMaxAccel, Constants.kLoopDt, path, reversed, 1.0);
         updatePathFollower();
     }
 
@@ -455,7 +458,16 @@ public class Drive extends Subsystem
 		dataLogger.putNumber("Heading", 	 	getHeading());
 		dataLogger.putNumber("Heading Error",	mLastHeadingErrorDegrees);
 		dataLogger.putNumber("Heading PID Error",	velocityHeadingPid_.getError());		
-		dataLogger.putNumber("Heading PID Output",	velocityHeadingPid_.get());		
+		dataLogger.putNumber("Heading PID Output",	velocityHeadingPid_.get());	
+		
+		try	// pathFollowingController doesn't exist until started
+		{
+			pathFollowingController_.log();
+		}
+		catch (NullPointerException e)
+		{
+			// skip logging pathFollowingController_ when it doesn't exist 
+		}
     }
 
 

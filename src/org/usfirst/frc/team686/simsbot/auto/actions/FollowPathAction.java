@@ -9,7 +9,8 @@ import org.usfirst.frc.team686.lib.util.Path;
  * @see Drive
  * @see Path
  */
-public class FollowPathAction implements Action {
+public class FollowPathAction implements Action 
+{
 
     private Drive mDrive = Drive.getInstance();
 
@@ -17,33 +18,39 @@ public class FollowPathAction implements Action {
     private boolean mReversed;
     private boolean mHasStarted;
 
-    public FollowPathAction(Path path, boolean reversed) {
+    public FollowPathAction(Path path, boolean reversed) 
+    {
         mPath = path;
         mReversed = reversed;
         mHasStarted = false;
     }
 
     @Override
-    public boolean isFinished() {
+    public boolean isFinished() 
+    {
         boolean done = mDrive.isFinishedPath() && mHasStarted;
-        if (done) {
+        if (done) 
+        {
             System.out.println("Finished path");
         }
         return done;
     }
 
     @Override
-    public void update() {
+    public void update() 
+    {
         mHasStarted = true;
     }
 
     @Override
-    public void done() {
+    public void done() 
+    {
         mDrive.stop();
     }
 
     @Override
-    public void start() {
+    public void start() 
+    {
         mDrive.followPath(mPath, mReversed);
     }
 
