@@ -80,16 +80,16 @@ public class RobotState {
         vehicle_velocity_ = new RigidTransform2d.Delta(0, 0, 0);
     }
 
-    public synchronized RigidTransform2d getFieldToVehicle(double timestamp) {
+	public synchronized RigidTransform2d getFieldToVehicle(double timestamp) {
         return field_to_vehicle_.getInterpolated(new InterpolatingDouble(timestamp));
     }
 
-    public synchronized Map.Entry<InterpolatingDouble, RigidTransform2d> getLatestFieldToVehicle() {
-        return field_to_vehicle_.lastEntry();
+    public synchronized RigidTransform2d getLatestFieldToVehicle() {
+        return field_to_vehicle_.lastEntry().getValue();
     }
 
     public synchronized RigidTransform2d getPredictedFieldToVehicle(double lookahead_time) {
-        return getLatestFieldToVehicle().getValue().transformBy(
+        return getLatestFieldToVehicle().transformBy(
                 RigidTransform2d.fromVelocity(new RigidTransform2d.Delta(vehicle_velocity_.dx * lookahead_time,
                         vehicle_velocity_.dy * lookahead_time, vehicle_velocity_.dtheta * lookahead_time)));
     }
@@ -106,7 +106,7 @@ public class RobotState {
 
     public RigidTransform2d generateOdometryFromSensors(double left_encoder_delta_distance,
             double right_encoder_delta_distance, Rotation2d current_gyro_angle) {
-        RigidTransform2d last_measurement = getLatestFieldToVehicle().getValue();
+        RigidTransform2d last_measurement = getLatestFieldToVehicle();
         return Kinematics.integrateForwardKinematics(last_measurement, left_encoder_delta_distance,
                 right_encoder_delta_distance, current_gyro_angle);
     }
@@ -114,7 +114,7 @@ public class RobotState {
     public void log() {
     	DataLogger dataLogger = DataLogger.getInstance();
     	
-        RigidTransform2d odometry = getLatestFieldToVehicle().getValue();
+        RigidTransform2d odometry = getLatestFieldToVehicle();
         dataLogger.putNumber("robot_pose_x", odometry.getTranslation().getX());
         dataLogger.putNumber("robot_pose_y", odometry.getTranslation().getY());
         dataLogger.putNumber("robot_pose_theta", odometry.getRotation().getDegrees());
