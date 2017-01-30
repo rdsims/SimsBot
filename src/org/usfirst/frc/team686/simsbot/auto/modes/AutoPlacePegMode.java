@@ -8,6 +8,7 @@ import org.usfirst.frc.team686.lib.util.Path;
 import org.usfirst.frc.team686.lib.util.Translation2d;
 import org.usfirst.frc.team686.lib.util.Path.Waypoint;
 import org.usfirst.frc.team686.lib.util.RigidTransform2d;
+import org.usfirst.frc.team686.simsbot.Constants;
 import org.usfirst.frc.team686.simsbot.auto.AutoModeBase;
 import org.usfirst.frc.team686.simsbot.auto.AutoModeEndedException;
 import org.usfirst.frc.team686.simsbot.auto.actions.*;
@@ -15,7 +16,6 @@ import org.usfirst.frc.team686.simsbot.subsystems.Drive.DriveControlState;
 
 import org.usfirst.frc.team686.simsbot.subsystems.Drive;
 
-import org.usfirst.frc.team686.simsbot.subsystems.Drive;
 
 
 /**
@@ -90,16 +90,16 @@ public class AutoPlacePegMode extends AutoModeBase
 			preShootPos = new Translation2d(36,  0);
 			
 		shootPos        = new Translation2d( 36, 48);
-		finishPos       = new Translation2d(160, 48);
+		finishPos       = new Translation2d(160, -48);
  
 
-		prePegPos =   prePegPos.translateBy(startPos.inverse());
-		pegPos =      pegPos.translateBy(startPos.inverse());
-		postPegPos =  postPegPos.translateBy(startPos.inverse());
+		prePegPos =     prePegPos.translateBy(startPos.inverse());
+		pegPos =           pegPos.translateBy(startPos.inverse());
+		postPegPos =   postPegPos.translateBy(startPos.inverse());
 		preShootPos = preShootPos.translateBy(startPos.inverse());
-		shootPos =    shootPos.translateBy(startPos.inverse());
-		finishPos =   finishPos.translateBy(startPos.inverse());
-		startPos =    startPos.translateBy(startPos.inverse());
+		shootPos =       shootPos.translateBy(startPos.inverse());
+		finishPos =     finishPos.translateBy(startPos.inverse());
+		startPos =       startPos.translateBy(startPos.inverse());
 		
 		
 		
@@ -137,8 +137,14 @@ public class AutoPlacePegMode extends AutoModeBase
     {
     	System.out.println("Starting Auto Mode: Peg Mode, lane " + autoLane);
 
+    	// drive towards target
         runAction(new FollowPathAction(new Path(autoPath1), false));   
-        runAction(new FollowPathAction(new Path(autoPath2), true));   
-        runAction(new FollowPathAction(new Path(autoPath3), false));   
+        // use vision to finish path to target
+//        runAction(new VisionDriveAction(10.0, Constants.kVisionSourceIPAddress));
+        runAction(new VisionTurnAction(0.15));
+        // back away from target (note: 2nd parameter is true for reverse)
+//        runAction(new FollowPathAction(new Path(autoPath2), true));   
+        // take path away from airship
+//        runAction(new FollowPathAction(new Path(autoPath3), false));   
     }
 }

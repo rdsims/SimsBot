@@ -105,5 +105,7 @@ public class Constants extends ConstantsBase {
     public static int kXboxRStickYAxis  = 5;
     
     
-
+    public static double kCameraFOVInDegrees = 42.5;			// Camera Field of View (degrees)
+    public static double kCameraLatencySeconds = 0.200;			// Camera image capturing latency
+    public static double kPegTargetDistanceThreshold = 15;		// inches to stop from target (15" from camera = 4.5" from bumpers
 }
