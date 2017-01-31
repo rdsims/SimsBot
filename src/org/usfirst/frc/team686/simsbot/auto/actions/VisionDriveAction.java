@@ -3,30 +3,32 @@ package org.usfirst.frc.team686.simsbot.auto.actions;
 import edu.wpi.first.wpilibj.networktables.NetworkTable;
 
 import org.usfirst.frc.team686.lib.util.Path;
+import org.usfirst.frc.team686.lib.util.Pose;
 import org.usfirst.frc.team686.lib.util.RigidTransform2d;
-import org.usfirst.frc.team686.lib.util.Rotation2d;
-import org.usfirst.frc.team686.lib.util.Translation2d;
 import org.usfirst.frc.team686.simsbot.Constants;
 import org.usfirst.frc.team686.simsbot.RobotState;
 import org.usfirst.frc.team686.simsbot.subsystems.Drive;
 import org.usfirst.frc.team686.simsbot.subsystems.Drive.DriveControlState;
 
+import com.team254.frc2016.Kinematics;
+
 public class VisionDriveAction implements Action {
 	private NetworkTable table;
 	private RobotState robotState = RobotState.getInstance();
 	private Drive drive = Drive.getInstance();
-	private double velocity = 0;
+	private double speed = 0;
 	private double distanceToTargetInches;
 	private double headingToTargetRadians;
-	private double targetLocationX;
-	private double targetLocationY;
-	private int    filterCnt;
-	private double filteredTargetLocationX;
-	private double filteredTargetLocationY;
+	private Pose targetLocation;
+	private Pose filteredTargetLocation;
+	private int  filterCnt;
 	private boolean done = false;
 
-	public VisionDriveAction(double _velocity) {
-		velocity = _velocity;
+	private static final double kLookaheadDist = 2.0;
+	private static final double kEpsilon = 1e-9;
+	
+	public VisionDriveAction(double _speed) {
+		speed = _speed;
 		table = NetworkTable.getTable("SmartDashboard");
 	}
 
@@ -51,48 +53,42 @@ public class VisionDriveAction implements Action {
 			imageTimestamp -= Constants.kCameraLatencySeconds;		// remove camera latency
 			
 			// calculate target location based on *previous* robot pose
-			RigidTransform2d previousPose = robotState.getFieldToVehicle(imageTimestamp);
-
+			RigidTransform2d pPose = robotState.getFieldToVehicle(imageTimestamp);	// using CheesyPoof's RigidTransform2d for now
+			Pose previousPose = new Pose(pPose.getTranslation().getX(), pPose.getTranslation().getY(), pPose.getRotation().getRadians());
+			
 // DEBUG: use current pose until we... 			
 // TODO: get timestamp synchronization working
-previousPose = robotState.getLatestFieldToVehicle();			
+pPose = robotState.getLatestFieldToVehicle();	// using CheesyPoof's RigidTransform2d for now			
+previousPose = new Pose(pPose.getTranslation().getX(), pPose.getTranslation().getY(), pPose.getRotation().getRadians());
 
 			distanceToTargetInches = Constants.kTargetWidthInches / (2.0*normalizedTargetWidth*Constants.kTangentCameraHalfFOV);
-			headingToTargetRadians = previousPose.getRotation().getRadians() + (normalizedTargetX*Constants.kCameraHalfFOVRadians);
-			targetLocationX = previousPose.getTranslation().getX() + distanceToTargetInches * Math.cos(headingToTargetRadians);
-			targetLocationY = previousPose.getTranslation().getY() + distanceToTargetInches * Math.sin(headingToTargetRadians);
+			headingToTargetRadians = previousPose.getTheta() + (normalizedTargetX*Constants.kCameraHalfFOVRadians);
+			Pose toTarget = Pose.fromDistanceHeadingRadians(distanceToTargetInches, headingToTargetRadians);
+			targetLocation = previousPose.add(toTarget); 
 			
 			// filter target location with exponential averaging
 			if (filterCnt == 0)
-			{
-				filteredTargetLocationX = targetLocationX;
-				filteredTargetLocationY = targetLocationY;
-			}
+				filteredTargetLocation = targetLocation;
 			else
-			{
-				double a = Constants.kTargetLocationFilterConstant;
-				filteredTargetLocationX = (1-a)*filteredTargetLocationX + a*targetLocationX;
-				filteredTargetLocationY = (1-a)*filteredTargetLocationY + a*targetLocationY;
-			}
+				filteredTargetLocation.filterPosition(targetLocation, Constants.kTargetLocationFilterConstant);
 			filterCnt++;
 			
-			// calculate distance and heading to target, based on *current* robot pose
-			RigidTransform2d  currentPose = robotState.getLatestFieldToVehicle();			
-			double dX = filteredTargetLocationX - currentPose.getTranslation().getX();
-			double dY = filteredTargetLocationY - currentPose.getTranslation().getY();
+			// calculate path from *current* robot pose to target
+			RigidTransform2d  cPose = robotState.getLatestFieldToVehicle();		// using CheesyPoof's RigidTransform2d for now		
+			Pose currentPose = new Pose(cPose.getTranslation().getX(), cPose.getTranslation().getY(), cPose.getRotation().getRadians());
+
+			// Calculate motor settings to turn towards target (following AdaptivePurePursuitController.java)  
+			Pose robotToTarget = filteredTargetLocation.sub(currentPose);
+			double dTheta = robotToTarget.getTheta() - currentPose.getTheta();								// change in heading from current pose to target (tangent to circle to be travelled)
+			double lookaheadDist = Math.min(kLookaheadDist, currentPose.distance(filteredTargetLocation));	// length of chord
+			double curvature = 2.0 * Math.sin(dTheta) / lookaheadDist;										// curvature = 1/radius of circle (negative: turn left, positive: turn right)
 		
-			distanceToTargetInches = Math.sqrt(dX*dX + dY*dY);
-			headingToTargetRadians = Math.atan2(dY, dX);
-
+// TODO: add speed control -- acceleration 
 			
-			// Calculate motor settings to turn towards target  
-// TODO!!!!			
-			
-			// debug
-			System.out.println("Target X = " + targetCenterX + ", W: " + targetWidth + ", Heading = " + targetHeading);
-
-			drive.setVelocityHeadingSetpoint(velocity, Rotation2d.fromDegrees(targetHeading));
-		} else {
+			drive.driveCurve(speed, curvature, speed);
+		} 
+		else 
+		{
 			// debug
 			System.out.println("Vision NetworkTables not found");
 

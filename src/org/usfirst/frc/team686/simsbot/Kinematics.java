@@ -40,13 +40,21 @@ public class Kinematics {
         return current_pose.transformBy(RigidTransform2d.fromVelocity(with_gyro));
     }
 
-    public static class DriveVelocity {
-        public final double left;
-        public final double right;
+    public static class DriveVelocity 
+    {
+        public double left;
+        public double right;
 
-        public DriveVelocity(double left, double right) {
+        public DriveVelocity(double left, double right) 
+        {
             this.left = left;
             this.right = right;
+        }
+        
+        public void scale(double scale)
+        {
+            left  *= scale;
+            right *= scale;
         }
     }
 

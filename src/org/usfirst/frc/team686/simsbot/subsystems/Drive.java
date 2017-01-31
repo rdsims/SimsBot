@@ -347,17 +347,42 @@ public class Drive extends Subsystem
 		resetEncoders();
 	}
 
-	private synchronized void updateVelocitySetpoint(double left_inches_per_sec, double right_inches_per_sec) {
-		if (driveControlState_ == DriveControlState.VELOCITY_HEADING_CONTROL
-				|| driveControlState_ == DriveControlState.VELOCITY_SETPOINT
-				|| driveControlState_ == DriveControlState.PATH_FOLLOWING_CONTROL) {
-			setLeftRightPower(inchesPerSecondToRpm(left_inches_per_sec), inchesPerSecondToRpm(right_inches_per_sec));
-		} else {
-			System.out.println("Hit a bad velocity control state");
-			setLeftRightPower(0, 0);
+	private void updatePathFollower() 
+	{
+// TODO: update AdaptivePurePursuitController to be like VisionDriveAction
+// have it call driveCurve()		
+		RigidTransform2d robot_pose = RobotState.getInstance().getLatestFieldToVehicle().getValue();
+		RigidTransform2d.Delta command = pathFollowingController_.update(robot_pose, Timer.getFPGATimestamp());
+		Kinematics.DriveVelocity setpoint = Kinematics.inverseKinematics(command);
+
+		// Scale the command to respect the max velocity limits
+		double max_vel = 0.0;
+		max_vel = Math.max(max_vel, Math.abs(setpoint.left));
+		max_vel = Math.max(max_vel, Math.abs(setpoint.right));
+		if (max_vel > Constants.kPathFollowingMaxVel) 
+		{
+			double scaling = Constants.kPathFollowingMaxVel / max_vel;
+			setpoint = new Kinematics.DriveVelocity(setpoint.left * scaling, setpoint.right * scaling);
 		}
+		updateVelocitySetpoint(setpoint.left, setpoint.right);
 	}
 
+    public void driveCurve(double robotSpeed, double curvature, double wheelSpeedLimit)
+    {
+        // robotSpeed: desired forward speed of robot
+        // curvature: curvature of circle to follow.  Curvature = 1/radius.  positive-->turn right, negative-->turn left
+        // maxWheelSpeed: the desired velocity will be scaled so that neither wheel exceeds this speed
+        
+        RigidTransform2d.Delta cmd = new RigidTransform2d.Delta(robotSpeed, 0, robotSpeed*curvature); 
+        Kinematics.DriveVelocity setpoint = Kinematics.inverseKinematics(cmd);
+
+        // Scale the command to respect the max wheel velocity limits
+        double maxSpeed = Math.max(Math.abs(setpoint.left), Math.abs(setpoint.right));
+        if (maxSpeed > wheelSpeedLimit)
+            setpoint.scale(wheelSpeedLimit/maxSpeed);
+        updateVelocitySetpoint(setpoint.left, setpoint.right);
+    }
+    
 	private void updateVelocityHeadingSetpoint() {
 		Rotation2d actualGyroAngle = Rotation2d.fromDegrees(getHeading());
 
@@ -368,20 +393,18 @@ public class Drive extends Subsystem
 				velocityHeadingSetpoint_.getRightSpeed() - deltaSpeed / 2);
 	}
 
-	private void updatePathFollower() {
-		RigidTransform2d robot_pose = RobotState.getInstance().getLatestFieldToVehicle().getValue();
-		RigidTransform2d.Delta command = pathFollowingController_.update(robot_pose, Timer.getFPGATimestamp());
-		Kinematics.DriveVelocity setpoint = Kinematics.inverseKinematics(command);
-
-		// Scale the command to respect the max velocity limits
-		double max_vel = 0.0;
-		max_vel = Math.max(max_vel, Math.abs(setpoint.left));
-		max_vel = Math.max(max_vel, Math.abs(setpoint.right));
-		if (max_vel > Constants.kPathFollowingMaxVel) {
-			double scaling = Constants.kPathFollowingMaxVel / max_vel;
-			setpoint = new Kinematics.DriveVelocity(setpoint.left * scaling, setpoint.right * scaling);
+	private synchronized void updateVelocitySetpoint(double left_inches_per_sec, double right_inches_per_sec) {
+		if (driveControlState_ == DriveControlState.VELOCITY_HEADING_CONTROL
+				|| driveControlState_ == DriveControlState.VELOCITY_SETPOINT
+				|| driveControlState_ == DriveControlState.PATH_FOLLOWING_CONTROL) 
+		{
+			setLeftRightPower(inchesPerSecondToRpm(left_inches_per_sec), inchesPerSecondToRpm(right_inches_per_sec));
+		} 
+		else
+		{
+			System.out.println("Hit a bad velocity control state");
+			setLeftRightPower(0, 0);
 		}
-		updateVelocitySetpoint(setpoint.left, setpoint.right);
 	}
 
 	private static double rotationsToInches(double rotations) {
@@ -400,11 +423,11 @@ public class Drive extends Subsystem
 		return inchesToRotations(inches_per_second) * 60;
 	}
 
-	public void setBrakeMode(boolean on) {
-		if (isBrakeMode_ != on) {
-			lMotor_.enableBrakeMode(on);
-			rMotor_.enableBrakeMode(on);
-			isBrakeMode_ = on;
+	public void setBrakeMode(boolean val) {
+		if (isBrakeMode_ != val) {
+			lMotor_.enableBrakeMode(val);
+			rMotor_.enableBrakeMode(val);
+			isBrakeMode_ = val;
 		}
 	}
 

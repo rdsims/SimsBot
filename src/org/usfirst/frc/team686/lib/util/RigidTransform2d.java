@@ -110,28 +110,6 @@ public class RigidTransform2d implements Interpolable<RigidTransform2d> {
     }
 
     /**
-     * Average with exponential filter.
-     */
-    public RigidTransform2d filter(RigidTransform2d other, double alpha)
-    {
-    	double x = this.getTranslation().getX();
-    	double y = this.getTranslation().getY();
-    	double theta = this.getRotation().getRadians();
-    	
-    	double ox = other.getTranslation().getX();
-    	double oy = other.getTranslation().getY();
-    	double otheta = other.getRotation().getRadians();
-
-    	// apply exponential filter
-    	x = (1-alpha)*x + alpha*ox;
-    	y = (1-alpha)*y + alpha*oy;
-    	theta = (1-alpha)*theta + alpha*otheta;
-    	
-        return new RigidTransform2d(new Translation2d(x,y), Rotation2d.fromRadians(theta));
-    }
-
-    
-    /**
      * Do linear interpolation of this transform (there are more accurate ways
      * using constant curvature, but this is good enough).
      */
