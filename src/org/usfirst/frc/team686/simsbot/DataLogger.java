@@ -12,17 +12,26 @@ import java.io.PrintStream;
 
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
-// TODO: script file to move logs off of flash drive (not just copy) but only if successfully transferred
-
 public class DataLogger 
 {
     private static DataLogger mInstance = new DataLogger();
+    private static DataLogger mAutonomousInstance = new DataLogger();
+    private static DataLogger mVisionInstance = new DataLogger();
 
     public static DataLogger getInstance() {
         return mInstance;
     }
 
-	File parentDirectory;
+    public static DataLogger getAutonomousInstance() {
+        return mAutonomousInstance;
+    }
+    
+    public static DataLogger getVisionInstance() {
+        return mVisionInstance;
+    }
+    
+	static File parentDirectory;
+	String fileBase;
 	long minimumInterval = 0;	// 0: write as fast as possible
 
 	public enum OutputMode {
@@ -31,7 +40,7 @@ public class DataLogger
 	
 	private static OutputMode mOutputMode = OutputMode.SMARTDASHBOARD_ONLY;
 	
-	public void findLogDirectory()
+	static public void findLogDirectory()
 	{
 
 		// Determine folder for log files
@@ -55,7 +64,7 @@ public class DataLogger
 		}	        
 	}
 	
-	public File checkLogDirectory (File root)
+	static public File checkLogDirectory (File root)
 	{
 		// does the root directory exist?
 		if (!root.isDirectory()) 
@@ -70,9 +79,14 @@ public class DataLogger
 	
 	
 	
-	public void setDirectory(File directory) 
+	static public void setDirectory(File directory) 
 	{
 		parentDirectory = directory;
+	}
+	
+	public void setFileBase(String _fileBase) 
+	{
+		fileBase = _fileBase;
 	}
 	
 	List<String> dataNames = new ArrayList<>();
@@ -149,10 +163,11 @@ public class DataLogger
 					{
 						if (ps == null) 
 						{
-							String timestampString = LogTimestamp.getTimestampString();
+							String timestampString = LogTimestamp.getTimestampString() + "_" + fileBase ;
 							if (timestampString != null) 
 							{
-								File logFile = new File(parentDirectory, timestampString + ".csv");
+								String filename = timestampString + "_" + fileBase + ".csv";
+								File logFile = new File(parentDirectory, filename);
 								ps = new PrintStream(new FileOutputStream(logFile));
 								ps.print("time,timeSinceStart");
 								writeList(ps, dataNames);

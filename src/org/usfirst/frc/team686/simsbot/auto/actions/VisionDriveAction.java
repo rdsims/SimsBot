@@ -1,55 +1,82 @@
 package org.usfirst.frc.team686.simsbot.auto.actions;
 
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.networktables.NetworkTable;
 
-import org.usfirst.frc.team686.lib.util.Path;
 import org.usfirst.frc.team686.lib.util.Pose;
 import org.usfirst.frc.team686.lib.util.RigidTransform2d;
 import org.usfirst.frc.team686.simsbot.Constants;
+import org.usfirst.frc.team686.simsbot.DataLogger;
 import org.usfirst.frc.team686.simsbot.RobotState;
 import org.usfirst.frc.team686.simsbot.subsystems.Drive;
-import org.usfirst.frc.team686.simsbot.subsystems.Drive.DriveControlState;
 
-import com.team254.frc2016.Kinematics;
 
-public class VisionDriveAction implements Action {
+public class VisionDriveAction implements Action 
+{
+	// properties needed for class
 	private NetworkTable table;
 	private RobotState robotState = RobotState.getInstance();
 	private Drive drive = Drive.getInstance();
-	private double speed = 0;
-	private double distanceToTargetInches;
-	private double headingToTargetRadians;
-	private Pose targetLocation;
+	private double maxSpeed;
+	private double maxAccel;
+	private double prevTime;
+	private double prevSpeed;
 	private Pose filteredTargetLocation;
 	private int  filterCnt;
-	private boolean done = false;
 
-	private static final double kLookaheadDist = 2.0;
-	private static final double kEpsilon = 1e-9;
+	// for logging only
+	private double currentTime;
+	private double imageTimestamp;
+	private double normalizedTargetX;
+	private double normalizedTargetWidth;
+	private Pose previousPose;
+	private Pose targetLocation;
+	private Pose currentPose;
+	private double distanceToTargetInches;
+	private double headingToTargetRadians;
+	private double angleToTarget;
+	private double lookaheadDist;
+	private double curvature;
+	private double speed;
 	
-	public VisionDriveAction(double _speed) {
-		speed = _speed;
+	
+	public VisionDriveAction(double _maxSpeed, double _maxAccel) 
+	{
+		maxSpeed = _maxSpeed;
+		maxAccel = _maxAccel;
 		table = NetworkTable.getTable("SmartDashboard");
 	}
 
 	@Override
-	public void start() {
+	public void start() 
+	{
 		// setup code, if any
 		filterCnt = 0;
+		prevTime = 0;
+		prevSpeed = 0;	// TODO: find way to not start from speed=0
 	}
 
+// TODO: combine followPath and visionDrive -- smoothly switch over to vision when 1) enabled for that segment and 2) a target was found
+// Goal is not to stop when switching from path following to vision
+	
 	@Override
 	public void update() 
 	{
 		// values from camera, normalized to camera's Field of View (-1 to +1) 
-		double imageTimestamp    	 = table.getNumber("imageTimestamp",    0);
-		double normalizedTargetX 	 = table.getNumber("targetCenterX",  -999);
-		double normalizedTargetWidth = table.getNumber("targetWidth",    -999);
+		imageTimestamp    	 = table.getNumber("imageTimestamp",    0);
+		normalizedTargetX 	 = table.getNumber("targetCenterX",  -999);
+		normalizedTargetWidth = table.getNumber("targetWidth",    -999);
 
+		currentTime = Timer.getFPGATimestamp();
+		speed = prevSpeed;
+
+		// If we get a valid message from the Vision co-processor, update our estimate of the target location
 		if (imageTimestamp > 0) 
 		{
-			// we have valid values from vision co-processor
-			
+			//-----------------------------------------------------
+			// Estimate target location based on previous location,
+			// to compensate for latency in processing image
+			//-----------------------------------------------------
 			imageTimestamp -= Constants.kCameraLatencySeconds;		// remove camera latency
 			
 			// calculate target location based on *previous* robot pose
@@ -72,20 +99,55 @@ previousPose = new Pose(pPose.getTranslation().getX(), pPose.getTranslation().ge
 			else
 				filteredTargetLocation.filterPosition(targetLocation, Constants.kTargetLocationFilterConstant);
 			filterCnt++;
-			
-			// calculate path from *current* robot pose to target
+		}
+		
+		// if filterCnt > 0, then we have at least one estimate of the target location.
+		// drive towards it, even if we didn't get a valid Vision co-processor message this time
+		if (filterCnt > 0)
+		{
+			//---------------------------------------------------
+			// Calculate path from *current* robot pose to target
+			//---------------------------------------------------
 			RigidTransform2d  cPose = robotState.getLatestFieldToVehicle();		// using CheesyPoof's RigidTransform2d for now		
 			Pose currentPose = new Pose(cPose.getTranslation().getX(), cPose.getTranslation().getY(), cPose.getRotation().getRadians());
 
-			// Calculate motor settings to turn towards target (following AdaptivePurePursuitController.java)  
+			//---------------------------------------------------
+			// Calculate motor settings to turn towards target   
+			//---------------------------------------------------
 			Pose robotToTarget = filteredTargetLocation.sub(currentPose);
-			double dTheta = robotToTarget.getTheta() - currentPose.getTheta();								// change in heading from current pose to target (tangent to circle to be travelled)
-			double lookaheadDist = Math.min(kLookaheadDist, currentPose.distance(filteredTargetLocation));	// length of chord
-			double curvature = 2.0 * Math.sin(dTheta) / lookaheadDist;										// curvature = 1/radius of circle (negative: turn left, positive: turn right)
+			distanceToTargetInches = robotToTarget.distance();									// distance to target
+			headingToTargetRadians = robotToTarget.getTheta() - currentPose.getTheta();								// change in heading from current pose to target (tangent to circle to be travelled)
+			lookaheadDist = Math.min(Constants.kVisionLookaheadDist, distanceToTargetInches);				// length of chord <= kVisionLookaheadDist
+			curvature = 2.0 * Math.sin(headingToTargetRadians) / lookaheadDist;										// curvature = 1/radius of circle (negative: turn left, positive: turn right)
 		
-// TODO: add speed control -- acceleration 
+			//---------------------------------------------------
+			// Apply speed control
+			//---------------------------------------------------
+			speed = maxSpeed;	// goal is to get to maximum speed
+			double dt = currentTime - prevTime; 
 			
-			drive.driveCurve(speed, curvature, speed);
+			// apply acceleration limits
+			double accel = (speed - prevSpeed) / dt;
+			if (accel > maxAccel)
+				speed = prevSpeed + maxAccel * dt;
+			else if (accel < -maxAccel)
+				speed = prevSpeed - maxAccel * dt;
+
+			// apply braking distance limits
+			// vf^2 = v^2 + 2*a*d   Solve for v, given vf=0, configured a, and measured d 
+			double maxBrakingSpeed = Math.sqrt(2.0 * maxAccel * distanceToTargetInches);
+			if (Math.abs(speed) > maxSpeed)
+				speed = Math.signum(speed) * maxBrakingSpeed;
+
+			// apply minimum velocity limit (Talons can't track low speeds well)
+			final double kMinSpeed = 4.0;
+			if (Math.abs(speed) < kMinSpeed) 
+				speed = Math.signum(speed) * kMinSpeed;
+			
+			//---------------------------------------------------
+			// Send drive control
+			//---------------------------------------------------
+			drive.driveCurve(speed, curvature, maxSpeed);
 		} 
 		else 
 		{
@@ -96,21 +158,54 @@ previousPose = new Pose(pPose.getTranslation().getX(), pPose.getTranslation().ge
 			drive.stop();
 		}
 
+		// store for next time through loop
+		prevTime = currentTime;
+		prevSpeed = speed;
 	}
 
 	@Override
-	public boolean isFinished() {
-		done = (targetWidth > Constants.kPegTargetWidthThreshold);
-		if (done) {
+	public boolean isFinished() 
+	{
+		boolean done = (distanceToTargetInches > Constants.kPegTargetDistanceThresholdInches);
+		if (done) 
+		{
 			System.out.println("Finished VisionDriveAction");
 		}
 		return done;
 	}
 
 	@Override
-	public void done() {
+	public void done() 
+	{
 		// cleanup code, if any
 		drive.stop();
 	}
+	
+	public void log() 
+	{
+		DataLogger dataLogger = DataLogger.getVisionInstance();
+
+		dataLogger.putNumber("currentTime", currentTime);
+		dataLogger.putNumber("imageTime", imageTimestamp);
+		dataLogger.putNumber("normalizedTargetX", normalizedTargetX);
+		dataLogger.putNumber("normalizedTargetWidth", normalizedTargetWidth);
+		dataLogger.putNumber("previousPoseX", previousPose.getX());
+		dataLogger.putNumber("previousPoseY", previousPose.getY());
+		dataLogger.putNumber("previousPoseTheta", previousPose.getTheta());
+		dataLogger.putNumber("targetLocationX", targetLocation.getX());
+		dataLogger.putNumber("targetLocationY", targetLocation.getY());
+		dataLogger.putNumber("filteredTargetLocationX", filteredTargetLocation.getX());
+		dataLogger.putNumber("filteredTargetLocationY", filteredTargetLocation.getY());
+		dataLogger.putNumber("filterCnt", filterCnt);
+		dataLogger.putNumber("currentPoseX", currentPose.getX());
+		dataLogger.putNumber("currentPoseY", currentPose.getY());
+		dataLogger.putNumber("currentPoseTheta", currentPose.getTheta());
+		dataLogger.putNumber("distanceToTargetInches", distanceToTargetInches);
+		dataLogger.putNumber("headingToTargetRadians", headingToTargetRadians);
+		dataLogger.putNumber("lookaheadDist", lookaheadDist);
+		dataLogger.putNumber("curvature", curvature);
+		dataLogger.putNumber("speed", speed);
+	}
+
 
 }

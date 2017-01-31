@@ -62,6 +62,11 @@ public class Pose {
     	return this.rotateRadians(rotationDegrees * Math.PI/180.0);
     }
     
+    public double distance()
+    {
+    	return distance(new Pose(0.0, 0.0));
+    }
+
     public double distance(Pose that)
     {
     	double dx = that.x - this.x;

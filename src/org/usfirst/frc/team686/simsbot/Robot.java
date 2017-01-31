@@ -35,6 +35,8 @@ public class Robot extends IterativeRobot {
 
 	JoystickControlsBase controls = ArcadeDriveJoystick.getInstance();
 	DataLogger dataLogger = DataLogger.getInstance();
+	DataLogger autonomousLogger = DataLogger.getAutonomousInstance();
+	DataLogger visionLogger = DataLogger.getVisionInstance();
 	RobotState mRobotState = RobotState.getInstance();
 
 	Looper looper = new Looper();
@@ -86,7 +88,12 @@ public class Robot extends IterativeRobot {
 			mSmartDashboardInteractions.initWithDefaults();
 
 			// Determine folder for log files
-			dataLogger.findLogDirectory();
+			DataLogger.findLogDirectory();
+			// det data logger file bases
+			dataLogger.setFileBase("main");
+			autonomousLogger.setFileBase("auto");
+			visionLogger.setFileBase("vision");
+			
 		} catch (Throwable t) {
 			CrashTracker.logThrowableCrash(t);
 			throw t;
@@ -103,6 +110,8 @@ public class Robot extends IterativeRobot {
 		mRobotState.log();
 		looper.log();
 		dataLogger.saveDataItems();
+		autonomousLogger.saveDataItems();
+		visionLogger.saveDataItems();
 	}
 
 	/****************************************************************

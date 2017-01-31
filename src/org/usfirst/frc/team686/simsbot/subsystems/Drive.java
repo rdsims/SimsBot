@@ -351,7 +351,7 @@ public class Drive extends Subsystem
 	{
 // TODO: update AdaptivePurePursuitController to be like VisionDriveAction
 // have it call driveCurve()		
-		RigidTransform2d robot_pose = RobotState.getInstance().getLatestFieldToVehicle().getValue();
+		RigidTransform2d robot_pose = RobotState.getInstance().getLatestFieldToVehicle();
 		RigidTransform2d.Delta command = pathFollowingController_.update(robot_pose, Timer.getFPGATimestamp());
 		Kinematics.DriveVelocity setpoint = Kinematics.inverseKinematics(command);
 
@@ -485,7 +485,7 @@ public class Drive extends Subsystem
 
 		try // pathFollowingController doesn't exist until started
 		{
-			pathFollowingController_.log();
+			AdaptivePurePursuitController.log();
 		} catch (NullPointerException e) {
 			// skip logging pathFollowingController_ when it doesn't exist
 		}
