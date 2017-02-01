@@ -1,20 +1,14 @@
 package org.usfirst.frc.team686.simsbot.auto.modes;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import org.usfirst.frc.team686.lib.util.Path;
 import org.usfirst.frc.team686.lib.util.Translation2d;
 import org.usfirst.frc.team686.lib.util.Path.Waypoint;
-import org.usfirst.frc.team686.lib.util.RigidTransform2d;
-import org.usfirst.frc.team686.simsbot.Constants;
 import org.usfirst.frc.team686.simsbot.auto.AutoModeBase;
 import org.usfirst.frc.team686.simsbot.auto.AutoModeEndedException;
 import org.usfirst.frc.team686.simsbot.auto.actions.*;
-import org.usfirst.frc.team686.simsbot.subsystems.Drive.DriveControlState;
-
-import org.usfirst.frc.team686.simsbot.subsystems.Drive;
 
 
 
@@ -141,7 +135,7 @@ public class AutoPlacePegMode extends AutoModeBase
         runAction(new FollowPathAction(new Path(autoPath1), false));   
         // use vision to finish path to target
 //        runAction(new VisionDriveAction(10.0, Constants.kVisionSourceIPAddress));
-        runAction(new VisionTurnAction(0.15));
+        runAction(new VisionTurnAction(30));
         // back away from target (note: 2nd parameter is true for reverse)
 //        runAction(new FollowPathAction(new Path(autoPath2), true));   
         // take path away from airship

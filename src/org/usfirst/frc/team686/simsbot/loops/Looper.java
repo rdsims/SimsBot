@@ -9,7 +9,6 @@ import java.util.List;
 
 import edu.wpi.first.wpilibj.Notifier;
 import edu.wpi.first.wpilibj.Timer;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 import org.usfirst.frc.team686.lib.util.CrashTrackingRunnable;
 

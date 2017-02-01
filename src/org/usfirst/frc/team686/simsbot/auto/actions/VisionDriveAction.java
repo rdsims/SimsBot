@@ -34,7 +34,6 @@ public class VisionDriveAction implements Action
 	private Pose currentPose;
 	private double distanceToTargetInches;
 	private double headingToTargetRadians;
-	private double angleToTarget;
 	private double lookaheadDist;
 	private double curvature;
 	private double speed;
