@@ -1,10 +1,13 @@
 package org.usfirst.frc.team686.simsbot.auto.actions;
 
+import org.mini2Dx.gdx.math.*;
+
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.networktables.NetworkTable;
 
 import org.usfirst.frc.team686.lib.util.Pose;
 import org.usfirst.frc.team686.lib.util.RigidTransform2d;
+import org.usfirst.frc.team686.lib.util.Util;
 import org.usfirst.frc.team686.simsbot.Constants;
 import org.usfirst.frc.team686.simsbot.DataLogger;
 import org.usfirst.frc.team686.simsbot.RobotState;
@@ -21,7 +24,7 @@ public class VisionDriveAction implements Action
 	private double maxAccel;
 	private double prevTime;
 	private double prevSpeed;
-	private Pose filteredTargetLocation;
+	private Vector2 filteredTargetLocation;
 	private int  filterCnt;
 
 	// for logging only
@@ -30,7 +33,7 @@ public class VisionDriveAction implements Action
 	private double normalizedTargetX;
 	private double normalizedTargetWidth;
 	private Pose previousPose;
-	private Pose targetLocation;
+	private Vector2 targetLocation;
 	private Pose currentPose;
 	private double distanceToTargetInches;
 	private double headingToTargetRadians;
@@ -80,7 +83,7 @@ public class VisionDriveAction implements Action
 			imageTimestamp -= Constants.kCameraLatencySeconds;		// remove camera latency
 			
 			// calculate target location based on *previous* robot pose
-			RigidTransform2d pPose = robotState.getFieldToVehicle(imageTimestamp);	// using CheesyPoof's RigidTransform2d for now
+			RigidTransform2d pPose = robotState.getFieldToVehicle(imageTimestamp);	// using CheesyPoof's RigidTransform2d for now  TODO: replace
 			Pose previousPose = new Pose(pPose.getTranslation().getX(), pPose.getTranslation().getY(), pPose.getRotation().getRadians());
 			
 // DEBUG: use current pose until we... 			
@@ -89,15 +92,15 @@ pPose = robotState.getLatestFieldToVehicle();	// using CheesyPoof's RigidTransfo
 previousPose = new Pose(pPose.getTranslation().getX(), pPose.getTranslation().getY(), pPose.getRotation().getRadians());
 
 			distanceToTargetInches = Constants.kTargetWidthInches / (2.0*normalizedTargetWidth*Constants.kTangentCameraHalfFOV);
-			headingToTargetRadians = previousPose.getTheta() + (normalizedTargetX*Constants.kCameraHalfFOVRadians);
-			Pose toTarget = Pose.fromDistanceHeadingRadians(distanceToTargetInches, headingToTargetRadians);
-			targetLocation = previousPose.add(toTarget); 
+			headingToTargetRadians = previousPose.getHeadingRad() + (normalizedTargetX*Constants.kCameraHalfFOVRadians);
+			Vector2 toTarget = Util.fromMagnitudeAngleRad(distanceToTargetInches, headingToTargetRadians);
+			targetLocation = previousPose.getPosition().add(toTarget); 
 			
 			// filter target location with exponential averaging
 			if (filterCnt == 0)
 				filteredTargetLocation = targetLocation;
 			else
-				filteredTargetLocation.filterPosition(targetLocation, Constants.kTargetLocationFilterConstant);
+				filteredTargetLocation = filterPosition(filteredTargetLocation, targetLocation, Constants.kTargetLocationFilterConstant);
 			filterCnt++;
 		}
 		
@@ -108,15 +111,15 @@ previousPose = new Pose(pPose.getTranslation().getX(), pPose.getTranslation().ge
 			//---------------------------------------------------
 			// Calculate path from *current* robot pose to target
 			//---------------------------------------------------
-			RigidTransform2d  cPose = robotState.getLatestFieldToVehicle();		// using CheesyPoof's RigidTransform2d for now		
+			RigidTransform2d  cPose = robotState.getLatestFieldToVehicle();		// using CheesyPoof's RigidTransform2d for now.  TODO: replace		
 			Pose currentPose = new Pose(cPose.getTranslation().getX(), cPose.getTranslation().getY(), cPose.getRotation().getRadians());
 
 			//---------------------------------------------------
 			// Calculate motor settings to turn towards target   
 			//---------------------------------------------------
-			Pose robotToTarget = filteredTargetLocation.sub(currentPose);
-			distanceToTargetInches = robotToTarget.distance();									// distance to target
-			headingToTargetRadians = robotToTarget.getTheta() - currentPose.getTheta();								// change in heading from current pose to target (tangent to circle to be travelled)
+			Vector2 robotToTarget = filteredTargetLocation.sub(currentPose.getPosition());
+			distanceToTargetInches = robotToTarget.len();									// distance to target
+			headingToTargetRadians = robotToTarget.angleRad() - currentPose.getHeadingRad();								// change in heading from current pose to target (tangent to circle to be travelled)
 			lookaheadDist = Math.min(Constants.kVisionLookaheadDist, distanceToTargetInches);				// length of chord <= kVisionLookaheadDist
 			curvature = 2.0 * Math.sin(headingToTargetRadians) / lookaheadDist;										// curvature = 1/radius of circle (negative: turn left, positive: turn right)
 		
@@ -163,6 +166,19 @@ previousPose = new Pose(pPose.getTranslation().getX(), pPose.getTranslation().ge
 		prevSpeed = speed;
 	}
 
+	
+    // perform exponential filtering on position
+    // alpha is the filtering coefficient, 0<alpha<<1
+    // result will converge 63% in 1/alpha timesteps
+    //                      86% in 2/alpha timesteps
+    //                      95% in 3/alpha timesteps
+    public static Vector2 filterPosition(Vector2 a, Vector2 b, float alpha)
+    {
+    	float x = (1-alpha)*a.x + alpha*b.x;
+    	float y = (1-alpha)*a.y + alpha*b.y;
+    	return new Vector2(x,y);
+    }
+	
 	@Override
 	public boolean isFinished() 
 	{
@@ -191,15 +207,15 @@ previousPose = new Pose(pPose.getTranslation().getX(), pPose.getTranslation().ge
 		dataLogger.putNumber("normalizedTargetWidth", normalizedTargetWidth);
 		dataLogger.putNumber("previousPoseX", previousPose.getX());
 		dataLogger.putNumber("previousPoseY", previousPose.getY());
-		dataLogger.putNumber("previousPoseTheta", previousPose.getTheta());
-		dataLogger.putNumber("targetLocationX", targetLocation.getX());
-		dataLogger.putNumber("targetLocationY", targetLocation.getY());
-		dataLogger.putNumber("filteredTargetLocationX", filteredTargetLocation.getX());
-		dataLogger.putNumber("filteredTargetLocationY", filteredTargetLocation.getY());
+		dataLogger.putNumber("previousPoseHeadingRad", previousPose.getHeadingRad());
+		dataLogger.putNumber("targetLocationX", targetLocation.x);
+		dataLogger.putNumber("targetLocationY", targetLocation.y);
+		dataLogger.putNumber("filteredTargetLocationX", filteredTargetLocation.x);
+		dataLogger.putNumber("filteredTargetLocationY", filteredTargetLocation.y);
 		dataLogger.putNumber("filterCnt", filterCnt);
 		dataLogger.putNumber("currentPoseX", currentPose.getX());
 		dataLogger.putNumber("currentPoseY", currentPose.getY());
-		dataLogger.putNumber("currentPoseTheta", currentPose.getTheta());
+		dataLogger.putNumber("currentPoseHeadingRad", currentPose.getHeadingRad());
 		dataLogger.putNumber("distanceToTargetInches", distanceToTargetInches);
 		dataLogger.putNumber("headingToTargetRadians", headingToTargetRadians);
 		dataLogger.putNumber("lookaheadDist", lookaheadDist);

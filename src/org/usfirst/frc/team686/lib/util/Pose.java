@@ -1,109 +1,112 @@
 package org.usfirst.frc.team686.lib.util;
 
+import org.mini2Dx.gdx.math.*;
+
 /**
  * A class that stores the pose an object
  * The pose consists of it's position: (x,y) coordinates
- * and it's orientation: the heading, theta
+ * and it's orientation: the heading
  * The reference coordinate system for the pose is not defined in this class.  The caller must keep track of it.
  */
-public class Pose {
-    private double x;		// x coordinate (in inches)
-    private double y;		// y coordinate (in inches)
-    private double theta;	// heading (in radians)
+public class Pose 
+{
+	// using floats to take advantage of libgdx's speed optimizations
+	
+    private Vector2 position;	// position (x,y) in inches
+    private float   heading;	// heading in radians
+
+    public Pose(float _x, float _y) 
+    {
+        position = new Vector2(_x,_y);
+        heading  = 0.0f;
+    }
+
+    public Pose(float _x, float _y, float _thetaRad) 
+    {
+        position = new Vector2(_x,_y);
+        heading  = _thetaRad;
+    }
 
     public Pose(double _x, double _y) 
     {
-        set(_x, _y, 0.0);
+    	new Pose((float)_x, (float)_y);
     }
 
-    public Pose(double _x, double _y, double _theta) 
+    public Pose(double _x, double _y, double _thetaRad) 
     {
-    	set(_x, _y, _theta);
+    	new Pose((float)_x, (float)_y, (float)_thetaRad);
     }
 
-    public static Pose fromDistanceHeadingRadians(double distance, double headingRadians)
+    public static Pose fromMagnitudeAngleRad(float _rho, float _thetaRad)
     {
-        return new Pose(distance*Math.cos(headingRadians), distance*Math.sin(headingRadians), headingRadians);	// arbitrarily setting heading to headingRadians
+    	Pose pose = new Pose(_rho, 0.0f, _thetaRad);	// arbitrarily setting heading to thetaRad
+    	pose.position.rotateRad(_thetaRad);
+    	return pose;
     }
     
-    public void set(double _x, double _y, double _theta)
+    public void set(float _x, float _y, float _theta)
     {
-        x = _x;
-        y = _y;
-        theta = _theta;
+    	position.set(_x, _y);
+        heading = _theta;
     }
 
-    public double getX() { return x; }
-    public double getY() { return y; }
-    public double getTheta() { return theta; }
+    public float getX() { return position.x; }
+    public float getY() { return position.y; }
+    public Vector2 getPosition() { return position; }
+    public float getHeadingRad() { return heading; }
+    public float getHeadingDeg() { return heading * MathUtils.radiansToDegrees; }
     
     
     // add performs vector translation.  The original heading is not changed
-    public Pose add(Pose that)
+    public Pose add(Vector2 v)
     {
-    	return new Pose(x+that.x, y+that.y, theta);
+    	position.add(v);
+    	return this;
     }
     
     // sub performs vector translation.  The original heading is not changed
-    public Pose sub(Pose that)
+    public Pose sub(Vector2 v)
     {
-    	return new Pose(x-that.x, y-that.y, theta);
+    	position.sub(v);
+    	return this;
     }
     
     // performs rotation.  The original (x,y) location is not changed
-    public Pose rotateRadians(double rotationRadians)
+    public Pose rotateRad(float radians)
     {
-    	return new Pose(x, y, theta+rotationRadians);
+    	position.rotateRad(radians);
+    	return this;
     }
 
     // performs rotation.  The original (x,y) location is not changed
-    public Pose rotateDegrees(double rotationDegrees)
+    public Pose rotateDeg(float degrees)
     {
-    	return this.rotateRadians(rotationDegrees * Math.PI/180.0);
+    	position.rotate(degrees);
+    	return this;
     }
     
-    public double distance()
+    public float distance(Vector2 v)
     {
-    	return distance(new Pose(0.0, 0.0));
-    }
-
-    public double distance(Pose that)
-    {
-    	double dx = that.x - this.x;
-    	double dy = that.y - this.y;
-    	return Math.sqrt(dx*dx+dy*dy);
+    	return position.dst(v);
     }
 
     // heading from this to that in radians
-    public double headingRadians(Pose that)
+    public double headingRadians(Vector2 that)
     {
-    	double dx = that.x - this.x;
-    	double dy = that.y - this.y;
-    	return Math.atan2(dy, dx);
+    	Vector2 delta = that.sub(position);		// vector from this to that
+    	return delta.angleRad();
     }
 
     // heading from this to that in degrees
-    public double headingDegrees(Pose that)
+    public double headingDegrees(Vector2 that)
     {
-    	return this.headingRadians(that) * 180.0/Math.PI;
+    	Vector2 delta = that.sub(position);		// vector from this to that
+    	return delta.angle();
     }
-    
-    // perform exponential filtering on position
-    // alpha is the filtering coefficient, 0<alpha<<1
-    // result will converge 63% in 1/alpha timesteps
-    //                      86% in 2/alpha timesteps
-    //                      95% in 3/alpha timesteps
-    public Pose filterPosition(Pose that, double alpha)
-    {
-    	return new Pose((1-alpha)*x + alpha*that.x,
-    			        (1-alpha)*y + alpha*that.y,
-    			        theta);
-    }
-    
     
     @Override
     public String toString() {
-        return "X: " + x + ", Y: " + y + ", H: " + theta;
+        return "X: " + position.x + ", Y: " + position.y + ", H: " + heading;
     }
 }
 

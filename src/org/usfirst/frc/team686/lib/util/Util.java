@@ -1,6 +1,7 @@
 package org.usfirst.frc.team686.lib.util;
 
 import java.util.List;
+import org.mini2Dx.gdx.math.*;
 
 /**
  * Contains basic functions that are used often.
@@ -32,4 +33,17 @@ public class Util
         return sb.toString();
     }
 
+    // additional constructors for Vector2
+    public static Vector2 fromMagnitudeAngleRad(double _rho, double _angleRad)
+    {
+    	return fromMagnitudeAngleRad( (float)_rho, (float)_angleRad );
+    }
+
+    public static Vector2 fromMagnitudeAngleRad(float _rho, float _angleRad)
+    {
+    	Vector2 v = new Vector2(_rho, 0.0f);
+    	v.rotateRad(_angleRad);
+    	return v;
+    }
+    
 }

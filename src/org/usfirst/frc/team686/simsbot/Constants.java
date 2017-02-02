@@ -105,7 +105,7 @@ public class Constants extends ConstantsBase {
     public static int kXboxRStickYAxis  = 5;
     
     public static double kTargetWidthInches = 10.25;
-    public static double kTargetLocationFilterConstant = 3.0 * kLoopDt;		// 3 time constants in 1 second
+    public static float kTargetLocationFilterConstant = (float) (3.0 * kLoopDt);		// 3 time constants in 1 second
     public static double kCameraFOVDegrees = 42.5;			// Camera Field of View (degrees)
     public static double kCameraHalfFOVRadians = kCameraFOVDegrees/2.0 * Math.PI/180.0;			// Half of Camera Field of View (radians)
     public static double kTangentCameraHalfFOV = Math.tan(kCameraHalfFOVRadians);
