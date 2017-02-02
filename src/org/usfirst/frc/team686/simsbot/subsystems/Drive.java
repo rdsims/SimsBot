@@ -4,7 +4,6 @@ package org.usfirst.frc.team686.simsbot.subsystems;
 
 import com.ctre.CANTalon;
 
-import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Timer;
 
 import org.usfirst.frc.team686.lib.sensors.BNO055;

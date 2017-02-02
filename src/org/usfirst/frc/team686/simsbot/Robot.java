@@ -13,9 +13,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import org.usfirst.frc.team686.lib.joystick.*;
 import org.usfirst.frc.team686.lib.util.*;
 
-import org.usfirst.frc.team686.simsbot.auto.AutoModeBase;
 import org.usfirst.frc.team686.simsbot.auto.AutoModeExecuter;
-import org.usfirst.frc.team686.simsbot.auto.modes.AutoPlacePegMode;
 import org.usfirst.frc.team686.simsbot.loops.Looper;
 import org.usfirst.frc.team686.simsbot.loops.RobotStateEstimator;
 import org.usfirst.frc.team686.simsbot.subsystems.Drive;
@@ -35,8 +33,8 @@ public class Robot extends IterativeRobot {
 
 	JoystickControlsBase controls = ArcadeDriveJoystick.getInstance();
 	DataLogger dataLogger = DataLogger.getInstance();
-	DataLogger autonomousLogger = DataLogger.getAutonomousInstance();
-	DataLogger visionLogger = DataLogger.getVisionInstance();
+	//DataLogger autonomousLogger = DataLogger.getAutonomousInstance();
+	//DataLogger visionLogger = DataLogger.getVisionInstance();
 	RobotState mRobotState = RobotState.getInstance();
 
 	Looper looper = new Looper();
@@ -91,8 +89,8 @@ public class Robot extends IterativeRobot {
 			DataLogger.findLogDirectory();
 			// det data logger file bases
 			dataLogger.setFileBase("main");
-			autonomousLogger.setFileBase("auto");
-			visionLogger.setFileBase("vision");
+			//autonomousLogger.setFileBase("auto");
+			//visionLogger.setFileBase("vision");
 			
 		} catch (Throwable t) {
 			CrashTracker.logThrowableCrash(t);
@@ -110,8 +108,8 @@ public class Robot extends IterativeRobot {
 		mRobotState.log();
 		looper.log();
 		dataLogger.saveDataItems();
-		autonomousLogger.saveDataItems();
-		visionLogger.saveDataItems();
+		//autonomousLogger.saveDataItems();
+		//visionLogger.saveDataItems();
 	}
 
 	/****************************************************************

@@ -163,7 +163,7 @@ public class DataLogger
 					{
 						if (ps == null) 
 						{
-							String timestampString = LogTimestamp.getTimestampString() + "_" + fileBase ;
+							String timestampString = LogTimestamp.getTimestampString();
 							if (timestampString != null) 
 							{
 								String filename = timestampString + "_" + fileBase + ".csv";

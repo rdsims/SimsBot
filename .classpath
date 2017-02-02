@@ -7,6 +7,10 @@
 	<classpathentry kind="var" path="opencv" sourcepath="opencv.sources"/>
 	<classpathentry kind="var" path="cscore" sourcepath="cscore.sources"/>
 	<classpathentry kind="var" path="USERLIBS_DIR/CTRLib.jar"/>
+<<<<<<< HEAD
 	<classpathentry kind="var" path="USERLIBS_DIR/libgdx-math.jar"/>
+=======
+	<classpathentry kind="var" path="USERLIBS_DIR/TalonSRXLibJava.jar"/>
+>>>>>>> branch 'vision' of https://github.com/rdsims/SimsBot.git
 	<classpathentry kind="output" path="bin"/>
 </classpath>

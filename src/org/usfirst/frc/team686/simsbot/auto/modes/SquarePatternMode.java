@@ -1,7 +1,6 @@
 package org.usfirst.frc.team686.simsbot.auto.modes;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import org.usfirst.frc.team686.lib.util.Path;
@@ -11,9 +10,6 @@ import org.usfirst.frc.team686.lib.util.Path.Waypoint;
 import org.usfirst.frc.team686.simsbot.auto.AutoModeBase;
 import org.usfirst.frc.team686.simsbot.auto.AutoModeEndedException;
 import org.usfirst.frc.team686.simsbot.auto.actions.*;
-import org.usfirst.frc.team686.simsbot.subsystems.Drive.DriveControlState;
-
-import org.usfirst.frc.team686.simsbot.subsystems.Drive;
 
 
 /**

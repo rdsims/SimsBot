@@ -4,7 +4,8 @@ import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 import org.usfirst.frc.team686.lib.joystick.*;
-
+import org.usfirst.frc.team686.simsbot.SmartDashboardInteractions.AutonOption;
+import org.usfirst.frc.team686.simsbot.SmartDashboardInteractions.JoystickOption;
 import org.usfirst.frc.team686.simsbot.auto.AutoModeBase;
 import org.usfirst.frc.team686.simsbot.auto.AutoModeEndedException;
 import org.usfirst.frc.team686.simsbot.auto.modes.*;
@@ -20,9 +21,9 @@ import org.usfirst.frc.team686.simsbot.auto.modes.*;
  */
 public class SmartDashboardInteractions {
 
-    SendableChooser autoModeChooser;
-    SendableChooser autoLaneChooser;
-    SendableChooser autoShootChooser;
+    SendableChooser<AutonOption> autoModeChooser;
+    SendableChooser<Integer> autoLaneChooser;
+    SendableChooser<Integer> autoShootChooser;
     
     enum AutonOption 
     {
@@ -53,7 +54,7 @@ public class SmartDashboardInteractions {
     }
     
     
-    SendableChooser joystickModeChooser;
+    SendableChooser<JoystickOption> joystickModeChooser;
     
     enum JoystickOption 
     {
@@ -76,25 +77,25 @@ public class SmartDashboardInteractions {
     
     public void initWithDefaults() 
     {
-    	autoModeChooser = new SendableChooser();
-    	autoModeChooser.addDefault(AutonOption.STAND_STILL.toString(),    AutonOption.STAND_STILL);
-    	autoModeChooser.addObject( AutonOption.PLACE_PEG.toString(),      AutonOption.PLACE_PEG);
+    	autoModeChooser = new SendableChooser<AutonOption>();
+    	autoModeChooser.addObject(AutonOption.STAND_STILL.toString(),    AutonOption.STAND_STILL);
+    	autoModeChooser.addDefault( AutonOption.PLACE_PEG.toString(),      AutonOption.PLACE_PEG);
     	autoModeChooser.addObject( AutonOption.DRIVE_STRAIGHT.toString(), AutonOption.DRIVE_STRAIGHT);
     	autoModeChooser.addObject( AutonOption.SQUARE_PATTERN.toString(), AutonOption.SQUARE_PATTERN);
     	SmartDashboard.putData("Auto Mode Chooser", autoModeChooser);
     	
-    	autoLaneChooser = new SendableChooser();
+    	autoLaneChooser = new SendableChooser<Integer>();
     	autoLaneChooser.addDefault("Lane 1", 1);
     	autoLaneChooser.addObject( "Lane 2", 2);
     	autoLaneChooser.addObject( "Lane 3", 3);
     	SmartDashboard.putData("Auto Lane Chooser", autoLaneChooser);
     	
-    	autoShootChooser = new SendableChooser();
+    	autoShootChooser = new SendableChooser<Integer>();
     	autoShootChooser.addDefault("Do Not Shoot", 0);
     	autoShootChooser.addObject( "Shoot", 1);
     	SmartDashboard.putData("Shooting Chooser", autoShootChooser);
     	
-    	joystickModeChooser = new SendableChooser();
+    	joystickModeChooser = new SendableChooser<JoystickOption>();
     	joystickModeChooser.addDefault(JoystickOption.ARCADE_DRIVE.toString(),        JoystickOption.ARCADE_DRIVE);
     	joystickModeChooser.addObject(JoystickOption.TRIGGER_DRIVE.toString(),        JoystickOption.TRIGGER_DRIVE);
     	joystickModeChooser.addObject(JoystickOption.TANK_DRIVE.toString(), 	      JoystickOption.TANK_DRIVE);
