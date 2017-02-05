@@ -68,14 +68,14 @@ public class Util
      *                       86% in 2/alpha timesteps
      *                       95% in 3/alpha timesteps
      */
-    public static Vector2 expAverage(Vector2 u, Vector2 v, float alpha)
+    public static void expAverage(Vector2 u, Vector2 v, float alpha)
     {
+System.out.println(u + ", " + v + ", " + alpha);    	
     	// exponential averaging
     	// u = (1-a)*u + a*v
-    	u.scl(1-alpha);
-    	v.scl(alpha);
-    	u.add(v);
-    	return u;
+    	u.x = (1-alpha)*u.x + alpha*v.x;
+    	u.y = (1-alpha)*u.y + alpha*v.y;
+System.out.println(u + ", " + v);    	
     }
     
 }

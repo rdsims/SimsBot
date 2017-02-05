@@ -1,5 +1,7 @@
 package org.team686.lib.util;
 
+import java.text.DecimalFormat;
+
 import org.mini2Dx.gdx.math.*;
 
 /**
@@ -15,6 +17,8 @@ public class Pose
     private Vector2 position;	// position (x,y) in inches
     private float   heading;	// heading in radians
 
+    static public Pose DEFAULT = new Pose(0f, 0f, 0f);
+    
     public Pose(float _x, float _y) 
     {
         position = new Vector2(_x,_y);
@@ -29,12 +33,14 @@ public class Pose
 
     public Pose(double _x, double _y) 
     {
-    	new Pose((float)_x, (float)_y);
+    	position = new Vector2((float)_x, (float)_y);
+    	heading = 0.0f;
     }
 
     public Pose(double _x, double _y, double _thetaRad) 
     {
-    	new Pose((float)_x, (float)_y, (float)_thetaRad);
+    	position = new Vector2((float)_x, (float)_y);
+    	heading = (float)_thetaRad;
     }
 
     public static Pose fromMagnitudeAngleRad(float _rho, float _thetaRad)
@@ -44,10 +50,10 @@ public class Pose
     	return pose;
     }
     
-    public void set(float _x, float _y, float _theta)
+    public void set(float _x, float _y, float _thetaRad)
     {
-    	position.set(_x, _y);
-        heading = _theta;
+    	this.position.set(_x, _y);
+        heading = _thetaRad;
     }
 
     public float getX() { return position.x; }
@@ -106,7 +112,9 @@ public class Pose
     
     @Override
     public String toString() {
-        return "X: " + position.x + ", Y: " + position.y + ", H: " + heading;
+        final DecimalFormat fmt = new DecimalFormat("#0.000");
+        String ret = this.position.toString() + ", H:" + fmt.format(this.getHeadingDeg());
+        return ret;
     }
 }
 

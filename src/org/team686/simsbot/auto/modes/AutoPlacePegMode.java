@@ -6,6 +6,7 @@ import java.util.List;
 import org.team686.lib.util.Path;
 import org.team686.lib.util.Translation2d;
 import org.team686.lib.util.Path.Waypoint;
+import org.team686.simsbot.Constants;
 import org.team686.simsbot.auto.AutoModeBase;
 import org.team686.simsbot.auto.AutoModeEndedException;
 import org.team686.simsbot.auto.actions.*;
@@ -132,10 +133,10 @@ public class AutoPlacePegMode extends AutoModeBase
     	System.out.println("Starting Auto Mode: Peg Mode, lane " + autoLane);
 
     	// drive towards target
-        runAction(new FollowPathAction(new Path(autoPath1), false));   
+//        runAction(new FollowPathAction(new Path(autoPath1), false));   
         // use vision to finish path to target
-//        runAction(new VisionDriveAction(10.0, Constants.kVisionSourceIPAddress));
-        runAction(new VisionTurnAction(30));
+        runAction(new VisionDriveAction(Constants.kVisionMaxVel, Constants.kVisionMaxAccel));
+//        runAction(new VisionTurnAction(30));
         // back away from target (note: 2nd parameter is true for reverse)
 //        runAction(new FollowPathAction(new Path(autoPath2), true));   
         // take path away from airship

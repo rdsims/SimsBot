@@ -24,7 +24,7 @@ public class VisionDriveAction implements Action
 	private double maxAccel;
 	private double prevTime;
 	private double prevSpeed;
-	private Vector2 avgTargetLocation;
+	private Vector2 avgTargetLocation = Vector2.Zero;
 	private int  avgCnt;
 
 	// for logging only
@@ -32,9 +32,11 @@ public class VisionDriveAction implements Action
 	private double imageTimestamp;
 	private double normalizedTargetX;
 	private double normalizedTargetWidth;
-	private Pose previousPose;
-	private Vector2 targetLocation;
-	private Pose currentPose;
+	private Pose previousPose = Pose.DEFAULT;
+	private double prevDistanceToTargetInches;
+	private double prevHeadingToTargetRadians;
+	private Vector2 targetLocation = Vector2.Zero;
+	private Pose currentPose = Pose.DEFAULT;
 	private double distanceToTargetInches;
 	private double headingToTargetRadians;
 	private double lookaheadDist;
@@ -44,6 +46,7 @@ public class VisionDriveAction implements Action
 	
 	public VisionDriveAction(double _maxSpeed, double _maxAccel) 
 	{
+		System.out.println("Starting VisionDriveAction");
 		maxSpeed = _maxSpeed;
 		maxAccel = _maxAccel;
 		table = NetworkTable.getTable("SmartDashboard");
@@ -56,6 +59,7 @@ public class VisionDriveAction implements Action
 		avgCnt = 0;
 		prevTime = 0;
 		prevSpeed = 0;	// TODO: find way to not start from speed=0
+		distanceToTargetInches = Double.MAX_VALUE;	// make sure we don't trigger isFinished() without running update() at least once
 	}
 
 // TODO: combine followPath and visionDrive -- smoothly switch over to vision when 1) enabled for that segment and 2) a target was found
@@ -65,35 +69,42 @@ public class VisionDriveAction implements Action
 	public void update() 
 	{
 		// values from camera, normalized to camera's Field of View (-1 to +1) 
-		imageTimestamp    	 = table.getNumber("imageTimestamp",    0);
-		normalizedTargetX 	 = table.getNumber("targetCenterX",  -999);
-		normalizedTargetWidth = table.getNumber("targetWidth",    -999);
+		imageTimestamp    	  = table.getNumber("Camera/imageTimestamp",    0);
+		normalizedTargetX 	  = table.getNumber("Camera/targetCenterX",  -999);
+		normalizedTargetWidth = table.getNumber("Camera/targetWidth",    -999);
 
+//debug
+System.out.println("normX=" + normalizedTargetX + ", normWidth=" + normalizedTargetWidth);
+		
 		currentTime = Timer.getFPGATimestamp();
 		speed = prevSpeed;
 
 		// If we get a valid message from the Vision co-processor, update our estimate of the target location
-		if (imageTimestamp > 0) 
+		if (normalizedTargetWidth > 0) 
 		{
 			//-----------------------------------------------------
 			// Estimate target location based on previous location,
 			// to compensate for latency in processing image
 			//-----------------------------------------------------
+//DEBUG: use current time instead of image time			
+imageTimestamp = currentTime;			
 			imageTimestamp -= Constants.kCameraLatencySeconds;		// remove camera latency
 			
 			// calculate target location based on *previous* robot pose
 			RigidTransform2d pPose = robotState.getFieldToVehicle(imageTimestamp);	// using CheesyPoof's RigidTransform2d for now  TODO: replace
 			Pose previousPose = new Pose(pPose.getTranslation().getX(), pPose.getTranslation().getY(), pPose.getRotation().getRadians());
+
+System.out.println("pPose =        " + pPose + ", previousPose = " + previousPose);
 			
 // DEBUG: use current pose until we... 			
 // TODO: get timestamp synchronization working
-pPose = robotState.getLatestFieldToVehicle();	// using CheesyPoof's RigidTransform2d for now			
-previousPose = new Pose(pPose.getTranslation().getX(), pPose.getTranslation().getY(), pPose.getRotation().getRadians());
+//pPose = robotState.getLatestFieldToVehicle();	// using CheesyPoof's RigidTransform2d for now			
+//previousPose = new Pose(pPose.getTranslation().getX(), pPose.getTranslation().getY(), pPose.getRotation().getRadians());
 
-			distanceToTargetInches = Constants.kTargetWidthInches / (2.0*normalizedTargetWidth*Constants.kTangentCameraHalfFOV);
-			headingToTargetRadians = previousPose.getHeadingRad() + (normalizedTargetX*Constants.kCameraHalfFOVRadians);
-			Vector2 toTarget = Util.fromMagnitudeAngleRad(distanceToTargetInches, headingToTargetRadians);
-			targetLocation = previousPose.getPosition().add(toTarget); 
+			prevDistanceToTargetInches = Constants.kTargetWidthInches / (2.0*normalizedTargetWidth*Constants.kTangentCameraHalfFOV);
+			prevHeadingToTargetRadians = previousPose.getHeadingRad() + (-normalizedTargetX*Constants.kCameraHalfFOVRadians);
+			Vector2 prevToTarget = Util.fromMagnitudeAngleRad(prevDistanceToTargetInches, prevHeadingToTargetRadians);
+			targetLocation = (new Vector2(previousPose.getPosition())).add(prevToTarget); 	// make a copy of previousPose so that add doesn't change it
 			
 			// filter target location with exponential averaging
 			if (avgCnt == 0)
@@ -101,6 +112,10 @@ previousPose = new Pose(pPose.getTranslation().getX(), pPose.getTranslation().ge
 			else
 				Util.expAverage(avgTargetLocation, targetLocation, Constants.kTargetLocationFilterConstant);
 			avgCnt++;
+
+//debug
+System.out.println("prevDistanceToTargetInches=" + prevDistanceToTargetInches + ", Angle=" + prevHeadingToTargetRadians + ", prevToTarget = " + prevToTarget + ", targetLocation = " + targetLocation);
+
 		}
 		
 		// if avgCnt > 0, then we have at least one estimate of the target location.
@@ -116,12 +131,16 @@ previousPose = new Pose(pPose.getTranslation().getX(), pPose.getTranslation().ge
 			//---------------------------------------------------
 			// Calculate motor settings to turn towards target   
 			//---------------------------------------------------
-			Vector2 robotToTarget = avgTargetLocation.sub(currentPose.getPosition());
+			Vector2 robotToTarget = (new Vector2(avgTargetLocation)).sub(currentPose.getPosition());	// make a copy of avgTargetLocation so that sub doesn't change it
 			distanceToTargetInches = robotToTarget.len();									// distance to target
 			headingToTargetRadians = robotToTarget.angleRad() - currentPose.getHeadingRad();								// change in heading from current pose to target (tangent to circle to be travelled)
 			lookaheadDist = Math.min(Constants.kVisionLookaheadDist, distanceToTargetInches);				// length of chord <= kVisionLookaheadDist
 			curvature = 2.0 * Math.sin(headingToTargetRadians) / lookaheadDist;										// curvature = 1/radius of circle (negative: turn left, positive: turn right)
-		
+
+//debug
+System.out.println("avgTargetLocation = " + avgTargetLocation + ", currentPose=" + currentPose + ", robotToTarget = " + robotToTarget);
+System.out.println("distanceToTargetInches=" + distanceToTargetInches + ", Angle=" + headingToTargetRadians + ", lookaheadDist = " + lookaheadDist + ", curvature = " + curvature);
+			
 			//---------------------------------------------------
 			// Apply speed control
 			//---------------------------------------------------
@@ -162,14 +181,16 @@ previousPose = new Pose(pPose.getTranslation().getX(), pPose.getTranslation().ge
 
 		// store for next time through loop
 		prevTime = currentTime;
-		prevSpeed = speed;
+		prevSpeed = speed;			// TODO: use measured speed instead of computed speed?
+		
+		log();	// TODO: move to AutoModeBase
 	}
 
 	
 	@Override
 	public boolean isFinished() 
 	{
-		boolean done = (distanceToTargetInches > Constants.kPegTargetDistanceThresholdInches);
+		boolean done = (distanceToTargetInches <= Constants.kPegTargetDistanceThresholdInches);
 		if (done) 
 		{
 			System.out.println("Finished VisionDriveAction");
@@ -186,28 +207,35 @@ previousPose = new Pose(pPose.getTranslation().getX(), pPose.getTranslation().ge
 	
 	public void log() 
 	{
+		System.out.println("VisionDriveAction log()");
+
 		DataLogger dataLogger = DataLogger.getVisionInstance();
 
-		dataLogger.putNumber("currentTime", currentTime);
-		dataLogger.putNumber("imageTime", imageTimestamp);
-		dataLogger.putNumber("normalizedTargetX", normalizedTargetX);
-		dataLogger.putNumber("normalizedTargetWidth", normalizedTargetWidth);
-		dataLogger.putNumber("previousPoseX", previousPose.getX());
-		dataLogger.putNumber("previousPoseY", previousPose.getY());
-		dataLogger.putNumber("previousPoseHeadingRad", previousPose.getHeadingRad());
-		dataLogger.putNumber("targetLocationX", targetLocation.x);
-		dataLogger.putNumber("targetLocationY", targetLocation.y);
-		dataLogger.putNumber("avgTargetLocationX", avgTargetLocation.x);
-		dataLogger.putNumber("avgTargetLocationY", avgTargetLocation.y);
-		dataLogger.putNumber("avgCnt", avgCnt);
-		dataLogger.putNumber("currentPoseX", currentPose.getX());
-		dataLogger.putNumber("currentPoseY", currentPose.getY());
-		dataLogger.putNumber("currentPoseHeadingRad", currentPose.getHeadingRad());
-		dataLogger.putNumber("distanceToTargetInches", distanceToTargetInches);
-		dataLogger.putNumber("headingToTargetRadians", headingToTargetRadians);
-		dataLogger.putNumber("lookaheadDist", lookaheadDist);
-		dataLogger.putNumber("curvature", curvature);
-		dataLogger.putNumber("speed", speed);
+		synchronized (dataLogger)
+		{
+			dataLogger.putNumber("VisionDrive/currentTime", currentTime);
+			dataLogger.putNumber("VisionDrive/imageTime", imageTimestamp);
+			dataLogger.putNumber("VisionDrive/normalizedTargetX", normalizedTargetX);
+			dataLogger.putNumber("VisionDrive/normalizedTargetWidth", normalizedTargetWidth);
+			dataLogger.putNumber("VisionDrive/previousPoseX", previousPose.getX());
+			dataLogger.putNumber("VisionDrive/previousPoseY", previousPose.getY());
+			dataLogger.putNumber("VisionDrive/previousPoseHeadingRad", previousPose.getHeadingRad());
+			dataLogger.putNumber("VisionDrive/prevDistanceToTargetInches", prevDistanceToTargetInches);
+			dataLogger.putNumber("VisionDrive/prevHeadingToTargetRadians", prevHeadingToTargetRadians);
+			dataLogger.putNumber("VisionDrive/targetLocationX", targetLocation.x);
+			dataLogger.putNumber("VisionDrive/targetLocationY", targetLocation.y);
+			dataLogger.putNumber("VisionDrive/avgTargetLocationX", avgTargetLocation.x);
+			dataLogger.putNumber("VisionDrive/avgTargetLocationY", avgTargetLocation.y);
+			dataLogger.putNumber("VisionDrive/avgCnt", avgCnt);
+			dataLogger.putNumber("VisionDrive/currentPoseX", currentPose.getX());
+			dataLogger.putNumber("VisionDrive/currentPoseY", currentPose.getY());
+			dataLogger.putNumber("VisionDrive/currentPoseHeadingRad", currentPose.getHeadingRad());
+			dataLogger.putNumber("VisionDrive/distanceToTargetInches", distanceToTargetInches);
+			dataLogger.putNumber("VisionDrive/headingToTargetRadians", headingToTargetRadians);
+			dataLogger.putNumber("VisionDrive/lookaheadDist", lookaheadDist);
+			dataLogger.putNumber("VisionDrive/curvature", curvature);
+			dataLogger.putNumber("VisionDrive/speed", speed);
+		}
 	}
 
 

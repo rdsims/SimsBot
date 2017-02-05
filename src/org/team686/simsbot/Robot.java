@@ -34,7 +34,7 @@ public class Robot extends IterativeRobot {
 	JoystickControlsBase controls = ArcadeDriveJoystick.getInstance();
 	DataLogger dataLogger = DataLogger.getInstance();
 	//DataLogger autonomousLogger = DataLogger.getAutonomousInstance();
-	//DataLogger visionLogger = DataLogger.getVisionInstance();
+	DataLogger visionLogger = DataLogger.getVisionInstance();
 	RobotState mRobotState = RobotState.getInstance();
 
 	Looper looper = new Looper();
@@ -90,7 +90,7 @@ public class Robot extends IterativeRobot {
 			// det data logger file bases
 			dataLogger.setFileBase("main");
 			//autonomousLogger.setFileBase("auto");
-			//visionLogger.setFileBase("vision");
+			visionLogger.setFileBase("vision");
 			
 		} catch (Throwable t) {
 			CrashTracker.logThrowableCrash(t);
@@ -109,7 +109,7 @@ public class Robot extends IterativeRobot {
 		looper.log();
 		dataLogger.saveDataItems();
 		//autonomousLogger.saveDataItems();
-		//visionLogger.saveDataItems();
+		visionLogger.saveDataItems();
 	}
 
 	/****************************************************************
@@ -251,4 +251,9 @@ public class Robot extends IterativeRobot {
 		}
 
 	}
+	
+	// called after disabledPeriodic, autoPeriodic, and teleopPeriodic 
+	@Override
+	public void robotPeriodic() {}
+
 }

@@ -109,9 +109,9 @@ public class Constants extends ConstantsBase {
     public static double kCameraFOVDegrees = 42.5;			// Camera Field of View (degrees)
     public static double kCameraHalfFOVRadians = kCameraFOVDegrees/2.0 * Math.PI/180.0;			// Half of Camera Field of View (radians)
     public static double kTangentCameraHalfFOV = Math.tan(kCameraHalfFOVRadians);
-    public static double kCameraLatencySeconds = 0.200;			// Camera image capturing latency
-    public static double kPegTargetDistanceThresholdInches = 15;		// inches to stop from target (15" from camera = 4.5" from bumpers
-    public static double kVisionMaxVel    = 90.0; // inches/sec  		// RS measured ~100 inches/sec on carpet
+    public static double kCameraLatencySeconds = 0.500;			// Camera image capturing latency
+    public static double kPegTargetDistanceThresholdInches = 20;		// inches to stop from target (15" from camera = 4.5" from bumpers
+    public static double kVisionMaxVel    = 20.0; // inches/sec  		// RS measured ~100 inches/sec on carpet
     public static double kVisionMaxAccel  = 24.0; // inches/sec^2		// RS measured 800-1000 inches/sec^2 on carpet
-    public static double kVisionLookaheadDist = 12.0;	// inches
+    public static double kVisionLookaheadDist = 24.0;	// inches
     }

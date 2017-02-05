@@ -180,6 +180,8 @@ public class DataLogger
 				{
 					if ((mOutputMode==OutputMode.FILE_ONLY) || (mOutputMode==OutputMode.SMARTDASHBOARD_AND_FILE))
 					{
+ps.print("time,timeSinceStart");
+writeList(ps, dataNames);
 						timeUpdated = (System.currentTimeMillis()-startTime);
 						ps.print(getDate());
 						ps.print(',');

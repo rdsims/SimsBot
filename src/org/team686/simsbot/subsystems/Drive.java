@@ -379,7 +379,7 @@ public class Drive extends Subsystem
         double maxSpeed = Math.max(Math.abs(setpoint.left), Math.abs(setpoint.right));
         if (maxSpeed > wheelSpeedLimit)
             setpoint.scale(wheelSpeedLimit/maxSpeed);
-        updateVelocitySetpoint(setpoint.left, setpoint.right);
+        setVelocitySetpoint(setpoint.left, setpoint.right);
     }
     
 	private void updateVelocityHeadingSetpoint() {
