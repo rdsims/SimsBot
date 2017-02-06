@@ -19,6 +19,7 @@ import org.team686.simsbot.Constants;
 import org.team686.simsbot.DataLogger;
 import org.team686.simsbot.Kinematics;
 import org.team686.simsbot.RobotState;
+import org.team686.simsbot.loops.DriveInterface;
 import org.team686.simsbot.loops.Loop;
 import org.team686.simsbot.subsystems.Drive.DriveControlState;
 
@@ -31,13 +32,12 @@ import org.team686.simsbot.subsystems.Drive.DriveControlState;
  */
 public class Drive extends Subsystem 
 {
-	protected static final int kVelocityControlSlot = 0;
-	protected static final int kBaseLockControlSlot = 1;
-
 	private static Drive instance_ = new Drive();
 
 	public static Drive getInstance() { return instance_; }
 
+    static DriveInterface driveInterface = DriveInterface.getInstance();
+	
 	private double mLastHeadingErrorDegrees;
 
 	// The robot drivetrain's various states
@@ -46,10 +46,7 @@ public class Drive extends Subsystem
 		OPEN_LOOP, BASE_LOCKED, VELOCITY_SETPOINT, VELOCITY_HEADING_CONTROL, PATH_FOLLOWING_CONTROL
 	}
 
-	public final CANTalon lMotor_, rMotor_;
 	private double lMotorCtrl, rMotorCtrl;
-
-	private boolean isBrakeMode_ = true;
 
 	private DriveControlState driveControlState_ ;
 	private VelocityHeadingSetpoint velocityHeadingSetpoint_;
@@ -58,187 +55,29 @@ public class Drive extends Subsystem
 
 	private static BNO055 imu = BNO055.getInstance(Constants.BNO055_PORT);
 
-	// The main control loop (an implementation of Loop), which cycles
-	// through different robot states
-	private final Loop mLoop=new Loop()
-	{
-		@Override public void onStart()
-		{
-			setOpenLoop(DriveSignal.NEUTRAL);
-			pathFollowingController_=null;
-			setBrakeMode(false);
-			// stopOnNextCount_ = false;
-		}
-
-		@Override public void onLoop()
-		{
-			synchronized(Drive.this)
-			{
-				/*
-				 * if (stopOnNextCount_ && getSeesLineCount() > lastSeesLineCount_) 
-				 * {
-				 * 		poseWhenStoppedOnLine_ =
-				 * 		RobotState.getInstance().getLatestFieldToVehicle().getValue();
-				 * 		stopOnNextCount_ = false; 
-				 * 		stop(); 
-				 * }
-				 */
-	
-				switch (driveControlState_)
-				{
-					case OPEN_LOOP:
-						return;
-					case BASE_LOCKED:
-						return;
-					case VELOCITY_SETPOINT:
-						// Talons are updating the control loop state
-						return;
-					case VELOCITY_HEADING_CONTROL:
-						updateVelocityHeadingSetpoint();
-						return;
-					case PATH_FOLLOWING_CONTROL:
-						updatePathFollower();
-						if(isFinishedPath())
-						{
-							stop();
-						}
-						break;
-					default:
-						System.out.println("Unexpected drive control state: "+driveControlState_);
-						break;
-				}
-			}
-		}
-	
-		@Override public void onStop()
-		{
-			setOpenLoop(DriveSignal.NEUTRAL);
-		}
-	};
 
 	// The constructor instantiates all of the drivetrain components when the
 	// robot powers up
 	private Drive() 
 	{
-		lMotor_ = new CANTalon(Constants.kLeftMotorTalonId);
-		rMotor_ = new CANTalon(Constants.kRightMotorTalonId);
-
-		// Get status at 100Hz
-		lMotor_.setStatusFrameRateMs(CANTalon.StatusFrameRate.Feedback, 10);
-		rMotor_.setStatusFrameRateMs(CANTalon.StatusFrameRate.Feedback, 10);
-
-		// Start in open loop mode
-		lMotor_.changeControlMode(CANTalon.TalonControlMode.PercentVbus);
-		rMotor_.changeControlMode(CANTalon.TalonControlMode.PercentVbus);
-		setLeftRightPower(0, 0);
-		setBrakeMode(false);
-
-		// Set up the encoders
-		lMotor_.setFeedbackDevice(CANTalon.FeedbackDevice.QuadEncoder);
-		lMotor_.configEncoderCodesPerRev(Constants.kQuadEncoderCodesPerRev);
-		lMotor_.setInverted(false);
-		lMotor_.reverseSensor(false);
-		lMotor_.reverseOutput(false);
-
-		rMotor_.setFeedbackDevice(CANTalon.FeedbackDevice.QuadEncoder);
-		rMotor_.configEncoderCodesPerRev(Constants.kQuadEncoderCodesPerRev);
-		rMotor_.setInverted(false);
-		rMotor_.reverseSensor(true); // inverts feedback in closed loop modes
-		rMotor_.reverseOutput(false);
-
-		// Load velocity control gains
-		lMotor_.setPID(Constants.kDriveVelocityKp, Constants.kDriveVelocityKi, Constants.kDriveVelocityKd,
-				Constants.kDriveVelocityKf, Constants.kDriveVelocityIZone, Constants.kDriveVelocityRampRate,
-				kVelocityControlSlot);
-		rMotor_.setPID(Constants.kDriveVelocityKp, Constants.kDriveVelocityKi, Constants.kDriveVelocityKd,
-				Constants.kDriveVelocityKf, Constants.kDriveVelocityIZone, Constants.kDriveVelocityRampRate,
-				kVelocityControlSlot);
-		// Load base lock control gains
-		lMotor_.setPID(Constants.kDriveBaseLockKp, Constants.kDriveBaseLockKi, Constants.kDriveBaseLockKd,
-				Constants.kDriveBaseLockKf, Constants.kDriveBaseLockIZone, Constants.kDriveBaseLockRampRate,
-				kBaseLockControlSlot);
-		rMotor_.setPID(Constants.kDriveBaseLockKp, Constants.kDriveBaseLockKi, Constants.kDriveBaseLockKd,
-				Constants.kDriveBaseLockKf, Constants.kDriveBaseLockIZone, Constants.kDriveBaseLockRampRate,
-				kBaseLockControlSlot);
-
 		velocityHeadingPid_ = new SynchronousPID(Constants.kDriveHeadingVelocityKp, Constants.kDriveHeadingVelocityKi,
 				Constants.kDriveHeadingVelocityKd);
 		velocityHeadingPid_.setOutputRange(-30, 30);
-
-		setOpenLoop(DriveSignal.NEUTRAL);
-	}
-
-	public Loop getLoop() {
-		return mLoop;
 	}
 
 	public void setControlState(DriveControlState newState)
     {
-    	if (driveControlState_ != newState)
-    	{
-            switch (newState)
-            {
-            	case OPEN_LOOP: 
-	                lMotor_.changeControlMode(CANTalon.TalonControlMode.PercentVbus);
-	                rMotor_.changeControlMode(CANTalon.TalonControlMode.PercentVbus);
-	                break;
-
-            	case BASE_LOCKED:
-        			lMotor_.setProfile(kBaseLockControlSlot);
-        			lMotor_.changeControlMode(CANTalon.TalonControlMode.Position);
-        			lMotor_.setAllowableClosedLoopErr(Constants.kDriveBaseLockAllowableError);
-        			lMotor_.set(lMotor_.getPosition());
-
-        			rMotor_.setProfile(kBaseLockControlSlot);
-        			rMotor_.changeControlMode(CANTalon.TalonControlMode.Position);
-        			rMotor_.setAllowableClosedLoopErr(Constants.kDriveBaseLockAllowableError);
-        			rMotor_.set(rMotor_.getPosition());
-
-        			setBrakeMode(true);
-            		break;
-            		
-            	case VELOCITY_SETPOINT:
-            		configureTalonsForSpeedControl();
-            		break;
-            		
-            	case VELOCITY_HEADING_CONTROL:
-        			configureTalonsForSpeedControl();
-        			velocityHeadingPid_.reset();
-            		break;
-            		
-            	case PATH_FOLLOWING_CONTROL:
-        			configureTalonsForSpeedControl();
-        			velocityHeadingPid_.reset();
-            		break;
-            		
-            	default:
-            		break;
-            }
-            // set new state
-    		driveControlState_ = newState;
-    	}
+		driveControlState_ = newState;
     }
 
-	private void configureTalonsForSpeedControl() {
-		if (driveControlState_ != DriveControlState.VELOCITY_HEADING_CONTROL &&
-			driveControlState_ != DriveControlState.VELOCITY_SETPOINT &&
-			driveControlState_ != DriveControlState.PATH_FOLLOWING_CONTROL)
-		{
-			lMotor_.changeControlMode(CANTalon.TalonControlMode.Speed);
-			lMotor_.setProfile(kVelocityControlSlot);
-			lMotor_.setAllowableClosedLoopErr(Constants.kDriveVelocityAllowableError);
-
-			rMotor_.changeControlMode(CANTalon.TalonControlMode.Speed);
-			rMotor_.setProfile(kVelocityControlSlot);
-			rMotor_.setAllowableClosedLoopErr(Constants.kDriveVelocityAllowableError);
-		}
-	}
-
-	
-	public synchronized DriveControlState getControlState() {
+	public synchronized DriveControlState getControlState() 
+	{
 		return driveControlState_;
 	}
 
+	public synchronized double getLeftMotorCtrl() { return lMotorCtrl; }
+	public synchronized double getRightMotorCtrl() { return rMotorCtrl; }
+	
 	public void testDriveSpeedControl() 
 	{
 		double  left_inches_per_second = Constants.kDriveWheelCircumInches;
@@ -246,35 +85,21 @@ public class Drive extends Subsystem
 		setVelocitySetpoint(left_inches_per_second, right_inches_per_second);
 	}
 
-	protected synchronized void setLeftRightPower(double left, double right) 
+	public synchronized void setOpenLoop(DriveSignal signal) 
 	{
-		// single location to correct inverted motor controls
-		lMotorCtrl = +left; // store for logging
-		rMotorCtrl = +right;// store for logging
-		lMotor_.set(lMotorCtrl);
-		rMotor_.set(rMotorCtrl);
+		driveControlState_ = DriveControlState.OPEN_LOOP;
+		lMotorCtrl = signal.lMotor;
+		rMotorCtrl = signal.rMotor;
 	}
 
-	public synchronized void setOpenLoop(DriveSignal signal) {
-		setControlState(DriveControlState.OPEN_LOOP);
-		setLeftRightPower(signal.lMotor, signal.rMotor);
+	
+	public synchronized void setVelocitySetpoint(double left_inches_per_sec, double right_inches_per_sec) 
+	{
+		driveControlState_ = DriveControlState.VELOCITY_SETPOINT;
+		lMotorCtrl = left_inches_per_sec;
+		rMotorCtrl = right_inches_per_sec;
 	}
-
-	public synchronized void setBaseLockOn() {
-		setControlState(DriveControlState.BASE_LOCKED);
-	}
-
-	public synchronized void setVelocitySetpoint(double left_inches_per_sec, double right_inches_per_sec) {
-		setControlState(DriveControlState.VELOCITY_SETPOINT);
-		updateVelocitySetpoint(left_inches_per_sec, right_inches_per_sec);
-	}
-
-	public synchronized void setVelocityHeadingSetpoint(double forward_inches_per_sec, Rotation2d headingSetpoint) {
-		setControlState(DriveControlState.VELOCITY_HEADING_CONTROL);
-		velocityHeadingSetpoint_ = new VelocityHeadingSetpoint(forward_inches_per_sec, forward_inches_per_sec, headingSetpoint);
-		updateVelocityHeadingSetpoint();
-	}
-
+	
 	/**
 	 * The robot follows a set path, which is defined by Waypoint objects.
 	 * 
@@ -300,34 +125,12 @@ public class Drive extends Subsystem
 				|| driveControlState_ != DriveControlState.PATH_FOLLOWING_CONTROL;
 	}
 
-	public double getLeftDistanceInches() {
-		return rotationsToInches(lMotor_.getPosition());
-	}
+	public double getLeftDistanceInches()  { return rotationsToInches(driveInterface.getLeftDistance());	}
+	public double getRightDistanceInches() { return rotationsToInches(driveInterface.getRightDistance()); 	}
 
-	public double getRightDistanceInches() {
-		return rotationsToInches(rMotor_.getPosition());
-	}
-
-	public double getLeftVelocityInchesPerSec() {
-		return rpmToInchesPerSecond(lMotor_.getSpeed());
-	}
-
-	public double getRightVelocityInchesPerSec() {
-		return rpmToInchesPerSecond(rMotor_.getSpeed());
-	}
-
-	public synchronized void resetEncoders() {
-		lMotor_.setPosition(0);
-		rMotor_.setPosition(0);
-
-		lMotor_.setEncPosition(0);
-		rMotor_.setEncPosition(0);
-	}
-
-	public BNO055 getImu() {
-		return imu;
-	}
-
+	public double getLeftVelocityInchesPerSec()  { return rpmToInchesPerSecond(driveInterface.getLeftSpeed());  }
+	public double getRightVelocityInchesPerSec() { return rpmToInchesPerSecond(driveInterface.getRightSpeed());	}
+	
 	public double getHeading() {
 		// measured angle decreases with clockwise rotation
 		// it should increase with clockwise rotation (according to
@@ -420,14 +223,6 @@ public class Drive extends Subsystem
 
 	private static double inchesPerSecondToRpm(double inches_per_second) {
 		return inchesToRotations(inches_per_second) * 60;
-	}
-
-	public void setBrakeMode(boolean val) {
-		if (isBrakeMode_ != val) {
-			lMotor_.enableBrakeMode(val);
-			rMotor_.enableBrakeMode(val);
-			isBrakeMode_ = val;
-		}
 	}
 
 	/**
