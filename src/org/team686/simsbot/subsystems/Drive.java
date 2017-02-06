@@ -22,6 +22,7 @@ import org.team686.simsbot.RobotState;
 import org.team686.simsbot.loops.DriveInterface;
 import org.team686.simsbot.loops.Loop;
 import org.team686.simsbot.subsystems.Drive.DriveControlState;
+import org.team686.simsbot.subsystems.Drive.VelocityHeadingSetpoint;
 
 /**
  * The robot's drivetrain, which implements the Superstructure abstract class.
@@ -65,6 +66,38 @@ public class Drive extends Subsystem
 		velocityHeadingPid_.setOutputRange(-30, 30);
 	}
 
+	
+	
+
+	
+onLoop()
+{
+	switch (drive.getControlState())
+		{
+			case OPEN_LOOP:
+				return;
+			case BASE_LOCKED:
+				return;
+			case VELOCITY_SETPOINT:
+				// Talons are updating the control loop state
+				return;
+			case VELOCITY_HEADING_CONTROL:
+				updateVelocityHeadingSetpoint();
+				return;
+			case PATH_FOLLOWING_CONTROL:
+				updatePathFollower();
+				if(isFinishedPath())
+				{
+					stop();
+				}
+				break;
+			default:
+				System.out.println("Unexpected drive control state: "+driveControlState_);
+				break;
+		}
+	}
+
+	
 	public void setControlState(DriveControlState newState)
     {
 		driveControlState_ = newState;
@@ -92,13 +125,27 @@ public class Drive extends Subsystem
 		rMotorCtrl = signal.rMotor;
 	}
 
-	
+	public synchronized void setBaseLockOn() 
+	{
+		driveControlState_ = DriveControlState.BASE_LOCKED;
+	}
+
 	public synchronized void setVelocitySetpoint(double left_inches_per_sec, double right_inches_per_sec) 
 	{
 		driveControlState_ = DriveControlState.VELOCITY_SETPOINT;
 		lMotorCtrl = left_inches_per_sec;
 		rMotorCtrl = right_inches_per_sec;
 	}
+
+	public synchronized void setVelocityHeadingSetpoint(double forward_inches_per_sec, Rotation2d headingSetpoint) 
+	{
+		driveControlState_ = DriveControlState.VELOCITY_HEADING_CONTROL;
+		velocityHeadingSetpoint_ = new VelocityHeadingSetpoint(forward_inches_per_sec, forward_inches_per_sec, headingSetpoint);
+		updateVelocityHeadingSetpoint();
+	}
+	
+	
+	
 	
 	/**
 	 * The robot follows a set path, which is defined by Waypoint objects.
