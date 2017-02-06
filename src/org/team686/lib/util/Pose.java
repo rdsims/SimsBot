@@ -61,6 +61,7 @@ public class Pose
     public Vector2 getPosition() { return position; }
     public float getHeadingRad() { return heading; }
     public float getHeadingDeg() { return heading * MathUtils.radiansToDegrees; }
+    public Vector2 getHeadingVector2() { return new Vector2((float)Math.cos(heading), (float)Math.sin(heading)); }
     
     
     // add performs vector translation.  The original heading is not changed
@@ -68,6 +69,13 @@ public class Pose
     {
     	position.add(v);
     	return this;
+    }
+    
+    // adjust Heading
+    public double addHeadingRad(double _thetaRad)
+    {
+    	heading += _thetaRad;
+    	return heading;
     }
     
     // sub performs vector translation.  The original heading is not changed

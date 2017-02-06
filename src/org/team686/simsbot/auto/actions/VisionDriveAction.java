@@ -68,17 +68,41 @@ public class VisionDriveAction implements Action
 	@Override
 	public void update() 
 	{
+		//---------------------------------------------------
+		// Get inputs
+		//---------------------------------------------------
+		
 		// values from camera, normalized to camera's Field of View (-1 to +1) 
 		imageTimestamp    	  = table.getNumber("Camera/imageTimestamp",    0);
 		normalizedTargetX 	  = table.getNumber("Camera/targetCenterX",  -999);
 		normalizedTargetWidth = table.getNumber("Camera/targetWidth",    -999);
 
-//debug
-System.out.println("normX=" + normalizedTargetX + ", normWidth=" + normalizedTargetWidth);
-		
-		currentTime = Timer.getFPGATimestamp();
-		speed = prevSpeed;
+		RigidTransform2d  cPose = robotState.getLatestFieldToVehicle();		// using CheesyPoof's RigidTransform2d for now.  TODO: replace		
+		Pose currentPose = new Pose(cPose.getTranslation().getX(), cPose.getTranslation().getY(), cPose.getRotation().getRadians());
 
+		currentTime = Timer.getFPGATimestamp();
+
+//DEBUG: use current time instead of image time			
+imageTimestamp = currentTime;			
+		imageTimestamp -= Constants.kCameraLatencySeconds;		// remove camera latency
+		
+		// calculate target location based on *previous* robot pose
+		RigidTransform2d pPose = robotState.getFieldToVehicle(imageTimestamp);	// using CheesyPoof's RigidTransform2d for now  TODO: replace
+		Pose previousPose = new Pose(pPose.getTranslation().getX(), pPose.getTranslation().getY(), pPose.getRotation().getRadians());
+
+		//---------------------------------------------------
+		// Process
+		//---------------------------------------------------
+		visionDrive(imageTimestamp, normalizedTargetX, normalizedTargetWidth, currentPose, previousPose);
+
+		//---------------------------------------------------
+		// Output: Send drive control
+		//---------------------------------------------------
+		drive.driveCurve(speed, curvature, maxSpeed);
+	}
+	
+	public void visionDrive(double imageTimestamp, double normalizedTargetX, double normalizedTargetWidth, Pose currentPose, Pose previousPose)
+	{
 		// If we get a valid message from the Vision co-processor, update our estimate of the target location
 		if (normalizedTargetWidth > 0) 
 		{
@@ -86,21 +110,6 @@ System.out.println("normX=" + normalizedTargetX + ", normWidth=" + normalizedTar
 			// Estimate target location based on previous location,
 			// to compensate for latency in processing image
 			//-----------------------------------------------------
-//DEBUG: use current time instead of image time			
-imageTimestamp = currentTime;			
-			imageTimestamp -= Constants.kCameraLatencySeconds;		// remove camera latency
-			
-			// calculate target location based on *previous* robot pose
-			RigidTransform2d pPose = robotState.getFieldToVehicle(imageTimestamp);	// using CheesyPoof's RigidTransform2d for now  TODO: replace
-			Pose previousPose = new Pose(pPose.getTranslation().getX(), pPose.getTranslation().getY(), pPose.getRotation().getRadians());
-
-System.out.println("pPose =        " + pPose + ", previousPose = " + previousPose);
-			
-// DEBUG: use current pose until we... 			
-// TODO: get timestamp synchronization working
-//pPose = robotState.getLatestFieldToVehicle();	// using CheesyPoof's RigidTransform2d for now			
-//previousPose = new Pose(pPose.getTranslation().getX(), pPose.getTranslation().getY(), pPose.getRotation().getRadians());
-
 			prevDistanceToTargetInches = Constants.kTargetWidthInches / (2.0*normalizedTargetWidth*Constants.kTangentCameraHalfFOV);
 			prevHeadingToTargetRadians = previousPose.getHeadingRad() + (-normalizedTargetX*Constants.kCameraHalfFOVRadians);
 			Vector2 prevToTarget = Util.fromMagnitudeAngleRad(prevDistanceToTargetInches, prevHeadingToTargetRadians);
@@ -112,35 +121,12 @@ System.out.println("pPose =        " + pPose + ", previousPose = " + previousPos
 			else
 				Util.expAverage(avgTargetLocation, targetLocation, Constants.kTargetLocationFilterConstant);
 			avgCnt++;
-
-//debug
-System.out.println("prevDistanceToTargetInches=" + prevDistanceToTargetInches + ", Angle=" + prevHeadingToTargetRadians + ", prevToTarget = " + prevToTarget + ", targetLocation = " + targetLocation);
-
 		}
 		
 		// if avgCnt > 0, then we have at least one estimate of the target location.
 		// drive towards it, even if we didn't get a valid Vision co-processor message this time
 		if (avgCnt > 0)
 		{
-			//---------------------------------------------------
-			// Calculate path from *current* robot pose to target
-			//---------------------------------------------------
-			RigidTransform2d  cPose = robotState.getLatestFieldToVehicle();		// using CheesyPoof's RigidTransform2d for now.  TODO: replace		
-			Pose currentPose = new Pose(cPose.getTranslation().getX(), cPose.getTranslation().getY(), cPose.getRotation().getRadians());
-
-			//---------------------------------------------------
-			// Calculate motor settings to turn towards target   
-			//---------------------------------------------------
-			Vector2 robotToTarget = (new Vector2(avgTargetLocation)).sub(currentPose.getPosition());	// make a copy of avgTargetLocation so that sub doesn't change it
-			distanceToTargetInches = robotToTarget.len();									// distance to target
-			headingToTargetRadians = robotToTarget.angleRad() - currentPose.getHeadingRad();								// change in heading from current pose to target (tangent to circle to be travelled)
-			lookaheadDist = Math.min(Constants.kVisionLookaheadDist, distanceToTargetInches);				// length of chord <= kVisionLookaheadDist
-			curvature = 2.0 * Math.sin(headingToTargetRadians) / lookaheadDist;										// curvature = 1/radius of circle (negative: turn left, positive: turn right)
-
-//debug
-System.out.println("avgTargetLocation = " + avgTargetLocation + ", currentPose=" + currentPose + ", robotToTarget = " + robotToTarget);
-System.out.println("distanceToTargetInches=" + distanceToTargetInches + ", Angle=" + headingToTargetRadians + ", lookaheadDist = " + lookaheadDist + ", curvature = " + curvature);
-			
 			//---------------------------------------------------
 			// Apply speed control
 			//---------------------------------------------------
@@ -164,21 +150,24 @@ System.out.println("distanceToTargetInches=" + distanceToTargetInches + ", Angle
 			final double kMinSpeed = 4.0;
 			if (Math.abs(speed) < kMinSpeed) 
 				speed = Math.signum(speed) * kMinSpeed;
-			
-			//---------------------------------------------------
-			// Send drive control
-			//---------------------------------------------------
-			drive.driveCurve(speed, curvature, maxSpeed);
-		} 
-		else 
-		{
-			// debug
-			System.out.println("Vision NetworkTables not found");
 
-			// invalid value: not sure if we should stop or coast
-			drive.stop();
+
+			//---------------------------------------------------
+			// Calculate motor settings to turn towards target   
+			//---------------------------------------------------
+			Vector2 robotToTarget = (new Vector2(avgTargetLocation)).sub(currentPose.getPosition());	// make a copy of avgTargetLocation so that sub doesn't change it
+			distanceToTargetInches = robotToTarget.len();									// distance to target
+			headingToTargetRadians = robotToTarget.angleRad() - currentPose.getHeadingRad();								// change in heading from current pose to target (tangent to circle to be travelled)
+			lookaheadDist = Math.min(Constants.kVisionLookaheadDist, distanceToTargetInches);				// length of chord <= kVisionLookaheadDist
+			curvature = 2.0 * Math.sin(headingToTargetRadians) / lookaheadDist;										// curvature = 1/radius of circle (negative: turn left, positive: turn right)
+
 		}
-
+		else
+		{
+			speed = prevSpeed;
+			curvature = 0;
+		}
+			
 		// store for next time through loop
 		prevTime = currentTime;
 		prevSpeed = speed;			// TODO: use measured speed instead of computed speed?
@@ -186,6 +175,9 @@ System.out.println("distanceToTargetInches=" + distanceToTargetInches + ", Angle
 		log();	// TODO: move to AutoModeBase
 	}
 
+	public double getSpeed() { return speed; }
+	public double getCurvature() { return curvature; }
+	
 	
 	@Override
 	public boolean isFinished() 

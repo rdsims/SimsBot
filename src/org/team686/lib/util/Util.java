@@ -60,7 +60,7 @@ public class Util
     	v.rotateRad(_angleRad);					// then rotate
     	return v;
     }
-	
+	   
     /*
      *  perform exponential filtering on position
      *  alpha is the filtering coefficient, 0<alpha<<1
