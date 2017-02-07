@@ -12,7 +12,7 @@ import org.team686.simsbot.subsystems.Drive;
  * traveled (compares two waypoints), gyroscope orientation, and velocity, among
  * various other factors. Similar to a car's odometer.
  */
-public class RobotStateEstimatorNew implements Loop
+public class RobotStateLoopNew implements Loop
 {
     RobotState robotState = RobotState.getInstance();
     Drive drive = Drive.getInstance();
@@ -27,14 +27,14 @@ public class RobotStateEstimatorNew implements Loop
     // small floating point number below which we will use estimate to avoid divide by zero errors
     private final static double kEps = 1E-9;
 
-    static RobotStateEstimatorNew instance = new RobotStateEstimatorNew(0,0,0);
+    static RobotStateLoopNew instance = new RobotStateLoopNew(0,0,0);
 
-    public static RobotStateEstimatorNew getInstance()
+    public static RobotStateLoopNew getInstance()
     {
         return instance;
     }
 
-    RobotStateEstimatorNew(double x, double y, double theta)
+    RobotStateLoopNew(double x, double y, double theta)
     {
     	setPose(x,y,theta);
     }
@@ -48,14 +48,14 @@ public class RobotStateEstimatorNew implements Loop
     public void onStart() {
         lDistPrev = drive.getLeftDistanceInches();
         rDistPrev = drive.getRightDistanceInches();
-        thetaPrev = drive.getHeading();
+        thetaPrev = drive.getHeadingRad();
     }
 
     @Override
     public void onLoop() {
         double lDist = drive.getLeftDistanceInches();
         double rDist = drive.getRightDistanceInches();
-        double theta = drive.getHeading();
+        double theta = drive.getHeadingRad();
         
         // dD = distance traveled by center of robot in time delta_t
         // dTheta = change in heading over last delta_t
@@ -95,8 +95,8 @@ public class RobotStateEstimatorNew implements Loop
 
         // logging to account for vision latency
         //double time = Timer.getFPGATimestamp();
-        //double lSpeed = drive.getLeftVelocityInchesPerSec();
-        //double rSpeed = drive.getRightVelocityInchesPerSec();
+        //double lSpeed = drive.getLeftSpeedInchesPerSec();
+        //double rSpeed = drive.getRightSpeedInchesPerSec();
     
     }
 

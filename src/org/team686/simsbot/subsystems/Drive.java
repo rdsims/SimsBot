@@ -2,27 +2,20 @@ package org.team686.simsbot.subsystems;
 
 //import java.util.Set;
 
-import com.ctre.CANTalon;
-
 import edu.wpi.first.wpilibj.Timer;
 
-import org.team686.lib.sensors.BNO055;
 import org.team686.lib.util.AdaptivePurePursuitController;
 import org.team686.lib.util.DriveSignal;
 import org.team686.lib.util.Path;
 import org.team686.lib.util.RigidTransform2d;
 import org.team686.lib.util.Rotation2d;
 import org.team686.lib.util.SynchronousPID;
-import org.team686.lib.util.Util;
 
 import org.team686.simsbot.Constants;
 import org.team686.simsbot.DataLogger;
 import org.team686.simsbot.Kinematics;
 import org.team686.simsbot.RobotState;
-import org.team686.simsbot.loops.DriveInterface;
 import org.team686.simsbot.loops.Loop;
-import org.team686.simsbot.subsystems.Drive.DriveControlState;
-import org.team686.simsbot.subsystems.Drive.VelocityHeadingSetpoint;
 
 /**
  * The robot's drivetrain, which implements the Superstructure abstract class.
@@ -37,7 +30,14 @@ public class Drive extends Subsystem
 
 	public static Drive getInstance() { return instance_; }
 
-    static DriveInterface driveInterface = DriveInterface.getInstance();
+	double lDistanceInches, rDistanceInches;
+	double lSpeedInchesPerSec, rSpeedInchesPerSec;
+	double headingRad;
+
+	// motor status
+	double lMotorCurrent, rMotorCurrent;
+	double lMotorCtrl, rMotorCtrl;
+	double lMotorPIDError, rMotorPIDError;
 	
 	private double mLastHeadingErrorDegrees;
 
@@ -47,105 +47,197 @@ public class Drive extends Subsystem
 		OPEN_LOOP, BASE_LOCKED, VELOCITY_SETPOINT, VELOCITY_HEADING_CONTROL, PATH_FOLLOWING_CONTROL
 	}
 
-	private double lMotorCtrl, rMotorCtrl;
+	private double lMotorCmd, rMotorCmd;
+	private boolean brakeEnableCmd;
+	private boolean resetEncoderCmd;
 
-	private DriveControlState driveControlState_ ;
-	private VelocityHeadingSetpoint velocityHeadingSetpoint_;
-	private AdaptivePurePursuitController pathFollowingController_;
-	private SynchronousPID velocityHeadingPid_;
+	private DriveControlState driveControlState;
+	private VelocityHeadingSetpoint velocityHeadingSetpoint;
+	private AdaptivePurePursuitController pathFollowingController;
+	private SynchronousPID velocityHeadingPID;
 
-	private static BNO055 imu = BNO055.getInstance(Constants.BNO055_PORT);
 
 
 	// The constructor instantiates all of the drivetrain components when the
 	// robot powers up
 	private Drive() 
 	{
-		velocityHeadingPid_ = new SynchronousPID(Constants.kDriveHeadingVelocityKp, Constants.kDriveHeadingVelocityKi,
-				Constants.kDriveHeadingVelocityKd);
-		velocityHeadingPid_.setOutputRange(-30, 30);
+		velocityHeadingPID = new SynchronousPID(Constants.kDriveHeadingVelocityKp, Constants.kDriveHeadingVelocityKi, Constants.kDriveHeadingVelocityKd);
+		velocityHeadingPID.setOutputRange(-30, 30);
 	}
 
 	
 	
-
-	
-onLoop()
-{
-	switch (drive.getControlState())
-		{
-			case OPEN_LOOP:
-				return;
-			case BASE_LOCKED:
-				return;
-			case VELOCITY_SETPOINT:
-				// Talons are updating the control loop state
-				return;
-			case VELOCITY_HEADING_CONTROL:
-				updateVelocityHeadingSetpoint();
-				return;
-			case PATH_FOLLOWING_CONTROL:
-				updatePathFollower();
-				if(isFinishedPath())
-				{
-					stop();
-				}
-				break;
-			default:
-				System.out.println("Unexpected drive control state: "+driveControlState_);
-				break;
-		}
-	}
-
-	
-	public void setControlState(DriveControlState newState)
+	/*
+	 * Loop to tend to velocity control loops, where Talon SRXs are monitoring the wheel velocities
+	 */
+    private final Loop velocityPIDLoop = new Loop() 
     {
-		driveControlState_ = newState;
-    }
+        @Override
+        public void onStart()
+        {
+            setOpenLoop(DriveSignal.NEUTRAL);
+            pathFollowingController = null;
+        }
 
-	public synchronized DriveControlState getControlState() 
-	{
-		return driveControlState_;
-	}
+        @Override
+        public void onLoop() 
+        {
+        	switch (driveControlState)
+    		{
+    			case OPEN_LOOP:
+    			case BASE_LOCKED:
+    				// states where Talon SRXs are not controlling velocity
+    				return;
 
-	public synchronized double getLeftMotorCtrl() { return lMotorCtrl; }
-	public synchronized double getRightMotorCtrl() { return rMotorCtrl; }
-	
-	public void testDriveSpeedControl() 
-	{
-		double  left_inches_per_second = Constants.kDriveWheelCircumInches;
-		double right_inches_per_second = Constants.kDriveWheelCircumInches;
-		setVelocitySetpoint(left_inches_per_second, right_inches_per_second);
-	}
+    			case VELOCITY_SETPOINT:
+    				// Nothing to do: Talons SRXs are updating the control loop state
+    				return;
+    				
+    			case VELOCITY_HEADING_CONTROL:
+    				// Need to adjust left/right motor velocities to keep desired heading
+    				updateVelocityHeadingSetpoint();
+    				return;
+    				
+    			case PATH_FOLLOWING_CONTROL:
+    				// Need to adjust left/right motor velocities to follow path
+    				updatePathFollower();
+    				if(isFinishedPath())
+    				{
+    					stop();
+    				}
+    				break;
+    				
+    			default:
+    				System.out.println("Unexpected drive control state: "+driveControlState);
+    				break;
+    		}
+    	}
 
+        @Override
+        public void onStop() 
+        {
+            setOpenLoop(DriveSignal.NEUTRAL);
+        }
+    };
+
+    public Loop getVelocityPIDLoop() { return velocityPIDLoop; }
+    
+    
+    /*
+     * Main functions to control motors for each DriveControlState
+     */
+    
 	public synchronized void setOpenLoop(DriveSignal signal) 
 	{
-		driveControlState_ = DriveControlState.OPEN_LOOP;
-		lMotorCtrl = signal.lMotor;
-		rMotorCtrl = signal.rMotor;
+		setControlState(DriveControlState.OPEN_LOOP);
+		setMotorCmd(signal.lMotor,  signal.rMotor);
+		setBrakeEnableCmd(signal.brakeMode);
 	}
 
 	public synchronized void setBaseLockOn() 
 	{
-		driveControlState_ = DriveControlState.BASE_LOCKED;
+		setControlState(DriveControlState.BASE_LOCKED);
 	}
 
 	public synchronized void setVelocitySetpoint(double left_inches_per_sec, double right_inches_per_sec) 
 	{
-		driveControlState_ = DriveControlState.VELOCITY_SETPOINT;
-		lMotorCtrl = left_inches_per_sec;
-		rMotorCtrl = right_inches_per_sec;
+		setControlState(DriveControlState.VELOCITY_SETPOINT);
+		setMotorCmd(left_inches_per_sec,  right_inches_per_sec);
 	}
 
 	public synchronized void setVelocityHeadingSetpoint(double forward_inches_per_sec, Rotation2d headingSetpoint) 
 	{
-		driveControlState_ = DriveControlState.VELOCITY_HEADING_CONTROL;
-		velocityHeadingSetpoint_ = new VelocityHeadingSetpoint(forward_inches_per_sec, forward_inches_per_sec, headingSetpoint);
+		setControlState(DriveControlState.VELOCITY_HEADING_CONTROL);
+		velocityHeadingSetpoint = new VelocityHeadingSetpoint(forward_inches_per_sec, forward_inches_per_sec, headingSetpoint);
 		updateVelocityHeadingSetpoint();
 	}
+    
+
+	/*
+	 * Set/get functions
+	 */
+    
+	public synchronized void setControlState(DriveControlState newState) { driveControlState = newState; }	// will be picked up by DriveLoop on next iteration
+	public synchronized DriveControlState getControlState() { return driveControlState; }
+
+	public synchronized void setMotorCmd(double lVal, double rVal)  { lMotorCmd = lVal; rMotorCmd = rVal; }	// will be picked up by DriveLoop on next iteration
+
+	public synchronized double getLeftMotorCmd()  { return lMotorCmd; }
+	public synchronized double getRightMotorCmd() { return rMotorCmd; }
+
+	public synchronized void setBrakeEnableCmd(boolean val) { brakeEnableCmd = val; }
+	public synchronized boolean getBrakeEnableCmd() { return brakeEnableCmd; }
+
+	public void resetEncoders() { setResetEncoderCmd(true); }
+	
+    public synchronized void setResetEncoderCmd(boolean flag) { resetEncoderCmd = flag; }		// will be picked up by DriveLoop on next iteration
+    public synchronized boolean getResetEncoderCmd() { return resetEncoderCmd; }
+	
+	public synchronized void setLeftDistanceInches(double val)  { lDistanceInches = val; }
+	public synchronized void setRightDistanceInches(double val) { rDistanceInches = val; }
+
+	public synchronized double getLeftDistanceInches()  { return lDistanceInches; }
+	public synchronized double getRightDistanceInches() { return rDistanceInches; }
+
+	public synchronized void setLeftSpeedInchesPerSec(double val)  { lSpeedInchesPerSec = val; }
+	public synchronized void setRightSpeedInchesPerSec(double val) { rSpeedInchesPerSec = val; }
+	
+	public synchronized double getLeftSpeedInchesPerSec()  { return lSpeedInchesPerSec; }
+	public synchronized double getRightSpeedInchesPerSec() { return rSpeedInchesPerSec; }
+
+	public synchronized void setHeadingDeg(double val) { setHeadingRad(val*Math.PI/180.0); }
+    public synchronized void setHeadingRad(double val) { headingRad = val; }
+
+    public synchronized double getHeadingRad() { return headingRad; };
+    public synchronized double getHeadingDeg() { return headingRad*180.0/Math.PI; }
+    
+	public synchronized void setMotorCurrent(double lVal, double rVal) { lMotorCurrent = lVal; rMotorCurrent = rVal; }
+	public synchronized void setMotorCtrl(double lVal, double rVal) { lMotorCtrl = lVal; rMotorCtrl = rVal; }				// current settings, read back from Talon (may be different than commanded values)
+	public synchronized void setMotorPIDError(double lVal, double rVal) { lMotorPIDError = lVal; rMotorPIDError = rVal; }
+    
+	public synchronized double getLeftMotorCurrent()  { return lMotorCurrent; }
+	public synchronized double getRightMotorCurrent() { return rMotorCurrent; }
+
+	public synchronized double getLeftMotorCtrl()  { return lMotorCtrl; }
+	public synchronized double getRightMotorCtrl() { return rMotorCtrl; }
+
+	public synchronized double getLeftMotorPIDError()  { return lMotorPIDError; }
+	public synchronized double getRightMotorPIDError() { return rMotorPIDError; }
+
 	
 	
+	/**
+	 * VelocityHeadingSetpoints are used to calculate the robot's path given the
+	 * speed of the robot in each wheel and the polar coordinates. Especially
+	 * useful if the robot is negotiating a turn and to forecast the robot's
+	 * location.
+	 */
+	public static class VelocityHeadingSetpoint 
+	{
+		private final double leftSpeed_;
+		private final double rightSpeed_;
+		private final Rotation2d headingSetpoint_;
+
+		// Constructor for straight line motion
+		public VelocityHeadingSetpoint(double leftSpeed, double rightSpeed, Rotation2d headingSetpoint) 
+		{
+			leftSpeed_ = leftSpeed;
+			rightSpeed_ = rightSpeed;
+			headingSetpoint_ = headingSetpoint;
+		}
+
+		public double getLeftSpeed() { return leftSpeed_; }
+		public double getRightSpeed() {	return rightSpeed_; }
+		public Rotation2d getHeading() { return headingSetpoint_; }
+	}
 	
+
+	
+	/**************************************************************************
+	 * Path Follower Code
+	 * (updates VelocitySetpoints in order to follow a path)
+	 *************************************************************************/
 	
 	/**
 	 * The robot follows a set path, which is defined by Waypoint objects.
@@ -158,7 +250,7 @@ onLoop()
 	public synchronized void followPath(Path path, boolean reversed) 
 	{
 		setControlState(DriveControlState.PATH_FOLLOWING_CONTROL);
-		pathFollowingController_ = new AdaptivePurePursuitController(Constants.kPathFollowingLookahead,
+		pathFollowingController = new AdaptivePurePursuitController(Constants.kPathFollowingLookahead,
 				Constants.kPathFollowingMaxAccel, Constants.kLoopDt, path, reversed, 1.0);
 		updatePathFollower();
 	}
@@ -168,32 +260,8 @@ onLoop()
 	 *         path is complete.
 	 */
 	public synchronized boolean isFinishedPath() {
-		return (driveControlState_ == DriveControlState.PATH_FOLLOWING_CONTROL && pathFollowingController_.isDone())
-				|| driveControlState_ != DriveControlState.PATH_FOLLOWING_CONTROL;
-	}
-
-	public double getLeftDistanceInches()  { return rotationsToInches(driveInterface.getLeftDistance());	}
-	public double getRightDistanceInches() { return rotationsToInches(driveInterface.getRightDistance()); 	}
-
-	public double getLeftVelocityInchesPerSec()  { return rpmToInchesPerSecond(driveInterface.getLeftSpeed());  }
-	public double getRightVelocityInchesPerSec() { return rpmToInchesPerSecond(driveInterface.getRightSpeed());	}
-	
-	public double getHeading() {
-		// measured angle decreases with clockwise rotation
-		// it should increase with clockwise rotation (according to
-		// documentation, and standard right hand rule convention
-		// negate it here to correct
-		return -imu.getHeading();
-	}
-
-	@Override
-	public synchronized void stop() {
-		setOpenLoop(DriveSignal.NEUTRAL);
-	}
-
-	@Override
-	public synchronized void zeroSensors() {
-		resetEncoders();
+		return (driveControlState == DriveControlState.PATH_FOLLOWING_CONTROL && pathFollowingController.isDone())
+				|| driveControlState != DriveControlState.PATH_FOLLOWING_CONTROL;
 	}
 
 	private void updatePathFollower() 
@@ -201,7 +269,7 @@ onLoop()
 // TODO: update AdaptivePurePursuitController to be like VisionDriveAction
 // have it call driveCurve()		
 		RigidTransform2d robot_pose = RobotState.getInstance().getLatestFieldToVehicle();
-		RigidTransform2d.Delta command = pathFollowingController_.update(robot_pose, Timer.getFPGATimestamp());
+		RigidTransform2d.Delta command = pathFollowingController.update(robot_pose, Timer.getFPGATimestamp());
 		Kinematics.DriveVelocity setpoint = Kinematics.inverseKinematics(command);
 
 		// Scale the command to respect the max velocity limits
@@ -231,105 +299,103 @@ onLoop()
             setpoint.scale(wheelSpeedLimit/maxSpeed);
         setVelocitySetpoint(setpoint.left, setpoint.right);
     }
+
     
-	private void updateVelocityHeadingSetpoint() {
-		Rotation2d actualGyroAngle = Rotation2d.fromDegrees(getHeading());
+	/**************************************************************************
+	 * VelocityHeading code
+	 * (updates VelocitySetpoints in order to follow a heading)
+	 *************************************************************************/
+    
+	private void updateVelocityHeadingSetpoint() 
+	{
+		Rotation2d actualGyroAngle = Rotation2d.fromDegrees(getHeadingDeg());
 
-		mLastHeadingErrorDegrees = velocityHeadingSetpoint_.getHeading().rotateBy(actualGyroAngle.inverse()).getDegrees();
+		mLastHeadingErrorDegrees = velocityHeadingSetpoint.getHeading().rotateBy(actualGyroAngle.inverse()).getDegrees();
 
-		double deltaSpeed = velocityHeadingPid_.calculate(mLastHeadingErrorDegrees);
-		updateVelocitySetpoint(velocityHeadingSetpoint_.getLeftSpeed() + deltaSpeed / 2,
-				velocityHeadingSetpoint_.getRightSpeed() - deltaSpeed / 2);
+		double deltaSpeed = velocityHeadingPID.calculate(mLastHeadingErrorDegrees);
+		updateVelocitySetpoint(velocityHeadingSetpoint.getLeftSpeed()  + deltaSpeed / 2,
+				               velocityHeadingSetpoint.getRightSpeed() - deltaSpeed / 2);
 	}
 
-	private synchronized void updateVelocitySetpoint(double left_inches_per_sec, double right_inches_per_sec) {
-		if (driveControlState_ == DriveControlState.VELOCITY_HEADING_CONTROL
-				|| driveControlState_ == DriveControlState.VELOCITY_SETPOINT
-				|| driveControlState_ == DriveControlState.PATH_FOLLOWING_CONTROL) 
+	public void resetVelocityHeadingPID()
+	{
+		// called from DriveLoop, synchronous with 
+		velocityHeadingPID.reset();
+	}
+	
+	
+	/**************************************************************************
+	 * VelocitySetpoint code
+	 * Configures Talon SRXs to desired left/right wheel velocities
+	 *************************************************************************/
+	
+	private synchronized void updateVelocitySetpoint(double left_inches_per_sec, double right_inches_per_sec) 
+	{
+		if (driveControlState == DriveControlState.VELOCITY_HEADING_CONTROL ||
+		    driveControlState == DriveControlState.VELOCITY_SETPOINT ||
+		    driveControlState == DriveControlState.PATH_FOLLOWING_CONTROL) 
 		{
-			setLeftRightPower(inchesPerSecondToRpm(left_inches_per_sec), inchesPerSecondToRpm(right_inches_per_sec));
+			setMotorCmd(left_inches_per_sec, right_inches_per_sec);
 		} 
 		else
 		{
 			System.out.println("Hit a bad velocity control state");
-			setLeftRightPower(0, 0);
+			stop();
 		}
 	}
 
-	private static double rotationsToInches(double rotations) {
-		return rotations * Constants.kDriveWheelCircumInches;
+
+	// test function -- rotates wheels 1 RPM
+	public void testDriveSpeedControl() 
+	{
+		double  left_inches_per_second = Constants.kDriveWheelCircumInches;
+		double right_inches_per_second = Constants.kDriveWheelCircumInches;
+		setVelocitySetpoint(left_inches_per_second, right_inches_per_second);
 	}
 
-	private static double rpmToInchesPerSecond(double rpm) {
-		return rotationsToInches(rpm) / 60;
-	}
 
-	private static double inchesToRotations(double inches) {
-		return inches / Constants.kDriveWheelCircumInches;
-	}
-
-	private static double inchesPerSecondToRpm(double inches_per_second) {
-		return inchesToRotations(inches_per_second) * 60;
-	}
-
-	/**
-	 * VelocityHeadingSetpoints are used to calculate the robot's path given the
-	 * speed of the robot in each wheel and the polar coordinates. Especially
-	 * useful if the robot is negotiating a turn and to forecast the robot's
-	 * location.
+	
+	
+	
+	
+	/*
+	 * Subsystem overrides(non-Javadoc)
+	 * @see org.team686.simsbot.subsystems.Subsystem#stop()
 	 */
-	public static class VelocityHeadingSetpoint {
-		private final double leftSpeed_;
-		private final double rightSpeed_;
-		private final Rotation2d headingSetpoint_;
+	
+	@Override
+	public synchronized void stop() { setOpenLoop(DriveSignal.BRAKE); }
 
-		// Constructor for straight line motion
-		public VelocityHeadingSetpoint(double leftSpeed, double rightSpeed, Rotation2d headingSetpoint) {
-			leftSpeed_ = leftSpeed;
-			rightSpeed_ = rightSpeed;
-			headingSetpoint_ = headingSetpoint;
-		}
-
-		public double getLeftSpeed() {
-			return leftSpeed_;
-		}
-
-		public double getRightSpeed() {
-			return rightSpeed_;
-		}
-
-		public Rotation2d getHeading() {
-			return headingSetpoint_;
-		}
-	}
+	@Override
+	public synchronized void zeroSensors() { setResetEncoderCmd(true); }
 
 	@Override
 	public void log() {
 		DataLogger dataLogger = DataLogger.getInstance();
 
-		dataLogger.putNumber("lMotorCurrent", lMotor_.getOutputCurrent());
-		dataLogger.putNumber("rMotorCurrent", rMotor_.getOutputCurrent());
-		dataLogger.putNumber("lMotorCtrl", lMotorCtrl);
-		dataLogger.putNumber("rMotorCtrl", rMotorCtrl);
-		dataLogger.putNumber("lMotorStatus", lMotor_.get());
-		dataLogger.putNumber("rMotorStatus", rMotor_.get());
-		dataLogger.putNumber("lVelocity", getLeftVelocityInchesPerSec());
-		dataLogger.putNumber("rVelocity", getRightVelocityInchesPerSec());
-		dataLogger.putNumber("lDistance", getLeftDistanceInches());
-		dataLogger.putNumber("rDistance", getRightDistanceInches());
-		dataLogger.putNumber("Left PID Error", lMotor_.getClosedLoopError());
-		dataLogger.putNumber("Right PID Error", rMotor_.getClosedLoopError());
-		dataLogger.putNumber("Heading", getHeading());
-		dataLogger.putNumber("Heading Error", mLastHeadingErrorDegrees);
-		dataLogger.putNumber("Heading PID Error", velocityHeadingPid_.getError());
-		dataLogger.putNumber("Heading PID Output", velocityHeadingPid_.get());
+		dataLogger.putNumber("lMotorCurrent", getLeftMotorCurrent() );
+		dataLogger.putNumber("rMotorCurrent", getRightMotorCurrent() );
+		dataLogger.putNumber("lMotorCmd", getLeftMotorCmd() );
+		dataLogger.putNumber("rMotorCmd", getRightMotorCmd() );
+		dataLogger.putNumber("lMotorStatus", getLeftMotorCtrl() );
+		dataLogger.putNumber("rMotorStatus", getRightMotorCtrl() );
+		dataLogger.putNumber("lVelocity", getLeftSpeedInchesPerSec() );
+		dataLogger.putNumber("rVelocity", getRightSpeedInchesPerSec() );
+		dataLogger.putNumber("lDistance", getLeftDistanceInches() );
+		dataLogger.putNumber("rDistance", getRightDistanceInches() );
+		dataLogger.putNumber("Left PID Error", getLeftMotorPIDError() );
+		dataLogger.putNumber("Right PID Error", getRightMotorPIDError() );
+		dataLogger.putNumber("Heading", getHeadingDeg() );
+		dataLogger.putNumber("Heading Error", mLastHeadingErrorDegrees );
+		dataLogger.putNumber("Heading PID Error", velocityHeadingPID.getError() );
+		dataLogger.putNumber("Heading PID Output", velocityHeadingPID.get() );
 
 		try // pathFollowingController doesn't exist until started
 		{
 			AdaptivePurePursuitController.log();
 		} catch (NullPointerException e) {
-			// skip logging pathFollowingController_ when it doesn't exist
+			// skip logging pathFollowingController when it doesn't exist
 		}
 	}
-
+	
 }

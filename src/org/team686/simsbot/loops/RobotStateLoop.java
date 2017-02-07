@@ -13,14 +13,14 @@ import edu.wpi.first.wpilibj.Timer;
  * traveled (compares two waypoints), gyroscope orientation, and velocity, among
  * various other factors. Similar to a car's odometer.
  */
-public class RobotStateEstimator implements Loop {
-    static RobotStateEstimator instance_ = new RobotStateEstimator();
+public class RobotStateLoop implements Loop {
+    static RobotStateLoop instance_ = new RobotStateLoop();
 
-    public static RobotStateEstimator getInstance() {
+    public static RobotStateLoop getInstance() {
         return instance_;
     }
 
-    RobotStateEstimator() {
+    RobotStateLoop() {
     }
 
     RobotState robot_state_ = RobotState.getInstance();
@@ -39,9 +39,9 @@ public class RobotStateEstimator implements Loop {
         double time = Timer.getFPGATimestamp();
         double left_distance  = drive_.getLeftDistanceInches();
         double right_distance = drive_.getRightDistanceInches();
-        double left_speed  = drive_.getLeftVelocityInchesPerSec();
-        double right_speed = drive_.getRightVelocityInchesPerSec(); 
-        Rotation2d gyro_angle = Rotation2d.fromDegrees(drive_.getHeading());
+        double left_speed  = drive_.getLeftSpeedInchesPerSec();
+        double right_speed = drive_.getRightSpeedInchesPerSec(); 
+        Rotation2d gyro_angle = Rotation2d.fromDegrees(drive_.getHeadingDeg());
 
         RigidTransform2d odometry = robot_state_.generateOdometryFromSensors(
                 left_distance - left_encoder_prev_distance_, right_distance - right_encoder_prev_distance_, gyro_angle);

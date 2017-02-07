@@ -15,7 +15,7 @@ import org.team686.lib.util.*;
 
 import org.team686.simsbot.auto.AutoModeExecuter;
 import org.team686.simsbot.loops.Looper;
-import org.team686.simsbot.loops.RobotStateEstimator;
+import org.team686.simsbot.loops.RobotStateLoop;
 import org.team686.simsbot.subsystems.Drive;
 
 /**
@@ -77,8 +77,8 @@ public class Robot extends IterativeRobot {
 			zeroAllSensors();
 
 			// Configure LoopLists
-			looper.register(drive.getLoop());
-			looper.register(RobotStateEstimator.getInstance());
+			looper.register(drive.getVelocityPIDLoop());
+			looper.register(RobotStateLoop.getInstance());
 
 			// Set dataLogger and Time information
 			TimeZone.setDefault(TimeZone.getTimeZone("America/New_York"));
@@ -127,8 +127,7 @@ public class Robot extends IterativeRobot {
 
 			looper.stop();
 
-			drive.setOpenLoop(DriveSignal.NEUTRAL);
-			drive.setBrakeMode(true);
+			drive.setOpenLoop(DriveSignal.BRAKE);
 
 			stopAll(); // Stop all actuators
 
@@ -228,7 +227,6 @@ public class Robot extends IterativeRobot {
 			looper.start();
 
 			drive.setOpenLoop(DriveSignal.NEUTRAL);
-			drive.setBrakeMode(false);
 
 			dataLogger.putNumber("OperationalMode", OperationalMode.TELEOP.getVal());
 			DataLogger.setOutputMode(DataLogger.OutputMode.SMARTDASHBOARD_AND_FILE);

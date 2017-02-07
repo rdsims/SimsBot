@@ -7,16 +7,16 @@ package org.team686.lib.util;
 public class DriveSignal {
     public double lMotor;
     public double rMotor;
-    public boolean breakMode;
+    public boolean brakeMode;
 
     public DriveSignal(double left, double right) {
         this(left, right, false);
     }
 
-    public DriveSignal(double left, double right, boolean breakMode) {
+    public DriveSignal(double left, double right, boolean brakeMode) {
         this.lMotor = left;
         this.rMotor = right;
-        this.breakMode = breakMode;
+        this.brakeMode = brakeMode;
     }
 
     public static DriveSignal NEUTRAL = new DriveSignal(0, 0, false);
