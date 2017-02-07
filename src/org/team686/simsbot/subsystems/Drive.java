@@ -17,6 +17,8 @@ import org.team686.simsbot.Kinematics;
 import org.team686.simsbot.RobotState;
 import org.team686.simsbot.loops.Loop;
 
+// TODO: update to use DriveSignal consistently
+
 /**
  * The robot's drivetrain, which implements the Superstructure abstract class.
  * The drivetrain has several states and builds on the abstract class by

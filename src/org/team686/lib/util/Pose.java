@@ -21,8 +21,7 @@ public class Pose
     
     public Pose(float _x, float _y) 
     {
-        position = new Vector2(_x,_y);
-        heading  = 0.0f;
+    	this(_x, _y, 0.0f);
     }
 
     public Pose(float _x, float _y, float _thetaRad) 
@@ -33,14 +32,12 @@ public class Pose
 
     public Pose(double _x, double _y) 
     {
-    	position = new Vector2((float)_x, (float)_y);
-    	heading = 0.0f;
+    	this((float)_x, (float)_y, 0.0f);
     }
 
     public Pose(double _x, double _y, double _thetaRad) 
     {
-    	position = new Vector2((float)_x, (float)_y);
-    	heading = (float)_thetaRad;
+    	this((float)_x, (float)_y, (float)_thetaRad);
     }
 
     public static Pose fromMagnitudeAngleRad(float _rho, float _thetaRad)

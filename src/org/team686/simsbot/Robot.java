@@ -14,7 +14,7 @@ import org.team686.lib.joystick.*;
 import org.team686.lib.util.*;
 
 import org.team686.simsbot.auto.AutoModeExecuter;
-import org.team686.simsbot.loops.Looper;
+import org.team686.simsbot.loops.LoopController;
 import org.team686.simsbot.loops.RobotStateLoop;
 import org.team686.simsbot.subsystems.Drive;
 
@@ -37,7 +37,7 @@ public class Robot extends IterativeRobot {
 	DataLogger visionLogger = DataLogger.getVisionInstance();
 	RobotState mRobotState = RobotState.getInstance();
 
-	Looper looper = new Looper();
+	LoopController loopController = new LoopController();
 
 	SmartDashboardInteractions mSmartDashboardInteractions = new SmartDashboardInteractions();
 
@@ -76,9 +76,9 @@ public class Robot extends IterativeRobot {
 			// Reset all state
 			zeroAllSensors();
 
-			// Configure LoopLists
-			looper.register(drive.getVelocityPIDLoop());
-			looper.register(RobotStateLoop.getInstance());
+			// Configure LoopController
+			loopController.register(drive.getVelocityPIDLoop());
+			loopController.register(RobotStateLoop.getInstance());
 
 			// Set dataLogger and Time information
 			TimeZone.setDefault(TimeZone.getTimeZone("America/New_York"));
@@ -106,7 +106,7 @@ public class Robot extends IterativeRobot {
 	public void log() {
 		drive.log();
 		mRobotState.log();
-		looper.log();
+		loopController.log();
 		dataLogger.saveDataItems();
 		//autonomousLogger.saveDataItems();
 		visionLogger.saveDataItems();
@@ -125,7 +125,7 @@ public class Robot extends IterativeRobot {
 			}
 			mAutoModeExecuter = null;
 
-			looper.stop();
+			loopController.stop();
 
 			drive.setOpenLoop(DriveSignal.BRAKE);
 
@@ -173,7 +173,7 @@ public class Robot extends IterativeRobot {
 			dataLogger.putNumber("OperationalMode", OperationalMode.AUTONOMOUS.getVal());
 			DataLogger.setOutputMode(DataLogger.OutputMode.SMARTDASHBOARD_AND_FILE);
 
-			looper.start();
+			loopController.start();
 
 			mAutoModeExecuter = new AutoModeExecuter();
 			mAutoModeExecuter.setAutoMode(mSmartDashboardInteractions.getSelectedAutonMode());
@@ -224,7 +224,7 @@ public class Robot extends IterativeRobot {
 			drive.resetEncoders();
 
 			// Configure looper
-			looper.start();
+			loopController.start();
 
 			drive.setOpenLoop(DriveSignal.NEUTRAL);
 

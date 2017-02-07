@@ -6,6 +6,7 @@ import org.team686.simsbot.Constants;
 import org.team686.simsbot.subsystems.Drive;
 import org.team686.simsbot.subsystems.Drive.DriveControlState;
 
+//TODO: update to use DriveSignal consistently
 
 /*
  * DriveLoop is the interface between Drive.java and the actual hardware.
