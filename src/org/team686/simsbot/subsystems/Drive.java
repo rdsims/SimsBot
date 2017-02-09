@@ -5,7 +5,9 @@ package org.team686.simsbot.subsystems;
 import edu.wpi.first.wpilibj.Timer;
 
 import org.team686.lib.util.AdaptivePurePursuitController;
-import org.team686.lib.util.DriveSignal;
+import org.team686.lib.util.DriveCommand;
+import org.team686.lib.util.DriveCommand.DriveControlMode;
+import org.team686.lib.util.DriveStatus;
 import org.team686.lib.util.Path;
 import org.team686.lib.util.RigidTransform2d;
 import org.team686.lib.util.Rotation2d;
@@ -29,36 +31,24 @@ import org.team686.simsbot.loops.Loop;
 public class Drive extends Subsystem 
 {
 	private static Drive instance_ = new Drive();
-
 	public static Drive getInstance() { return instance_; }
 
-	double lDistanceInches, rDistanceInches;
-	double lSpeedInchesPerSec, rSpeedInchesPerSec;
-	double headingRad;
-
-	// motor status
-	double lMotorCurrent, rMotorCurrent;
-	double lMotorCtrl, rMotorCtrl;
-	double lMotorPIDError, rMotorPIDError;
-	
-	private double mLastHeadingErrorDegrees;
-
-	// The robot drivetrain's various states
-	public enum DriveControlState
-	{
-		OPEN_LOOP, BASE_LOCKED, VELOCITY_SETPOINT, VELOCITY_HEADING_CONTROL, PATH_FOLLOWING_CONTROL
-	}
-
-	private double lMotorCmd, rMotorCmd;
-	private boolean brakeEnableCmd;
+	// drive commands
+	private DriveCommand driveCmd;
 	private boolean resetEncoderCmd;
 
-	private DriveControlState driveControlState;
+	// drive status
+	public DriveStatus driveStatus;
+	
+	// velocity heading
 	private VelocityHeadingSetpoint velocityHeadingSetpoint;
-	private AdaptivePurePursuitController pathFollowingController;
 	private SynchronousPID velocityHeadingPID;
+	private double mLastHeadingErrorDegrees;
 
+	// path following
+	private AdaptivePurePursuitController pathFollowingController;
 
+	
 
 	// The constructor instantiates all of the drivetrain components when the
 	// robot powers up
@@ -78,14 +68,14 @@ public class Drive extends Subsystem
         @Override
         public void onStart()
         {
-            setOpenLoop(DriveSignal.NEUTRAL);
+            setOpenLoop(DriveCommand.NEUTRAL);
             pathFollowingController = null;
         }
 
         @Override
         public void onLoop() 
         {
-        	switch (driveControlState)
+        	switch (driveCmd.mode)
     		{
     			case OPEN_LOOP:
     			case BASE_LOCKED:
@@ -111,7 +101,7 @@ public class Drive extends Subsystem
     				break;
     				
     			default:
-    				System.out.println("Unexpected drive control state: "+driveControlState);
+    				System.out.println("Unexpected drive control state: " + driveCmd.mode);
     				break;
     		}
     	}
@@ -119,7 +109,7 @@ public class Drive extends Subsystem
         @Override
         public void onStop() 
         {
-            setOpenLoop(DriveSignal.NEUTRAL);
+            setOpenLoop(DriveCommand.NEUTRAL);
         }
     };
 
@@ -130,27 +120,26 @@ public class Drive extends Subsystem
      * Main functions to control motors for each DriveControlState
      */
     
-	public synchronized void setOpenLoop(DriveSignal signal) 
+	public synchronized void setOpenLoop(DriveCommand cmd) 
 	{
-		setControlState(DriveControlState.OPEN_LOOP);
-		setMotorCmd(signal.lMotor,  signal.rMotor);
-		setBrakeEnableCmd(signal.brakeMode);
+		cmd.setMode(DriveControlMode.OPEN_LOOP);
+		setCommand(cmd);
 	}
 
 	public synchronized void setBaseLockOn() 
 	{
-		setControlState(DriveControlState.BASE_LOCKED);
+		driveCmd.setMode(DriveControlMode.BASE_LOCKED);
 	}
 
 	public synchronized void setVelocitySetpoint(double left_inches_per_sec, double right_inches_per_sec) 
 	{
-		setControlState(DriveControlState.VELOCITY_SETPOINT);
-		setMotorCmd(left_inches_per_sec,  right_inches_per_sec);
+		driveCmd.setMode(DriveControlMode.VELOCITY_SETPOINT);
+		driveCmd.setMotors(left_inches_per_sec, right_inches_per_sec);
 	}
 
 	public synchronized void setVelocityHeadingSetpoint(double forward_inches_per_sec, Rotation2d headingSetpoint) 
 	{
-		setControlState(DriveControlState.VELOCITY_HEADING_CONTROL);
+		driveCmd.setMode(DriveControlMode.VELOCITY_HEADING_CONTROL);
 		velocityHeadingSetpoint = new VelocityHeadingSetpoint(forward_inches_per_sec, forward_inches_per_sec, headingSetpoint);
 		updateVelocityHeadingSetpoint();
 	}
@@ -160,55 +149,16 @@ public class Drive extends Subsystem
 	 * Set/get functions
 	 */
     
-	public synchronized void setControlState(DriveControlState newState) { driveControlState = newState; }	// will be picked up by DriveLoop on next iteration
-	public synchronized DriveControlState getControlState() { return driveControlState; }
-
-	public synchronized void setMotorCmd(double lVal, double rVal)  { lMotorCmd = lVal; rMotorCmd = rVal; }	// will be picked up by DriveLoop on next iteration
-
-	public synchronized double getLeftMotorCmd()  { return lMotorCmd; }
-	public synchronized double getRightMotorCmd() { return rMotorCmd; }
-
-	public synchronized void setBrakeEnableCmd(boolean val) { brakeEnableCmd = val; }
-	public synchronized boolean getBrakeEnableCmd() { return brakeEnableCmd; }
+	public synchronized void setCommand(DriveCommand cmd) { driveCmd = cmd; }
+	public synchronized DriveCommand getCommand() { return driveCmd; }
 
 	public void resetEncoders() { setResetEncoderCmd(true); }
 	
     public synchronized void setResetEncoderCmd(boolean flag) { resetEncoderCmd = flag; }		// will be picked up by DriveLoop on next iteration
     public synchronized boolean getResetEncoderCmd() { return resetEncoderCmd; }
 	
-	public synchronized void setLeftDistanceInches(double val)  { lDistanceInches = val; }
-	public synchronized void setRightDistanceInches(double val) { rDistanceInches = val; }
 
-	public synchronized double getLeftDistanceInches()  { return lDistanceInches; }
-	public synchronized double getRightDistanceInches() { return rDistanceInches; }
-
-	public synchronized void setLeftSpeedInchesPerSec(double val)  { lSpeedInchesPerSec = val; }
-	public synchronized void setRightSpeedInchesPerSec(double val) { rSpeedInchesPerSec = val; }
-	
-	public synchronized double getLeftSpeedInchesPerSec()  { return lSpeedInchesPerSec; }
-	public synchronized double getRightSpeedInchesPerSec() { return rSpeedInchesPerSec; }
-
-	public synchronized void setHeadingDeg(double val) { setHeadingRad(val*Math.PI/180.0); }
-    public synchronized void setHeadingRad(double val) { headingRad = val; }
-
-    public synchronized double getHeadingRad() { return headingRad; };
-    public synchronized double getHeadingDeg() { return headingRad*180.0/Math.PI; }
     
-	public synchronized void setMotorCurrent(double lVal, double rVal) { lMotorCurrent = lVal; rMotorCurrent = rVal; }
-	public synchronized void setMotorCtrl(double lVal, double rVal) { lMotorCtrl = lVal; rMotorCtrl = rVal; }				// current settings, read back from Talon (may be different than commanded values)
-	public synchronized void setMotorPIDError(double lVal, double rVal) { lMotorPIDError = lVal; rMotorPIDError = rVal; }
-    
-	public synchronized double getLeftMotorCurrent()  { return lMotorCurrent; }
-	public synchronized double getRightMotorCurrent() { return rMotorCurrent; }
-
-	public synchronized double getLeftMotorCtrl()  { return lMotorCtrl; }
-	public synchronized double getRightMotorCtrl() { return rMotorCtrl; }
-
-	public synchronized double getLeftMotorPIDError()  { return lMotorPIDError; }
-	public synchronized double getRightMotorPIDError() { return rMotorPIDError; }
-
-	
-	
 	/**
 	 * VelocityHeadingSetpoints are used to calculate the robot's path given the
 	 * speed of the robot in each wheel and the polar coordinates. Especially
@@ -217,21 +167,21 @@ public class Drive extends Subsystem
 	 */
 	public static class VelocityHeadingSetpoint 
 	{
-		private final double leftSpeed_;
-		private final double rightSpeed_;
-		private final Rotation2d headingSetpoint_;
+		private final double leftSpeed;
+		private final double rightSpeed;
+		private final Rotation2d headingSetpoint;
 
 		// Constructor for straight line motion
-		public VelocityHeadingSetpoint(double leftSpeed, double rightSpeed, Rotation2d headingSetpoint) 
+		public VelocityHeadingSetpoint(double _leftSpeed, double _rightSpeed, Rotation2d _headingSetpoint) 
 		{
-			leftSpeed_ = leftSpeed;
-			rightSpeed_ = rightSpeed;
-			headingSetpoint_ = headingSetpoint;
+			leftSpeed = _leftSpeed;
+			rightSpeed = _rightSpeed;
+			headingSetpoint = _headingSetpoint;
 		}
 
-		public double getLeftSpeed() { return leftSpeed_; }
-		public double getRightSpeed() {	return rightSpeed_; }
-		public Rotation2d getHeading() { return headingSetpoint_; }
+		public double getLeftSpeed() { return leftSpeed; }
+		public double getRightSpeed() {	return rightSpeed; }
+		public Rotation2d getHeading() { return headingSetpoint; }
 	}
 	
 
@@ -246,14 +196,14 @@ public class Drive extends Subsystem
 	 * 
 	 * @param Path
 	 *            to follow
-	 * @param reversed
+	 * @param _reversed
 	 * @see com.team254.lib.util/Path.java
 	 */
-	public synchronized void followPath(Path path, boolean reversed) 
+	public synchronized void followPath(Path _path, boolean	_reversed) 
 	{
-		setControlState(DriveControlState.PATH_FOLLOWING_CONTROL);
+		driveCmd.setMode(DriveControlMode.PATH_FOLLOWING_CONTROL);
 		pathFollowingController = new AdaptivePurePursuitController(Constants.kPathFollowingLookahead,
-				Constants.kPathFollowingMaxAccel, Constants.kLoopDt, path, reversed, 1.0);
+				Constants.kPathFollowingMaxAccel, Constants.kLoopDt, _path, _reversed, 1.0);
 		updatePathFollower();
 	}
 
@@ -261,9 +211,12 @@ public class Drive extends Subsystem
 	 * @return Returns if the robot mode is Path Following Control and the set
 	 *         path is complete.
 	 */
-	public synchronized boolean isFinishedPath() {
-		return (driveControlState == DriveControlState.PATH_FOLLOWING_CONTROL && pathFollowingController.isDone())
-				|| driveControlState != DriveControlState.PATH_FOLLOWING_CONTROL;
+	public synchronized boolean isFinishedPath()
+	{
+		if (driveCmd.getMode() == DriveControlMode.PATH_FOLLOWING_CONTROL)
+			return pathFollowingController.isDone();
+		else
+			return true;
 	}
 
 	private void updatePathFollower() 
@@ -286,19 +239,19 @@ public class Drive extends Subsystem
 		updateVelocitySetpoint(setpoint.left, setpoint.right);
 	}
 
-    public void driveCurve(double robotSpeed, double curvature, double wheelSpeedLimit)
+    public void driveCurve(double _robotSpeed, double _curvature, double _wheelSpeedLimit)
     {
         // robotSpeed: desired forward speed of robot
         // curvature: curvature of circle to follow.  Curvature = 1/radius.  positive-->turn right, negative-->turn left
         // maxWheelSpeed: the desired velocity will be scaled so that neither wheel exceeds this speed
         
-        RigidTransform2d.Delta cmd = new RigidTransform2d.Delta(robotSpeed, 0, robotSpeed*curvature); 
+        RigidTransform2d.Delta cmd = new RigidTransform2d.Delta(_robotSpeed, 0, _robotSpeed*_curvature); 
         Kinematics.DriveVelocity setpoint = Kinematics.inverseKinematics(cmd);
 
         // Scale the command to respect the max wheel velocity limits
         double maxSpeed = Math.max(Math.abs(setpoint.left), Math.abs(setpoint.right));
-        if (maxSpeed > wheelSpeedLimit)
-            setpoint.scale(wheelSpeedLimit/maxSpeed);
+        if (maxSpeed > _wheelSpeedLimit)
+            setpoint.scale(_wheelSpeedLimit/maxSpeed);
         setVelocitySetpoint(setpoint.left, setpoint.right);
     }
 
@@ -310,7 +263,7 @@ public class Drive extends Subsystem
     
 	private void updateVelocityHeadingSetpoint() 
 	{
-		Rotation2d actualGyroAngle = Rotation2d.fromDegrees(getHeadingDeg());
+		Rotation2d actualGyroAngle = Rotation2d.fromDegrees(driveStatus.getHeadingDeg());
 
 		mLastHeadingErrorDegrees = velocityHeadingSetpoint.getHeading().rotateBy(actualGyroAngle.inverse()).getDegrees();
 
@@ -331,13 +284,15 @@ public class Drive extends Subsystem
 	 * Configures Talon SRXs to desired left/right wheel velocities
 	 *************************************************************************/
 	
-	private synchronized void updateVelocitySetpoint(double left_inches_per_sec, double right_inches_per_sec) 
+	private synchronized void updateVelocitySetpoint(double _left_inches_per_sec, double _right_inches_per_sec) 
 	{
-		if (driveControlState == DriveControlState.VELOCITY_HEADING_CONTROL ||
-		    driveControlState == DriveControlState.VELOCITY_SETPOINT ||
-		    driveControlState == DriveControlState.PATH_FOLLOWING_CONTROL) 
+		DriveControlMode mode = driveCmd.getMode();
+		
+		if (mode == DriveControlMode.VELOCITY_HEADING_CONTROL ||
+			mode == DriveControlMode.VELOCITY_SETPOINT ||
+			mode == DriveControlMode.PATH_FOLLOWING_CONTROL) 
 		{
-			setMotorCmd(left_inches_per_sec, right_inches_per_sec);
+			driveCmd.setMotors(_left_inches_per_sec, _right_inches_per_sec);
 		} 
 		else
 		{
@@ -366,7 +321,7 @@ public class Drive extends Subsystem
 	 */
 	
 	@Override
-	public synchronized void stop() { setOpenLoop(DriveSignal.BRAKE); }
+	public synchronized void stop() { setOpenLoop(DriveCommand.BRAKE); }
 
 	@Override
 	public synchronized void zeroSensors() { setResetEncoderCmd(true); }
@@ -375,19 +330,10 @@ public class Drive extends Subsystem
 	public void log() {
 		DataLogger dataLogger = DataLogger.getInstance();
 
-		dataLogger.putNumber("lMotorCurrent", getLeftMotorCurrent() );
-		dataLogger.putNumber("rMotorCurrent", getRightMotorCurrent() );
-		dataLogger.putNumber("lMotorCmd", getLeftMotorCmd() );
-		dataLogger.putNumber("rMotorCmd", getRightMotorCmd() );
-		dataLogger.putNumber("lMotorStatus", getLeftMotorCtrl() );
-		dataLogger.putNumber("rMotorStatus", getRightMotorCtrl() );
-		dataLogger.putNumber("lVelocity", getLeftSpeedInchesPerSec() );
-		dataLogger.putNumber("rVelocity", getRightSpeedInchesPerSec() );
-		dataLogger.putNumber("lDistance", getLeftDistanceInches() );
-		dataLogger.putNumber("rDistance", getRightDistanceInches() );
-		dataLogger.putNumber("Left PID Error", getLeftMotorPIDError() );
-		dataLogger.putNumber("Right PID Error", getRightMotorPIDError() );
-		dataLogger.putNumber("Heading", getHeadingDeg() );
+		dataLogger.putString("driveMode", driveCmd.mode.toString() );
+		dataLogger.putNumber("lMotorCmd", driveCmd.left );
+		dataLogger.putNumber("rMotorCmd", driveCmd.right );
+		dataLogger.putBoolean("brakeMode", driveCmd.brake );
 		dataLogger.putNumber("Heading Error", mLastHeadingErrorDegrees );
 		dataLogger.putNumber("Heading PID Error", velocityHeadingPID.getError() );
 		dataLogger.putNumber("Heading PID Output", velocityHeadingPID.get() );

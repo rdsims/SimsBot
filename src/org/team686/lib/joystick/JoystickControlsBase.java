@@ -1,7 +1,7 @@
 package org.team686.lib.joystick;
 
 import edu.wpi.first.wpilibj.Joystick;
-import org.team686.lib.util.DriveSignal;
+import org.team686.lib.util.DriveCommand;
 
 /**
  * An abstract class that forms the base of joystick controls.
@@ -16,5 +16,5 @@ public abstract class JoystickControlsBase
     }
 
     // DRIVER CONTROLS
-    public abstract DriveSignal getDriveSignal();	// mapping from joystick controls to DriveSignal
+    public abstract DriveCommand getDriveSignal();	// mapping from joystick controls to DriveSignal
 }

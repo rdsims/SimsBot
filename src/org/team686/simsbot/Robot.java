@@ -127,7 +127,7 @@ public class Robot extends IterativeRobot {
 
 			loopController.stop();
 
-			drive.setOpenLoop(DriveSignal.BRAKE);
+			drive.setOpenLoop(DriveCommand.BRAKE);
 
 			stopAll(); // Stop all actuators
 
@@ -226,7 +226,7 @@ public class Robot extends IterativeRobot {
 			// Configure looper
 			loopController.start();
 
-			drive.setOpenLoop(DriveSignal.NEUTRAL);
+			drive.setOpenLoop(DriveCommand.NEUTRAL);
 
 			dataLogger.putNumber("OperationalMode", OperationalMode.TELEOP.getVal());
 			DataLogger.setOutputMode(DataLogger.OutputMode.SMARTDASHBOARD_AND_FILE);

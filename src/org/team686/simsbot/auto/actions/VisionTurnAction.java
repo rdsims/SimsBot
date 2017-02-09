@@ -2,7 +2,7 @@ package org.team686.simsbot.auto.actions;
 
 import edu.wpi.first.wpilibj.networktables.NetworkTable;
 
-import org.team686.lib.util.DriveSignal;
+import org.team686.lib.util.DriveCommand;
 import org.team686.simsbot.Constants;
 import org.team686.simsbot.subsystems.Drive;
 
@@ -49,7 +49,7 @@ public class VisionTurnAction implements Action {
 			// debug
 			System.out.println("Target X = " + targetCenterX);
 
-			drive.setOpenLoop(new DriveSignal(lVel, rVel));
+			drive.setOpenLoop(new DriveCommand(lVel, rVel));
 		} 
 		else 
 		{

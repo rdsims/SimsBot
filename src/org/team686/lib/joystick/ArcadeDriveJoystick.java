@@ -1,7 +1,7 @@
 package org.team686.lib.joystick;
 
 import org.team686.lib.joystick.JoystickControlsBase;
-import org.team686.lib.util.DriveSignal;
+import org.team686.lib.util.DriveCommand;
 import org.team686.lib.util.Util;
 
 /**
@@ -17,7 +17,7 @@ public class ArcadeDriveJoystick extends JoystickControlsBase
     }
 
     
-    public DriveSignal getDriveSignal()
+    public DriveCommand getDriveSignal()
     {
 //	    boolean squaredInputs = true;	// set to true to increase fine control while permitting full power
 	    boolean squaredInputs = false;	// set to true to increase fine control while permitting full power
@@ -62,7 +62,7 @@ public class ArcadeDriveJoystick extends JoystickControlsBase
 	      }
 	    }
 	    
-	    DriveSignal signal = new DriveSignal(lMotorSpeed, rMotorSpeed);
+	    DriveCommand signal = new DriveCommand(lMotorSpeed, rMotorSpeed);
 	   	    
 	    return signal;        
     }

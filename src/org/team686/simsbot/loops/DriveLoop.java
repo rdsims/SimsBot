@@ -2,9 +2,11 @@ package org.team686.simsbot.loops;
 
 import com.ctre.CANTalon;
 import org.team686.lib.sensors.BNO055;
+import org.team686.lib.util.DriveCommand;
+import org.team686.lib.util.DriveCommand.DriveControlMode;
+import org.team686.lib.util.DriveStatus;
 import org.team686.simsbot.Constants;
 import org.team686.simsbot.subsystems.Drive;
-import org.team686.simsbot.subsystems.Drive.DriveControlState;
 
 //TODO: update to use DriveSignal consistently
 
@@ -24,15 +26,13 @@ public class DriveLoop implements Loop
     private static Drive drive = Drive.getInstance();
 	private static BNO055 imu = BNO055.getInstance(Constants.BNO055_PORT);
     
-    DriveControlState driveControlState;
+	DriveCommand currentState;
     
 	public final CANTalon lMotor, rMotor;
 
 	private static final int kVelocityControlSlot = 0;
 	private static final int kBaseLockControlSlot = 1;
-	private boolean brakeEnable = true;
 
-	
 	
 	private DriveLoop() 
 	{
@@ -44,10 +44,8 @@ public class DriveLoop implements Loop
 		rMotor.setStatusFrameRateMs(CANTalon.StatusFrameRate.Feedback, 10);
 
 		// Start in open loop mode
-		lMotor.changeControlMode(CANTalon.TalonControlMode.PercentVbus);
-		rMotor.changeControlMode(CANTalon.TalonControlMode.PercentVbus);
-		setLeftRightPower(0, 0);
-		setBrakeMode(false);
+		drive.setCommand(DriveCommand.NEUTRAL);
+		sendCommands();
 
 		// Set up the encoders
 		lMotor.setFeedbackDevice(CANTalon.FeedbackDevice.QuadEncoder);
@@ -88,34 +86,11 @@ public class DriveLoop implements Loop
 
 	@Override public void onLoop()
 	{
-		synchronized(drive)	// don't allow changes to drive until we finish updating Talon SRXs
-		{
-			// get encoder values from hardware, set in Drive
-			drive.setLeftDistanceInches(  rotationsToInches( lMotor.getPosition() ));
-			drive.setRightDistanceInches( rotationsToInches( rMotor.getPosition() ));
-	
-			drive.setLeftSpeedInchesPerSec(  rpmToInchesPerSecond( lMotor.getSpeed() ));
-			drive.setRightSpeedInchesPerSec( rpmToInchesPerSecond( rMotor.getSpeed() ));
-	
-			/*
-			 * measured angle decreases with clockwise rotation
-			 * it should increase with clockwise rotation (according to
-			 * documentation, and standard right hand rule convention
-			 * negate it here to correct
-			 */
-			drive.setHeadingDeg( -imu.getHeading() );
-
-			drive.setMotorCurrent(lMotor.getOutputCurrent(), rMotor.getOutputCurrent() );
-			drive.setMotorCtrl(lMotor.get(), rMotor.get() );
-			drive.setMotorPIDError(lMotor.getClosedLoopError(), rMotor.getClosedLoopError() );
-			
-			
-			// get Drive commands and send to hardware
-			resetEncoders();
-			setControlState();
-			updateMotors();
-			setBrakeMode();
-		}
+		// get status from hardware
+		getStatus();
+		
+		// send new commands to hardware
+		sendCommands();
 	}
 
 	@Override public void onStop()
@@ -125,31 +100,58 @@ public class DriveLoop implements Loop
 
 	private void stopMotors()
 	{
-		driveControlState = DriveControlState.OPEN_LOOP;
-		setControlState();
-		setLeftRightPower(0,0); 
+		drive.setCommand(DriveCommand.NEUTRAL);		// override any incoming commands
+		sendCommands();
+	}
+
+	private void getStatus()
+	{
+		synchronized(drive.driveStatus)	// don't allow changes to drive until we finish updating Talon SRXs
+		{
+			// get encoder values from hardware, set in Drive
+			drive.driveStatus.setLeftDistanceInches(  rotationsToInches( lMotor.getPosition() ));
+			drive.driveStatus.setRightDistanceInches( rotationsToInches( rMotor.getPosition() ));
+	
+			drive.driveStatus.setLeftSpeedInchesPerSec(  rpmToInchesPerSecond( lMotor.getSpeed() ));
+			drive.driveStatus.setRightSpeedInchesPerSec( rpmToInchesPerSecond( rMotor.getSpeed() ));
+	
+			/*
+			 * measured angle decreases with clockwise rotation
+			 * it should increase with clockwise rotation (according to
+			 * documentation, and standard right hand rule convention
+			 * negate it here to correct
+			 */
+			drive.driveStatus.setHeadingDeg( -imu.getHeading() );
+	
+			drive.driveStatus.setMotorCurrent(lMotor.getOutputCurrent(), rMotor.getOutputCurrent() );
+			drive.driveStatus.setMotorStatus(lMotor.get(), rMotor.get() );
+			drive.driveStatus.setMotorPIDError(lMotor.getClosedLoopError(), rMotor.getClosedLoopError() );
+		}
+	}
+		
+	private void sendCommands()
+	{
+		resetEncoders();
+		
+		DriveCommand newCmd = drive.getCommand();
+		setControlMode(newCmd);
+		setMotors(newCmd);
+		setBrake(newCmd);
 	}
 	
 	
-	private static double rotationsToInches(double rotations) {	return rotations * Constants.kDriveWheelCircumInches; }
-	private static double inchesToRotations(double inches) { return inches / Constants.kDriveWheelCircumInches; }
-
-	private static double rpmToInchesPerSecond(double rpm) { return rotationsToInches(rpm) / 60; }
-	private static double inchesPerSecondToRpm(double inches_per_second) { return inchesToRotations(inches_per_second) * 60; }
-
-	
-	private void setControlState()
+	private void setControlMode(DriveCommand newCmd)
     {
-		DriveControlState newState = drive.getControlState();
+		DriveControlMode newMode = newCmd.getMode();
 		
-		if (newState != driveControlState)
+		if (newMode != currentState.getMode())
 		{
-	        switch (newState)
+	        switch (newMode)
 	        {
 	        	case OPEN_LOOP: 
 	                lMotor.changeControlMode(CANTalon.TalonControlMode.PercentVbus);
 	                rMotor.changeControlMode(CANTalon.TalonControlMode.PercentVbus);
-	    			setBrakeMode(false);
+	    			setBrake(false);
 	                break;
 	
 	        	case BASE_LOCKED:
@@ -163,42 +165,56 @@ public class DriveLoop implements Loop
 	    			rMotor.setAllowableClosedLoopErr(Constants.kDriveBaseLockAllowableError);
 	    			rMotor.set(rMotor.getPosition());
 	
-	    			setBrakeMode(true);
+	    			setBrake(true);
 	        		break;
 	        		
 	        	case VELOCITY_SETPOINT:
 	        		configureTalonsForSpeedControl();
-	    			setBrakeMode(false);
+	    			setBrake(false);
 	        		break;
 	        		
 	        	case VELOCITY_HEADING_CONTROL:
 	        		drive.resetVelocityHeadingPID();
 	    			configureTalonsForSpeedControl();
-	    			setBrakeMode(false);
+	    			setBrake(false);
 	        		break;
 	        		
 	        	case PATH_FOLLOWING_CONTROL:
 	        		drive.resetVelocityHeadingPID();
 	    			configureTalonsForSpeedControl();
-	    			setBrakeMode(false);
+	    			setBrake(false);
 	        		break;
 	        		
 	        	default:
 	        		break;
 	        }
 	        // set new state
-			driveControlState = newState;
+			currentState.setMode(newMode);
 		}
+	}
+
+
+	private void configureTalonsForSpeedControl()
+	{
+		lMotor.changeControlMode(CANTalon.TalonControlMode.Speed);
+		lMotor.setProfile(kVelocityControlSlot);
+		lMotor.setAllowableClosedLoopErr(Constants.kDriveVelocityAllowableError);
+
+		rMotor.changeControlMode(CANTalon.TalonControlMode.Speed);
+		rMotor.setProfile(kVelocityControlSlot);
+		rMotor.setAllowableClosedLoopErr(Constants.kDriveVelocityAllowableError);
 	}
 
 	
 	
-	private void updateMotors()
+	
+	
+	private void setMotors(DriveCommand newCmd)
     {
-		double lMotorCtrl = drive.getLeftMotorCtrl();
-		double rMotorCtrl = drive.getRightMotorCtrl();
+		double lMotorCtrl = newCmd.getLeftMotor();
+		double rMotorCtrl = newCmd.getRightMotor();
 		
-        switch (driveControlState)
+        switch (newCmd.getMode())	// assuming new mode is already configured
         {
         	case OPEN_LOOP:
         		// l/r motor controls given as % Vbus
@@ -223,41 +239,41 @@ public class DriveLoop implements Loop
         }
 	}
 
-	private void setBrakeMode()
+	private void setLeftRightPower(double _left, double _right) 
 	{
-		setBrakeMode( drive.getBrakeEnableCmd() );
+		lMotor.set(_left);
+		rMotor.set(_right);
+		currentState.setMotors(_left, _right);
+	}
+
+	private static double rotationsToInches(double _rotations) {	return _rotations * Constants.kDriveWheelCircumInches; }
+	private static double inchesToRotations(double _inches) { return _inches / Constants.kDriveWheelCircumInches; }
+
+	private static double rpmToInchesPerSecond(double _rpm) { return rotationsToInches(_rpm) / 60.0; }
+	private static double inchesPerSecondToRpm(double _inches_per_second) { return inchesToRotations(_inches_per_second) * 60.0; }
+
+	
+	
+
+	private void setBrake(DriveCommand newCmd)
+	{
+		boolean newBrake = newCmd.getBrake();
+		setBrake(newBrake);
 	}
 	
 	
-	private void setBrakeMode(boolean val) 
+	private void setBrake(boolean newBrake) 
 	{
-		if (brakeEnable != val) 
+		if (newBrake != currentState.getBrake()) 
 		{
-			lMotor.enableBrakeMode(val);
-			rMotor.enableBrakeMode(val);
-			brakeEnable = val;
+			lMotor.enableBrakeMode(newBrake);
+			rMotor.enableBrakeMode(newBrake);
+			currentState.setBrake(newBrake);
 		}
 	}
 	
 	
-	private void configureTalonsForSpeedControl()
-	{
-		lMotor.changeControlMode(CANTalon.TalonControlMode.Speed);
-		lMotor.setProfile(kVelocityControlSlot);
-		lMotor.setAllowableClosedLoopErr(Constants.kDriveVelocityAllowableError);
-
-		rMotor.changeControlMode(CANTalon.TalonControlMode.Speed);
-		rMotor.setProfile(kVelocityControlSlot);
-		rMotor.setAllowableClosedLoopErr(Constants.kDriveVelocityAllowableError);
-	}
-
 	
-	private void setLeftRightPower(double left, double right) 
-	{
-		lMotor.set(left);
-		rMotor.set(right);
-	}
-
 	
 	private void resetEncoders()
 	{
@@ -274,4 +290,6 @@ public class DriveLoop implements Loop
 			drive.setResetEncoderCmd(false);	// clear flag
 		}
 	}	
+
+
 };

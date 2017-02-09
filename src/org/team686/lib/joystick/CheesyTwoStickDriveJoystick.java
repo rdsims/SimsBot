@@ -1,7 +1,7 @@
 package org.team686.lib.joystick;
 
 import org.team686.lib.joystick.JoystickControlsBase;
-import org.team686.lib.util.DriveSignal;
+import org.team686.lib.util.DriveCommand;
 import org.team686.lib.util.Util;
 import org.team686.simsbot.Constants;
 
@@ -25,10 +25,10 @@ public class CheesyTwoStickDriveJoystick extends JoystickControlsBase
     public static final double kThrottleDeadband = 0.02;
     private static final double kturnDeadband = 0.02;
     private static final double kTurnSensitivity = 1.02;
-    private DriveSignal mSignal = new DriveSignal(0, 0);
+    private DriveCommand mSignal = new DriveCommand(0, 0);
 
     
-    public DriveSignal getDriveSignal()
+    public DriveCommand getDriveSignal()
     {
     	double throttle = -mStick.getRawAxis(Constants.kXboxLStickYAxis);
         double turn     = +mStick.getRawAxis(Constants.kXboxRStickXAxis);
