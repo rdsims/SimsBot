@@ -60,6 +60,6 @@ public class DriveStraightAction implements Action {
     }
 
     private double getCurrentDistance() {
-        return (mDrive.getLeftDistanceInches() + mDrive.getRightDistanceInches()) / 2;
+        return (mDrive.driveStatus.getLeftDistanceInches() + mDrive.driveStatus.getRightDistanceInches()) / 2;
     }
 }

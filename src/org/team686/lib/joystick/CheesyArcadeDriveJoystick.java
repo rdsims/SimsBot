@@ -80,8 +80,8 @@ public class CheesyArcadeDriveJoystick extends JoystickControlsBase
             rMotorSpeed = -1.0;
         }
         
-        mSignal.lMotor = lMotorSpeed;
-        mSignal.rMotor = rMotorSpeed;
+        mSignal.left = lMotorSpeed;
+        mSignal.right = rMotorSpeed;
         
 	    return mSignal;        
     }

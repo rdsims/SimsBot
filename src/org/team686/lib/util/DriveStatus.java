@@ -1,7 +1,6 @@
 package org.team686.lib.util;
 
 import org.team686.simsbot.DataLogger;
-import org.team686.simsbot.subsystems.Drive;
 
 /**
  * Drivetrain status structure, filled by DriveLoop.java

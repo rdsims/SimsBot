@@ -3,6 +3,7 @@ package org.team686.simsbot.loops;
 import org.team686.simsbot.Kinematics;
 import org.team686.simsbot.RobotState;
 import org.team686.simsbot.subsystems.Drive;
+import org.team686.lib.util.DriveStatus;
 import org.team686.lib.util.RigidTransform2d;
 import org.team686.lib.util.Rotation2d;
 
@@ -13,47 +14,51 @@ import edu.wpi.first.wpilibj.Timer;
  * traveled (compares two waypoints), gyroscope orientation, and velocity, among
  * various other factors. Similar to a car's odometer.
  */
-public class RobotStateLoop implements Loop {
-    static RobotStateLoop instance_ = new RobotStateLoop();
+public class RobotStateLoop implements Loop 
+{
+    static RobotStateLoop instance = new RobotStateLoop();
 
-    public static RobotStateLoop getInstance() {
-        return instance_;
+    public static RobotStateLoop getInstance() 
+    {
+        return instance;
     }
 
-    RobotStateLoop() {
-    }
+    RobotStateLoop() {}
 
-    RobotState robot_state_ = RobotState.getInstance();
-    Drive drive_ = Drive.getInstance();
-    double left_encoder_prev_distance_ = 0;
-    double right_encoder_prev_distance_ = 0;
+    RobotState robotState = RobotState.getInstance();
+    DriveStatus driveStatus = Drive.getInstance().driveStatus;
+    double prevLeftDistance = 0;
+    double prevRightDistance = 0;
 
     @Override
-    public void onStart() {
-        left_encoder_prev_distance_ = drive_.getLeftDistanceInches();
-        right_encoder_prev_distance_ = drive_.getRightDistanceInches();
+    public void onStart() 
+    {
+        prevLeftDistance  = driveStatus.getLeftDistanceInches();
+        prevRightDistance = driveStatus.getRightDistanceInches();
     }
 
     @Override
-    public void onLoop() {
+    public void onLoop() 
+    {
         double time = Timer.getFPGATimestamp();
-        double left_distance  = drive_.getLeftDistanceInches();
-        double right_distance = drive_.getRightDistanceInches();
-        double left_speed  = drive_.getLeftSpeedInchesPerSec();
-        double right_speed = drive_.getRightSpeedInchesPerSec(); 
-        Rotation2d gyro_angle = Rotation2d.fromDegrees(drive_.getHeadingDeg());
+        double leftDistance  = driveStatus.getLeftDistanceInches();
+        double rightDistance = driveStatus.getRightDistanceInches();
+        double leftSpeed     = driveStatus.getLeftSpeedInchesPerSec();
+        double rightSpeed    = driveStatus.getRightSpeedInchesPerSec(); 
+        Rotation2d gyroAngle = Rotation2d.fromDegrees(driveStatus.getHeadingDeg());
 
-        RigidTransform2d odometry = robot_state_.generateOdometryFromSensors(
-                left_distance - left_encoder_prev_distance_, right_distance - right_encoder_prev_distance_, gyro_angle);
-        RigidTransform2d.Delta velocity = Kinematics.forwardKinematics(left_speed, right_speed);
+        RigidTransform2d odometry = robotState.generateOdometryFromSensors(
+                leftDistance-prevLeftDistance, rightDistance-prevRightDistance, gyroAngle);
+        RigidTransform2d.Delta velocity = Kinematics.forwardKinematics(leftSpeed, rightSpeed);
                 
-        robot_state_.addObservations(time, odometry, velocity);
-        left_encoder_prev_distance_ = left_distance;
-        right_encoder_prev_distance_ = right_distance;
+        robotState.addObservations(time, odometry, velocity);
+        prevLeftDistance = leftDistance;
+        prevRightDistance = rightDistance;
     }
 
     @Override
-    public void onStop() {
+    public void onStop() 
+    {
         // no-op
     }
 

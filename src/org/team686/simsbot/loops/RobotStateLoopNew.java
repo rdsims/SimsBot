@@ -2,6 +2,7 @@ package org.team686.simsbot.loops;
 
 import edu.wpi.first.wpilibj.Timer;
 
+import org.team686.lib.util.DriveStatus;
 import org.team686.lib.util.RobotPose;
 import org.team686.simsbot.RobotState;
 import org.team686.simsbot.subsystems.Drive;
@@ -15,7 +16,7 @@ import org.team686.simsbot.subsystems.Drive;
 public class RobotStateLoopNew implements Loop
 {
     RobotState robotState = RobotState.getInstance();
-    Drive drive = Drive.getInstance();
+    DriveStatus driveStatus = Drive.getInstance().driveStatus;
 
     RobotPose pose;
     
@@ -46,16 +47,16 @@ public class RobotStateLoopNew implements Loop
     
     @Override
     public void onStart() {
-        lDistPrev = drive.getLeftDistanceInches();
-        rDistPrev = drive.getRightDistanceInches();
-        thetaPrev = drive.getHeadingRad();
+        lDistPrev = driveStatus.getLeftDistanceInches();
+        rDistPrev = driveStatus.getRightDistanceInches();
+        thetaPrev = driveStatus.getHeadingRad();
     }
 
     @Override
     public void onLoop() {
-        double lDist = drive.getLeftDistanceInches();
-        double rDist = drive.getRightDistanceInches();
-        double theta = drive.getHeadingRad();
+        double lDist = driveStatus.getLeftDistanceInches();
+        double rDist = driveStatus.getRightDistanceInches();
+        double theta = driveStatus.getHeadingRad();
         
         // dD = distance traveled by center of robot in time delta_t
         // dTheta = change in heading over last delta_t
