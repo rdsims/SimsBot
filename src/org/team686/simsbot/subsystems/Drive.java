@@ -75,7 +75,7 @@ public class Drive extends Subsystem
         @Override
         public void onLoop() 
         {
-        	switch (driveCmd.mode)
+        	switch (driveCmd.getMode())
     		{
     			case OPEN_LOOP:
     			case BASE_LOCKED:
@@ -101,7 +101,7 @@ public class Drive extends Subsystem
     				break;
     				
     			default:
-    				System.out.println("Unexpected drive control state: " + driveCmd.mode);
+    				System.out.println("Unexpected drive control state: " + driveCmd.getMode());
     				break;
     		}
     	}
@@ -120,24 +120,24 @@ public class Drive extends Subsystem
      * Main functions to control motors for each DriveControlState
      */
     
-	public synchronized void setOpenLoop(DriveCommand cmd) 
+	public void setOpenLoop(DriveCommand cmd) 
 	{
 		cmd.setMode(DriveControlMode.OPEN_LOOP);
 		setCommand(cmd);
 	}
 
-	public synchronized void setBaseLockOn() 
+	public void setBaseLockOn() 
 	{
 		driveCmd.setMode(DriveControlMode.BASE_LOCKED);
 	}
 
-	public synchronized void setVelocitySetpoint(double left_inches_per_sec, double right_inches_per_sec) 
+	public void setVelocitySetpoint(double left_inches_per_sec, double right_inches_per_sec) 
 	{
 		driveCmd.setMode(DriveControlMode.VELOCITY_SETPOINT);
 		driveCmd.setMotors(left_inches_per_sec, right_inches_per_sec);
 	}
 
-	public synchronized void setVelocityHeadingSetpoint(double forward_inches_per_sec, Rotation2d headingSetpoint) 
+	public void setVelocityHeadingSetpoint(double forward_inches_per_sec, Rotation2d headingSetpoint) 
 	{
 		driveCmd.setMode(DriveControlMode.VELOCITY_HEADING_CONTROL);
 		velocityHeadingSetpoint = new VelocityHeadingSetpoint(forward_inches_per_sec, forward_inches_per_sec, headingSetpoint);
@@ -149,13 +149,13 @@ public class Drive extends Subsystem
 	 * Set/get functions
 	 */
     
-	public synchronized void setCommand(DriveCommand cmd) { driveCmd = cmd; }
-	public synchronized DriveCommand getCommand() { return driveCmd; }
+	public void setCommand(DriveCommand cmd) { driveCmd = cmd; }
+	public DriveCommand getCommand() { return driveCmd; }
 
 	public void resetEncoders() { setResetEncoderCmd(true); }
 	
-    public synchronized void setResetEncoderCmd(boolean flag) { resetEncoderCmd = flag; }		// will be picked up by DriveLoop on next iteration
-    public synchronized boolean getResetEncoderCmd() { return resetEncoderCmd; }
+    public void setResetEncoderCmd(boolean flag) { resetEncoderCmd = flag; }		// will be picked up by DriveLoop on next iteration
+    public boolean getResetEncoderCmd() { return resetEncoderCmd; }
 	
 
     
@@ -199,7 +199,7 @@ public class Drive extends Subsystem
 	 * @param _reversed
 	 * @see com.team254.lib.util/Path.java
 	 */
-	public synchronized void followPath(Path _path, boolean	_reversed) 
+	public void followPath(Path _path, boolean	_reversed) 
 	{
 		driveCmd.setMode(DriveControlMode.PATH_FOLLOWING_CONTROL);
 		pathFollowingController = new AdaptivePurePursuitController(Constants.kPathFollowingLookahead,
@@ -211,7 +211,7 @@ public class Drive extends Subsystem
 	 * @return Returns if the robot mode is Path Following Control and the set
 	 *         path is complete.
 	 */
-	public synchronized boolean isFinishedPath()
+	public boolean isFinishedPath()
 	{
 		if (driveCmd.getMode() == DriveControlMode.PATH_FOLLOWING_CONTROL)
 			return pathFollowingController.isDone();
@@ -284,7 +284,7 @@ public class Drive extends Subsystem
 	 * Configures Talon SRXs to desired left/right wheel velocities
 	 *************************************************************************/
 	
-	private synchronized void updateVelocitySetpoint(double _left_inches_per_sec, double _right_inches_per_sec) 
+	private void updateVelocitySetpoint(double _left_inches_per_sec, double _right_inches_per_sec) 
 	{
 		DriveControlMode mode = driveCmd.getMode();
 		
@@ -321,19 +321,19 @@ public class Drive extends Subsystem
 	 */
 	
 	@Override
-	public synchronized void stop() { setOpenLoop(DriveCommand.BRAKE); }
+	public void stop() { setOpenLoop(DriveCommand.BRAKE); }
 
 	@Override
-	public synchronized void zeroSensors() { setResetEncoderCmd(true); }
+	public void zeroSensors() { setResetEncoderCmd(true); }
 
 	@Override
 	public void log() {
 		DataLogger dataLogger = DataLogger.getInstance();
 
-		dataLogger.putString("driveMode", driveCmd.mode.toString() );
-		dataLogger.putNumber("lMotorCmd", driveCmd.left );
-		dataLogger.putNumber("rMotorCmd", driveCmd.right );
-		dataLogger.putBoolean("brakeMode", driveCmd.brake );
+		dataLogger.putString("driveMode", driveCmd.getMode().toString() );
+		dataLogger.putNumber("lMotorCmd", driveCmd.getLeftMotor() );
+		dataLogger.putNumber("rMotorCmd", driveCmd.getRightMotor() );
+		dataLogger.putBoolean("brakeMode", driveCmd.getBrake() );
 		dataLogger.putNumber("Heading Error", mLastHeadingErrorDegrees );
 		dataLogger.putNumber("Heading PID Error", velocityHeadingPID.getError() );
 		dataLogger.putNumber("Heading PID Output", velocityHeadingPID.get() );

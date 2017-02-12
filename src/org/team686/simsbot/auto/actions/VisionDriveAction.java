@@ -11,13 +11,14 @@ import org.team686.lib.util.Util;
 import org.team686.simsbot.Constants;
 import org.team686.simsbot.DataLogger;
 import org.team686.simsbot.RobotState;
+import org.team686.simsbot.VisionStatus;
 import org.team686.simsbot.subsystems.Drive;
 
 
 public class VisionDriveAction implements Action 
 {
 	// properties needed for class
-	private NetworkTable table;
+	private VisionStatus visionStatus = VisionStatus.getInstance();
 	private RobotState robotState = RobotState.getInstance();
 	private Drive drive = Drive.getInstance();
 	private double maxSpeed;
@@ -49,7 +50,6 @@ public class VisionDriveAction implements Action
 		System.out.println("Starting VisionDriveAction");
 		maxSpeed = _maxSpeed;
 		maxAccel = _maxAccel;
-		table = NetworkTable.getTable("SmartDashboard");
 	}
 
 	@Override
@@ -73,9 +73,9 @@ public class VisionDriveAction implements Action
 		//---------------------------------------------------
 		
 		// values from camera, normalized to camera's Field of View (-1 to +1) 
-		imageTimestamp    	  = table.getNumber("Camera/imageTimestamp",    0);
-		normalizedTargetX 	  = table.getNumber("Camera/targetCenterX",  -999);
-		normalizedTargetWidth = table.getNumber("Camera/targetWidth",    -999);
+		imageTimestamp    	  = visionStatus.getImageTimestamp();
+		normalizedTargetX 	  = visionStatus.getNormalizedTargetX();
+		normalizedTargetWidth = visionStatus.getNormalizedTargetWidth();
 
 		RigidTransform2d  cPose = robotState.getLatestFieldToVehicle();		// using CheesyPoof's RigidTransform2d for now.  TODO: replace		
 		Pose currentPose = new Pose(cPose.getTranslation().getX(), cPose.getTranslation().getY(), cPose.getRotation().getRadians());
@@ -93,7 +93,7 @@ imageTimestamp = currentTime;
 		//---------------------------------------------------
 		// Process
 		//---------------------------------------------------
-		visionDrive(imageTimestamp, normalizedTargetX, normalizedTargetWidth, currentPose, previousPose);
+		visionDrive(currentTime, imageTimestamp, normalizedTargetX, normalizedTargetWidth, currentPose, previousPose);
 
 		//---------------------------------------------------
 		// Output: Send drive control
@@ -101,7 +101,8 @@ imageTimestamp = currentTime;
 		drive.driveCurve(speed, curvature, maxSpeed);
 	}
 	
-	public void visionDrive(double imageTimestamp, double normalizedTargetX, double normalizedTargetWidth, Pose currentPose, Pose previousPose)
+	// visionDrive() is written outside of update() to facilitate unit level testing
+	public void visionDrive(double currentTime, double imageTimestamp, double normalizedTargetX, double normalizedTargetWidth, Pose currentPose, Pose previousPose)
 	{
 		// If we get a valid message from the Vision co-processor, update our estimate of the target location
 		if (normalizedTargetWidth > 0) 
@@ -127,6 +128,10 @@ imageTimestamp = currentTime;
 		// drive towards it, even if we didn't get a valid Vision co-processor message this time
 		if (avgCnt > 0)
 		{
+			Vector2 robotToTarget = (new Vector2(avgTargetLocation)).sub(currentPose.getPosition());	// make a copy of avgTargetLocation so that sub doesn't change it
+			distanceToTargetInches = robotToTarget.len();									// distance to target
+			headingToTargetRadians = robotToTarget.angleRad() - currentPose.getHeadingRad();								// change in heading from current pose to target (tangent to circle to be travelled)
+
 			//---------------------------------------------------
 			// Apply speed control
 			//---------------------------------------------------
@@ -141,8 +146,9 @@ imageTimestamp = currentTime;
 				speed = prevSpeed - maxAccel * dt;
 
 			// apply braking distance limits
-			// vf^2 = v^2 + 2*a*d   Solve for v, given vf=0, configured a, and measured d 
-			double maxBrakingSpeed = Math.sqrt(2.0 * maxAccel * distanceToTargetInches);
+			// vf^2 = v^2 + 2*a*d   Solve for v, given vf=0, configured a, and measured d
+			double stoppingDistance = distanceToTargetInches - Constants.kPegTargetDistanceThresholdInches;
+			double maxBrakingSpeed = Math.sqrt(2.0 * maxAccel * stoppingDistance);
 			if (Math.abs(speed) > maxSpeed)
 				speed = Math.signum(speed) * maxBrakingSpeed;
 
@@ -155,9 +161,6 @@ imageTimestamp = currentTime;
 			//---------------------------------------------------
 			// Calculate motor settings to turn towards target   
 			//---------------------------------------------------
-			Vector2 robotToTarget = (new Vector2(avgTargetLocation)).sub(currentPose.getPosition());	// make a copy of avgTargetLocation so that sub doesn't change it
-			distanceToTargetInches = robotToTarget.len();									// distance to target
-			headingToTargetRadians = robotToTarget.angleRad() - currentPose.getHeadingRad();								// change in heading from current pose to target (tangent to circle to be travelled)
 			lookaheadDist = Math.min(Constants.kVisionLookaheadDist, distanceToTargetInches);				// length of chord <= kVisionLookaheadDist
 			curvature = 2.0 * Math.sin(headingToTargetRadians) / lookaheadDist;										// curvature = 1/radius of circle (negative: turn left, positive: turn right)
 
@@ -199,8 +202,6 @@ imageTimestamp = currentTime;
 	
 	public void log() 
 	{
-		System.out.println("VisionDriveAction log()");
-
 		DataLogger dataLogger = DataLogger.getVisionInstance();
 
 		synchronized (dataLogger)

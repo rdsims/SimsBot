@@ -70,12 +70,10 @@ public class Util
      */
     public static void expAverage(Vector2 u, Vector2 v, float alpha)
     {
-System.out.println(u + ", " + v + ", " + alpha);    	
     	// exponential averaging
     	// u = (1-a)*u + a*v
     	u.x = (1-alpha)*u.x + alpha*v.x;
     	u.y = (1-alpha)*u.y + alpha*v.y;
-System.out.println(u + ", " + v);    	
     }
     
 }

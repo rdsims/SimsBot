@@ -106,7 +106,7 @@ public class DriveLoop implements Loop
 
 	private void getStatus()
 	{
-		synchronized(drive.driveStatus)	// don't allow changes to drive until we finish updating Talon SRXs
+		synchronized(drive.driveStatus)	// lock DriveStatus until we update it, so that objects reading DriveStatus don't get partial updates	
 		{
 			// get encoder values from hardware, set in Drive
 			drive.driveStatus.setLeftDistanceInches(  rotationsToInches( lMotor.getPosition() ));
@@ -134,9 +134,12 @@ public class DriveLoop implements Loop
 		resetEncoders();
 		
 		DriveCommand newCmd = drive.getCommand();
-		setControlMode(newCmd);
-		setMotors(newCmd);
-		setBrake(newCmd);
+		synchronized(newCmd)	// lock DriveCommand so no one changes it under us while we are sending the commands
+		{
+			setControlMode(newCmd);
+			setMotors(newCmd);
+			setBrake(newCmd);
+		}
 	}
 	
 	

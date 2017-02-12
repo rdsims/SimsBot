@@ -16,6 +16,7 @@ import org.team686.lib.util.*;
 import org.team686.simsbot.auto.AutoModeExecuter;
 import org.team686.simsbot.loops.LoopController;
 import org.team686.simsbot.loops.RobotStateLoop;
+import org.team686.simsbot.loops.VisionLoop;
 import org.team686.simsbot.subsystems.Drive;
 
 /**
@@ -78,6 +79,7 @@ public class Robot extends IterativeRobot {
 
 			// Configure LoopController
 			loopController.register(drive.getVelocityPIDLoop());
+			loopController.register(VisionLoop.getInstance());
 			loopController.register(RobotStateLoop.getInstance());
 
 			// Set dataLogger and Time information
@@ -87,7 +89,7 @@ public class Robot extends IterativeRobot {
 
 			// Determine folder for log files
 			DataLogger.findLogDirectory();
-			// det data logger file bases
+			// set data logger file bases
 			dataLogger.setFileBase("main");
 			//autonomousLogger.setFileBase("auto");
 			visionLogger.setFileBase("vision");

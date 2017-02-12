@@ -80,9 +80,8 @@ public class CheesyTwoStickDriveJoystick extends JoystickControlsBase
             rMotorSpeed = -1.0;
         }
         
-        mSignal.left = lMotorSpeed;
-        mSignal.right = rMotorSpeed;
-        
+        mSignal.setMotors( lMotorSpeed, rMotorSpeed );
+       
 	    return mSignal;        
     }
 

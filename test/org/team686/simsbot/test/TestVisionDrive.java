@@ -2,7 +2,7 @@ package org.team686.simsbot.test;
 
 import static org.junit.Assert.*;
 
-import java.util.Queue;
+import java.util.LinkedList;
 
 import org.junit.After;
 import org.junit.AfterClass;
@@ -16,6 +16,7 @@ import org.team686.lib.util.Rotation2d;
 import org.team686.lib.util.Translation2d;
 import org.team686.lib.util.Util;
 import org.team686.simsbot.Constants;
+import org.team686.simsbot.DataLogger;
 import org.team686.simsbot.RobotState;
 import org.team686.simsbot.auto.actions.VisionDriveAction;
 
@@ -34,13 +35,14 @@ public class TestVisionDrive
 //	Vector2 targetLeft;
 //	Vector2 targetRight;
 
-	Queue<Double> cameraTimestampQueue;
-	Queue<Double> cameraTargetXQueue;
-	Queue<Double> cameraTargetWidthQueue;
+	LinkedList<Double> cameraTimestampQueue;
+	LinkedList<Double> cameraTargetXQueue;
+	LinkedList<Double> cameraTargetWidthQueue;
 	
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception 
 	{
+		DataLogger.setOutputMode(DataLogger.OutputMode.FILE_ONLY);	// avoid SmartDashboard during JUnit testing
 	}
 
 	@AfterClass
@@ -60,6 +62,11 @@ public class TestVisionDrive
 		visionDriveAction = new VisionDriveAction(Constants.kVisionMaxVel, Constants.kVisionMaxAccel);
 		currentTime = (double)(System.currentTimeMillis())/1000.0;
 
+		cameraTimestampQueue = new LinkedList<Double>();
+		cameraTargetXQueue = new LinkedList<Double>();
+		cameraTargetWidthQueue = new LinkedList<Double>();
+		
+		
 		// fill delay queue with initial values
 		for (double t=0; t<Constants.kCameraLatencySeconds; t+=dt)
 		{
@@ -103,7 +110,7 @@ public class TestVisionDrive
 			// log RobotPose
 			RigidTransform2d observation = new RigidTransform2d(new Translation2d(actualRobotLocation.getX(), actualRobotLocation.getY()), Rotation2d.fromRadians(actualRobotLocation.getHeadingRad()));
 			robotState.addFieldToVehicleObservation(currentTime, observation);
-			
+
 			// calculate relative position of target
 			Vector2 robotToTarget = new Vector2(actualTargetLocation.getPosition()).sub(actualRobotLocation.getPosition());
 			double  distToTarget = robotToTarget.len(); 
@@ -117,9 +124,9 @@ public class TestVisionDrive
 			if (Math.abs(angleToTarget) < Constants.kCameraHalfFOVRadians)
 			{
 				// target is within camera's field of view
-				double fovWidth = 2*distToTarget*Math.cos(Constants.kCameraHalfFOVRadians);		// width of camera's field of view at distance D 
+				double fovWidth = 2*distToTarget*Constants.kTangentCameraHalfFOV;		// width of camera's field of view at distance D 
 				normalizedTargetWidth = targetWidth / fovWidth;
-				normalizedTargetX = angleToTarget / Constants.kCameraHalfFOVRadians;
+				normalizedTargetX = -angleToTarget / Constants.kCameraHalfFOVRadians;
 			}
 			
 			// delay Vision output
@@ -148,7 +155,7 @@ public class TestVisionDrive
 			//---------------------------------------------------
 			// Process
 			//---------------------------------------------------
-			visionDriveAction.visionDrive(imageTimestamp, normalizedTargetX, normalizedTargetWidth, currentPose, previousPose);
+			visionDriveAction.visionDrive(currentTime, imageTimestamp, normalizedTargetX, normalizedTargetWidth, currentPose, previousPose);
 	
 			//---------------------------------------------------
 			// Output: Send drive control

@@ -98,7 +98,8 @@ public class DataLogger
 		dataNames.add(name);
 		dataValues.add(valueString);
 
-		SmartDashboard.putBoolean(name, value);
+		if (mOutputMode == OutputMode.SMARTDASHBOARD_ONLY || mOutputMode == OutputMode.SMARTDASHBOARD_AND_FILE)
+			SmartDashboard.putBoolean(name, value);		
 	}
 	
 	
@@ -112,7 +113,8 @@ public class DataLogger
 		dataNames.add(name);
 		dataValues.add(valueString);
 
-		SmartDashboard.putNumber(name, value);
+		if (mOutputMode == OutputMode.SMARTDASHBOARD_ONLY || mOutputMode == OutputMode.SMARTDASHBOARD_AND_FILE)
+			SmartDashboard.putNumber(name, value);		
 	}
 	
 	public void putNumber(String name, int value)
@@ -121,7 +123,8 @@ public class DataLogger
 		dataNames.add(name);
 		dataValues.add(valueString);
 		
-		SmartDashboard.putNumber(name, value);
+		if (mOutputMode == OutputMode.SMARTDASHBOARD_ONLY || mOutputMode == OutputMode.SMARTDASHBOARD_AND_FILE)
+			SmartDashboard.putNumber(name, value);		
 	}
 	
 	public void putString(String name, String value)
@@ -130,7 +133,8 @@ public class DataLogger
 		dataNames.add(name);
 		dataValues.add(valueString);
 		
-		SmartDashboard.putString(name, value);
+		if (mOutputMode == OutputMode.SMARTDASHBOARD_ONLY || mOutputMode == OutputMode.SMARTDASHBOARD_AND_FILE)
+			SmartDashboard.putString(name, value);		
 	}
 	
 	PrintStream ps;

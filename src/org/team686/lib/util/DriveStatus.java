@@ -7,13 +7,16 @@ import org.team686.simsbot.DataLogger;
  */
 public class DriveStatus
 {
-	double lDistanceInches, rDistanceInches;
-	double lSpeedInchesPerSec, rSpeedInchesPerSec;
-	double headingRad;
+	// all member variables should be private to force other object to use the set/get access methods
+	// which are synchronized to allow multi-thread synchronization
+
+	private double lDistanceInches, rDistanceInches;
+	private double lSpeedInchesPerSec, rSpeedInchesPerSec;
+	private double headingRad;
 	
-	double lMotorCurrent, rMotorCurrent;
-	double lMotorStatus, rMotorStatus;
-	double lMotorPIDError, rMotorPIDError;
+	private double lMotorCurrent, rMotorCurrent;
+	private double lMotorStatus, rMotorStatus;
+	private double lMotorPIDError, rMotorPIDError;
 	
 	private DriveStatus() 
 	{
@@ -51,7 +54,7 @@ public class DriveStatus
     public synchronized double getHeadingDeg() { return headingRad*180.0/Math.PI; }
 	
     
-	public void log() 
+	public synchronized void log() 
 	{
 		DataLogger dataLogger = DataLogger.getInstance();
 
