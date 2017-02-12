@@ -1,4 +1,4 @@
-package org.team686.simsbot.test;
+package org.team686.simsbot.auto.actions.test;
 
 import static org.junit.Assert.*;
 
@@ -107,6 +107,8 @@ public class TestVisionDrive
 			actualRobotLocation.add(Util.fromMagnitudeAngleRad(L, theta_m));
 			actualRobotLocation.addHeadingRad(dTheta);
 			
+			System.out.println(actualRobotLocation);
+			
 			// log RobotPose
 			RigidTransform2d observation = new RigidTransform2d(new Translation2d(actualRobotLocation.getX(), actualRobotLocation.getY()), Rotation2d.fromRadians(actualRobotLocation.getHeadingRad()));
 			robotState.addFieldToVehicleObservation(currentTime, observation);
@@ -167,7 +169,24 @@ public class TestVisionDrive
 			// TODO: output to CSV file
 		}		
 		
-		//TODO: assert robot is close to target
+		
+		/*****************************************************
+		 * test that visionDrive finished in the time allotted
+		 ****************************************************/
+        assertTrue(visionDriveAction.isFinished());
+
+		/************************************************
+		 * test that visionDrive ended up close to target
+		 * and pointed at target
+		 ***********************************************/
+
+		// calculate relative position of target
+		Vector2 robotToTarget = new Vector2(actualTargetLocation.getPosition()).sub(actualRobotLocation.getPosition());
+		double  distToTarget = robotToTarget.len(); 
+		double angleToTarget = robotToTarget.angleRad();
+        
+		assertEquals(Constants.kPegTargetDistanceThresholdInches, distToTarget, 1);
+		assertEquals(angleToTarget, actualRobotLocation.getHeadingRad(), 0.1);
 	}
 
 }

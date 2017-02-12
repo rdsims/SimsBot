@@ -16,5 +16,5 @@ public abstract class JoystickControlsBase
     }
 
     // DRIVER CONTROLS
-    public abstract DriveCommand getDriveSignal();	// mapping from joystick controls to DriveSignal
+    public abstract DriveCommand getDriveCommand();	// mapping from joystick controls to DriveSignal
 }

@@ -28,7 +28,7 @@ public class CheesyArcadeDriveJoystick extends JoystickControlsBase
     private DriveCommand mSignal = new DriveCommand(0, 0);
 
     
-    public DriveCommand getDriveSignal()
+    public DriveCommand getDriveCommand()
     {
     	double throttle = -mStick.getY();	// TODO: figure out why Y-axis is negated
         double turn     = +mStick.getX();

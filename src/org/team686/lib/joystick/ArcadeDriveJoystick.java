@@ -17,7 +17,7 @@ public class ArcadeDriveJoystick extends JoystickControlsBase
     }
 
     
-    public DriveCommand getDriveSignal()
+    public DriveCommand getDriveCommand()
     {
 //	    boolean squaredInputs = true;	// set to true to increase fine control while permitting full power
 	    boolean squaredInputs = false;	// set to true to increase fine control while permitting full power

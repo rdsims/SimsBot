@@ -3,7 +3,6 @@ package org.team686.simsbot.auto.actions;
 import org.mini2Dx.gdx.math.*;
 
 import edu.wpi.first.wpilibj.Timer;
-import edu.wpi.first.wpilibj.networktables.NetworkTable;
 
 import org.team686.lib.util.Pose;
 import org.team686.lib.util.RigidTransform2d;

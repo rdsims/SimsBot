@@ -8,8 +8,6 @@ import org.team686.lib.util.DriveStatus;
 import org.team686.simsbot.Constants;
 import org.team686.simsbot.subsystems.Drive;
 
-//TODO: update to use DriveSignal consistently
-
 /*
  * DriveLoop is the interface between Drive.java and the actual hardware.
  * It runs periodically, taking the commands sent by Drive and sending them to the hardware.
@@ -176,13 +174,13 @@ public class DriveLoop implements Loop
 	    			setBrake(false);
 	        		break;
 	        		
-	        	case VELOCITY_HEADING_CONTROL:
+	        	case VELOCITY_HEADING:
 	        		drive.resetVelocityHeadingPID();
 	    			configureTalonsForSpeedControl();
 	    			setBrake(false);
 	        		break;
 	        		
-	        	case PATH_FOLLOWING_CONTROL:
+	        	case PATH_FOLLOWING:
 	        		drive.resetVelocityHeadingPID();
 	    			configureTalonsForSpeedControl();
 	    			setBrake(false);
@@ -229,8 +227,8 @@ public class DriveLoop implements Loop
         		break;
         		
         	case VELOCITY_SETPOINT:
-        	case VELOCITY_HEADING_CONTROL:
-        	case PATH_FOLLOWING_CONTROL:
+        	case VELOCITY_HEADING:
+        	case PATH_FOLLOWING:
         		// l/r motor controls given in inches/sec
         		// need to convert to RPM
     			setLeftRightPower(inchesPerSecondToRpm(lMotorCtrl), inchesPerSecondToRpm(rMotorCtrl));

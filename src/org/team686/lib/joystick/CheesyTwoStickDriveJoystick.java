@@ -28,7 +28,7 @@ public class CheesyTwoStickDriveJoystick extends JoystickControlsBase
     private DriveCommand mSignal = new DriveCommand(0, 0);
 
     
-    public DriveCommand getDriveSignal()
+    public DriveCommand getDriveCommand()
     {
     	double throttle = -mStick.getRawAxis(Constants.kXboxLStickYAxis);
         double turn     = +mStick.getRawAxis(Constants.kXboxRStickXAxis);

@@ -1,7 +1,5 @@
 package org.team686.simsbot.subsystems;
 
-//import java.util.Set;
-
 import edu.wpi.first.wpilibj.Timer;
 
 import org.team686.lib.util.AdaptivePurePursuitController;
@@ -19,8 +17,6 @@ import org.team686.simsbot.Kinematics;
 import org.team686.simsbot.RobotState;
 import org.team686.simsbot.loops.Loop;
 
-// TODO: update to use DriveSignal consistently
-
 /**
  * The robot's drivetrain, which implements the Superstructure abstract class.
  * The drivetrain has several states and builds on the abstract class by
@@ -28,6 +24,7 @@ import org.team686.simsbot.loops.Loop;
  * 
  * @see Subsystem.java
  */
+
 public class Drive extends Subsystem 
 {
 	private static Drive instance_ = new Drive();
@@ -86,12 +83,12 @@ public class Drive extends Subsystem
     				// Nothing to do: Talons SRXs are updating the control loop state
     				return;
     				
-    			case VELOCITY_HEADING_CONTROL:
+    			case VELOCITY_HEADING:
     				// Need to adjust left/right motor velocities to keep desired heading
     				updateVelocityHeadingSetpoint();
     				return;
     				
-    			case PATH_FOLLOWING_CONTROL:
+    			case PATH_FOLLOWING:
     				// Need to adjust left/right motor velocities to follow path
     				updatePathFollower();
     				if(isFinishedPath())
@@ -139,7 +136,7 @@ public class Drive extends Subsystem
 
 	public void setVelocityHeadingSetpoint(double forward_inches_per_sec, Rotation2d headingSetpoint) 
 	{
-		driveCmd.setMode(DriveControlMode.VELOCITY_HEADING_CONTROL);
+		driveCmd.setMode(DriveControlMode.VELOCITY_HEADING);
 		velocityHeadingSetpoint = new VelocityHeadingSetpoint(forward_inches_per_sec, forward_inches_per_sec, headingSetpoint);
 		updateVelocityHeadingSetpoint();
 	}
@@ -201,7 +198,7 @@ public class Drive extends Subsystem
 	 */
 	public void followPath(Path _path, boolean	_reversed) 
 	{
-		driveCmd.setMode(DriveControlMode.PATH_FOLLOWING_CONTROL);
+		driveCmd.setMode(DriveControlMode.PATH_FOLLOWING);
 		pathFollowingController = new AdaptivePurePursuitController(Constants.kPathFollowingLookahead,
 				Constants.kPathFollowingMaxAccel, Constants.kLoopDt, _path, _reversed, 1.0);
 		updatePathFollower();
@@ -213,7 +210,7 @@ public class Drive extends Subsystem
 	 */
 	public boolean isFinishedPath()
 	{
-		if (driveCmd.getMode() == DriveControlMode.PATH_FOLLOWING_CONTROL)
+		if (driveCmd.getMode() == DriveControlMode.PATH_FOLLOWING)
 			return pathFollowingController.isDone();
 		else
 			return true;
@@ -288,9 +285,9 @@ public class Drive extends Subsystem
 	{
 		DriveControlMode mode = driveCmd.getMode();
 		
-		if (mode == DriveControlMode.VELOCITY_HEADING_CONTROL ||
+		if (mode == DriveControlMode.VELOCITY_HEADING ||
 			mode == DriveControlMode.VELOCITY_SETPOINT ||
-			mode == DriveControlMode.PATH_FOLLOWING_CONTROL) 
+			mode == DriveControlMode.PATH_FOLLOWING) 
 		{
 			driveCmd.setMotors(_left_inches_per_sec, _right_inches_per_sec);
 		} 

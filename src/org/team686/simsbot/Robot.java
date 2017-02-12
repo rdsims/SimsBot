@@ -242,7 +242,7 @@ public class Robot extends IterativeRobot {
 	@Override
 	public void teleopPeriodic() {
 		try {
-			drive.setOpenLoop(controls.getDriveSignal());
+			drive.setOpenLoop(controls.getDriveCommand());
 
 			log();
 		} catch (Throwable t) {

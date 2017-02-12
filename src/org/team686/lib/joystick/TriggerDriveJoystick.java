@@ -17,7 +17,7 @@ public class TriggerDriveJoystick extends JoystickControlsBase
     }
 
     
-    public DriveCommand getDriveSignal()
+    public DriveCommand getDriveCommand()
     {
 	    boolean squaredInputs = false;
 	    
