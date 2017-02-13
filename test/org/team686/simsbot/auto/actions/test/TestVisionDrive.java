@@ -2,7 +2,7 @@ package org.team686.simsbot.auto.actions.test;
 
 import static org.junit.Assert.*;
 
-import java.util.LinkedList;
+import java.util.ArrayList;
 
 import org.junit.After;
 import org.junit.AfterClass;
@@ -16,7 +16,6 @@ import org.team686.lib.util.Rotation2d;
 import org.team686.lib.util.Translation2d;
 import org.team686.lib.util.Util;
 import org.team686.simsbot.Constants;
-import org.team686.simsbot.DataLogger;
 import org.team686.simsbot.RobotState;
 import org.team686.simsbot.auto.actions.VisionDriveAction;
 
@@ -35,19 +34,15 @@ public class TestVisionDrive
 //	Vector2 targetLeft;
 //	Vector2 targetRight;
 
-	LinkedList<Double> cameraTimestampQueue;
-	LinkedList<Double> cameraTargetXQueue;
-	LinkedList<Double> cameraTargetWidthQueue;
+	ArrayList<Double> cameraTimestampQueue;
+	ArrayList<Double> cameraTargetXQueue;
+	ArrayList<Double> cameraTargetWidthQueue;
 	
 	@BeforeClass
-	public static void setUpBeforeClass() throws Exception 
-	{
-		DataLogger.setOutputMode(DataLogger.OutputMode.FILE_ONLY);	// avoid SmartDashboard during JUnit testing
-	}
+	public static void setUpBeforeClass() throws Exception {}
 
 	@AfterClass
-	public static void tearDownAfterClass() throws Exception {
-	}
+	public static void tearDownAfterClass() throws Exception {}
 
 	@Before
 	public void setUp() throws Exception
@@ -62,9 +57,9 @@ public class TestVisionDrive
 		visionDriveAction = new VisionDriveAction(Constants.kVisionMaxVel, Constants.kVisionMaxAccel);
 		currentTime = (double)(System.currentTimeMillis())/1000.0;
 
-		cameraTimestampQueue = new LinkedList<Double>();
-		cameraTargetXQueue = new LinkedList<Double>();
-		cameraTargetWidthQueue = new LinkedList<Double>();
+		cameraTimestampQueue = new ArrayList<Double>();
+		cameraTargetXQueue = new ArrayList<Double>();
+		cameraTargetWidthQueue = new ArrayList<Double>();
 		
 		
 		// fill delay queue with initial values
@@ -136,9 +131,9 @@ public class TestVisionDrive
 			cameraTargetXQueue.add(normalizedTargetX);
 			cameraTargetWidthQueue.add(normalizedTargetWidth);
 	
-			imageTimestamp = cameraTimestampQueue.remove();
-			normalizedTargetX = cameraTargetXQueue.remove();
-			normalizedTargetWidth = cameraTargetWidthQueue.remove();
+			imageTimestamp = cameraTimestampQueue.remove(0);
+			normalizedTargetX = cameraTargetXQueue.remove(0);
+			normalizedTargetWidth = cameraTargetWidthQueue.remove(0);
 			
 			
 			//---------------------------------------------------

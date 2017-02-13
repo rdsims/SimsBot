@@ -38,7 +38,7 @@ public class Robot extends IterativeRobot {
 	RobotState mRobotState = RobotState.getInstance();
 
 	SmartDashboardInteractions mSmartDashboardInteractions = new SmartDashboardInteractions();
-	DataLogController robotLogger = DataLogController.getInstance();	// logger for Robot thread (autonomous thread has it's own logger)
+	DataLogController robotLogger = new DataLogController();	// logger for Robot thread (autonomous thread has it's own logger)
 
 	enum OperationalMode 
 	{
@@ -117,7 +117,9 @@ public class Robot extends IterativeRobot {
 	public void disabledInit() 
 	{
 		operationalMode = OperationalMode.DISABLED;
-		robotLogger.setOutputMode(DataLogController.OutputMode.SMARTDASHBOARD_ONLY);
+		boolean logToFile = false;
+		boolean logToSmartDashboard = true;
+		robotLogger.setOutputMode(logToFile, logToSmartDashboard);
 		
 		try 
 		{
@@ -167,7 +169,9 @@ public class Robot extends IterativeRobot {
 	public void autonomousInit() 
 	{
 		operationalMode = OperationalMode.AUTONOMOUS;
-		robotLogger.setOutputMode(DataLogController.OutputMode.SMARTDASHBOARD_AND_FILE);
+		boolean logToFile = true;
+		boolean logToSmartDashboard = true;
+		robotLogger.setOutputMode(logToFile, logToSmartDashboard);
 
 		try 
 		{
@@ -230,7 +234,9 @@ public class Robot extends IterativeRobot {
 	public void teleopInit() 
 	{
 		operationalMode = OperationalMode.TELEOP;
-		robotLogger.setOutputMode(DataLogController.OutputMode.SMARTDASHBOARD_AND_FILE);
+		boolean logToFile = true;
+		boolean logToSmartDashboard = true;
+		robotLogger.setOutputMode(logToFile, logToSmartDashboard);
 
 		try 
 		{

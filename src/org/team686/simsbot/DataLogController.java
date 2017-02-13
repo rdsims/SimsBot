@@ -6,8 +6,11 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
@@ -16,26 +19,9 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 public class DataLogController
 {
-    private static DataLogController mInstance = new DataLogController();
-    private static DataLogController mAutonomousInstance = new DataLogController();
-    private static DataLogController mVisionInstance = new DataLogController();
-
-    public static DataLogController getInstance() {
-        return mInstance;
-    }
-
-    public static DataLogController getAutonomousInstance() {
-        return mAutonomousInstance;
-    }
-    
-    public static DataLogController getVisionInstance() {
-        return mVisionInstance;
-    }
-    
 	static File parentDirectory;
 	String fileBase;
 	long minimumInterval = 0;	// 0: write as fast as possible
-
 	
 	static public void findLogDirectory()
 	{
@@ -87,10 +73,17 @@ public class DataLogController
 	}
 	
 
-	public enum OutputMode { SMARTDASHBOARD_ONLY, FILE_ONLY, SMARTDASHBOARD_AND_FILE }
-	private OutputMode mOutputMode = OutputMode.SMARTDASHBOARD_ONLY;
-
-    public void setOutputMode(OutputMode _mode) { mOutputMode = _mode; }
+	public boolean fileOutput = false;
+	public boolean sdOutput = false;
+	
+    public void setOutputMode(boolean _file, boolean _sd)
+    { 
+    	fileOutput = _file;
+    	sdOutput   = _sd;
+    }
+    
+    
+    
     
 	
     private final List<DataLogger> loggers  = new ArrayList<>();
@@ -104,72 +97,73 @@ public class DataLogController
 	{
         for (DataLogger logger : loggers) 
         {
-            logger.log();
+            logger.log();	// collect values to log
         }
-		saveDataItems();
+		saveDataItems();	// write to file / SmartDashboard
 	}
 
+	
+	
+	
 	
 	PrintStream ps;
 	long startTime;
 	long timeUpdated;
 	long timeSinceLog;
 	
-	public boolean shouldLogData() {
+	private boolean shouldLogData() 
+	{
+		boolean retVal = false;
+		
+		if (ps==null)
+			retVal = true;
+
 		long now = System.currentTimeMillis();
-		if((ps==null) || (now - timeSinceLog) > minimumInterval)
-		{
-			return true;
-		}
-		else
-		{
-			return false;
-		}
+		if ((now - timeSinceLog) > minimumInterval)
+			retVal = true;
+			
+		return retVal;
 	}
 	
 	
-	public void saveDataItems()
+	private void saveDataItems()
 	{
-		if(shouldLogData())
+		if (shouldLogData())
 		{
 			try
 			{
-				if (ps == null)
+				if (fileOutput && (ps == null))
 				{
+					// file stream has not yet been initialized
 					synchronized (this)
 					{
-						if (ps == null) 
+						String timestampString = LogTimestamp.getTimestampString();
+						if (timestampString != null) 
 						{
-							String timestampString = LogTimestamp.getTimestampString();
-							if (timestampString != null) 
-							{
-								String filename = timestampString + "_" + fileBase + ".csv";
-								File logFile = new File(parentDirectory, filename);
-								ps = new PrintStream(new FileOutputStream(logFile));
-								ps.print("time,timeSinceStart");
-								writeList(ps, dataNames);
-								startTime = System.currentTimeMillis();
-							}
+							String filename = timestampString + "_" + fileBase + ".csv";
+							File logFile = new File(parentDirectory, filename);
+							ps = new PrintStream(new FileOutputStream(logFile));
+							ps.print("time,timeSinceStart");
+							writeNames();
+							startTime = System.currentTimeMillis();
 						}
 					}
 				}
-				if (ps != null)
+				else
 				{
-					if ((mOutputMode==OutputMode.FILE_ONLY) || (mOutputMode==OutputMode.SMARTDASHBOARD_AND_FILE))
+					if (fileOutput)
 					{
-ps.print("time,timeSinceStart");
-writeList(ps, dataNames);
 						timeUpdated = (System.currentTimeMillis()-startTime);
 						ps.print(getDate());
 						ps.print(',');
 						ps.print(timeUpdated);
-						writeList(ps, dataValues);
+						writeValues();
 						ps.flush();
 						timeSinceLog = System.currentTimeMillis();
 					}
-					if ((mOutputMode==OutputMode.SMARTDASHBOARD_ONLY) || (mOutputMode==OutputMode.SMARTDASHBOARD_AND_FILE))
+					if (sdOutput)
 					{
-						SmartDashboard.putBoolean(name, value);		
+						putValues();
 					}
 				}
 			}
@@ -179,22 +173,64 @@ writeList(ps, dataNames);
 			}
 		}
 		
-		dataValues.clear();
-		dataNames.clear();
+		clearLogs();
 		
 	}
-	
-	private void writeList(PrintStream stream, List<String> list)
+
+	private void writeNames() 
 	{
-		for(int i = 0;i < list.size(); i++)
-		{
-			stream.print(',');
-			stream.print(list.get(i));
-		}
-		stream.println();
+        for (DataLogger logger : loggers) 
+        {
+    		for (String name : logger.logMap.keySet())
+    		{
+    			ps.print(',');
+    			ps.print(name);
+    		}
+        }
+		ps.println();
 	}
 	
-	public String getDate()
+	private void writeValues() 
+	{
+        for (DataLogger logger : loggers) 
+        {
+        	for (Object value : logger.logMap.values())
+        	{
+    			ps.print(',');
+    			ps.print(value.toString());
+        	}
+        }
+		ps.println();
+	}
+	
+	private void putValues() 
+	{
+        for (DataLogger logger : loggers) 
+        {
+        	for (Map.Entry<String, Object> entry : logger.logMap.entrySet())
+        	{
+        		String key = entry.getKey();
+        		Object value = entry.getValue();
+        		
+        		if (value.getClass() == java.lang.Boolean)
+        			SmartDashboard.putBoolean(key, value.getBoolean());
+        		
+        	}
+        }
+	}
+	
+	private void clearLogs() 
+	{
+        for (DataLogger logger : loggers) 
+        {
+    		logger.dataNames.clear();
+    		logger.dataValues.clear();
+        }
+	}
+	
+
+        
+	private String getDate()
 	{
 		Date curDate = new Date();
 		String DateToStr = format.format(curDate);
