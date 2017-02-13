@@ -54,21 +54,28 @@ public class DriveStatus
     public synchronized double getHeadingDeg() { return headingRad*180.0/Math.PI; }
 	
     
-	public synchronized void log() 
-	{
-		DataLogger dataLogger = DataLogger.getInstance();
 
-		dataLogger.putNumber("lMotorCurrent", lMotorCurrent );
-		dataLogger.putNumber("rMotorCurrent", rMotorCurrent );
-		dataLogger.putNumber("lMotorStatus", lMotorStatus );
-		dataLogger.putNumber("rMotorStatus", rMotorStatus );
-		dataLogger.putNumber("lVelocity", lSpeedInchesPerSec );
-		dataLogger.putNumber("rVelocity", rSpeedInchesPerSec );
-		dataLogger.putNumber("lDistance", lDistanceInches );
-		dataLogger.putNumber("rDistance", rDistanceInches );
-		dataLogger.putNumber("Left PID Error",  lMotorPIDError );
-		dataLogger.putNumber("Right PID Error", rMotorPIDError );
-		dataLogger.putNumber("Heading", getHeadingDeg() );
-	}
     
+	private final DataLogger logger = new DataLogger()
+    {
+        @Override
+        public void log()
+        {
+    		putNumber("lMotorCurrent", lMotorCurrent );
+    		putNumber("rMotorCurrent", rMotorCurrent );
+    		putNumber("lMotorStatus", lMotorStatus );
+    		putNumber("rMotorStatus", rMotorStatus );
+    		putNumber("lVelocity", lSpeedInchesPerSec );
+    		putNumber("rVelocity", rSpeedInchesPerSec );
+    		putNumber("lDistance", lDistanceInches );
+    		putNumber("rDistance", rDistanceInches );
+    		putNumber("Left PID Error",  lMotorPIDError );
+    		putNumber("Right PID Error", rMotorPIDError );
+    		putNumber("Heading", getHeadingDeg() );
+        }
+    };
+    
+    public DataLogger getLogger() { return logger; }
+    
+	
 }

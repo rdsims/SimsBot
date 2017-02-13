@@ -174,7 +174,7 @@ imageTimestamp = currentTime;
 		prevTime = currentTime;
 		prevSpeed = speed;			// TODO: use measured speed instead of computed speed?
 		
-		log();	// TODO: move to AutoModeBase
+//		log();	// TODO: move to AutoModeBase
 	}
 
 	public double getSpeed() { return speed; }
@@ -199,36 +199,40 @@ imageTimestamp = currentTime;
 		drive.stop();
 	}
 	
-	public void log() 
-	{
-		DataLogger dataLogger = DataLogger.getVisionInstance();
 
-		synchronized (dataLogger)
-		{
-			dataLogger.putNumber("VisionDrive/currentTime", currentTime);
-			dataLogger.putNumber("VisionDrive/imageTime", imageTimestamp);
-			dataLogger.putNumber("VisionDrive/normalizedTargetX", normalizedTargetX);
-			dataLogger.putNumber("VisionDrive/normalizedTargetWidth", normalizedTargetWidth);
-			dataLogger.putNumber("VisionDrive/previousPoseX", previousPose.getX());
-			dataLogger.putNumber("VisionDrive/previousPoseY", previousPose.getY());
-			dataLogger.putNumber("VisionDrive/previousPoseHeadingRad", previousPose.getHeadingRad());
-			dataLogger.putNumber("VisionDrive/prevDistanceToTargetInches", prevDistanceToTargetInches);
-			dataLogger.putNumber("VisionDrive/prevHeadingToTargetRadians", prevHeadingToTargetRadians);
-			dataLogger.putNumber("VisionDrive/targetLocationX", targetLocation.x);
-			dataLogger.putNumber("VisionDrive/targetLocationY", targetLocation.y);
-			dataLogger.putNumber("VisionDrive/avgTargetLocationX", avgTargetLocation.x);
-			dataLogger.putNumber("VisionDrive/avgTargetLocationY", avgTargetLocation.y);
-			dataLogger.putNumber("VisionDrive/avgCnt", avgCnt);
-			dataLogger.putNumber("VisionDrive/currentPoseX", currentPose.getX());
-			dataLogger.putNumber("VisionDrive/currentPoseY", currentPose.getY());
-			dataLogger.putNumber("VisionDrive/currentPoseHeadingRad", currentPose.getHeadingRad());
-			dataLogger.putNumber("VisionDrive/distanceToTargetInches", distanceToTargetInches);
-			dataLogger.putNumber("VisionDrive/headingToTargetRadians", headingToTargetRadians);
-			dataLogger.putNumber("VisionDrive/lookaheadDist", lookaheadDist);
-			dataLogger.putNumber("VisionDrive/curvature", curvature);
-			dataLogger.putNumber("VisionDrive/speed", speed);
-		}
-	}
 
+	
+	private final DataLogger logger = new DataLogger()
+    {
+        @Override
+        public void log()
+        {
+			putNumber("VisionDrive/currentTime", currentTime);
+			putNumber("VisionDrive/imageTime", imageTimestamp);
+			putNumber("VisionDrive/normalizedTargetX", normalizedTargetX);
+			putNumber("VisionDrive/normalizedTargetWidth", normalizedTargetWidth);
+			putNumber("VisionDrive/previousPoseX", previousPose.getX());
+			putNumber("VisionDrive/previousPoseY", previousPose.getY());
+			putNumber("VisionDrive/previousPoseHeadingRad", previousPose.getHeadingRad());
+			putNumber("VisionDrive/prevDistanceToTargetInches", prevDistanceToTargetInches);
+			putNumber("VisionDrive/prevHeadingToTargetRadians", prevHeadingToTargetRadians);
+			putNumber("VisionDrive/targetLocationX", targetLocation.x);
+			putNumber("VisionDrive/targetLocationY", targetLocation.y);
+			putNumber("VisionDrive/avgTargetLocationX", avgTargetLocation.x);
+			putNumber("VisionDrive/avgTargetLocationY", avgTargetLocation.y);
+			putNumber("VisionDrive/avgCnt", avgCnt);
+			putNumber("VisionDrive/currentPoseX", currentPose.getX());
+			putNumber("VisionDrive/currentPoseY", currentPose.getY());
+			putNumber("VisionDrive/currentPoseHeadingRad", currentPose.getHeadingRad());
+			putNumber("VisionDrive/distanceToTargetInches", distanceToTargetInches);
+			putNumber("VisionDrive/headingToTargetRadians", headingToTargetRadians);
+			putNumber("VisionDrive/lookaheadDist", lookaheadDist);
+			putNumber("VisionDrive/curvature", curvature);
+			putNumber("VisionDrive/speed", speed);
+        }
+    };
+    
+    public DataLogger getLogger() { return logger; }
+	
 
 }

@@ -21,7 +21,8 @@ import org.team686.simsbot.DataLogger;
  * object. They are started when the robot powers up and stopped after the
  * match.
  */
-public class LoopController {
+public class LoopController 
+{
     public final double kPeriod = Constants.kLoopDt;
 
     private boolean running_;
@@ -111,12 +112,4 @@ public class LoopController {
         }
     }
 
-    public void log() 
-    {
-    	DataLogger dataLogger = DataLogger.getInstance();
-    	    	
-    	dataLogger.putNumber("LoopList_dt", dt_);
-    }
-   
-    
 }

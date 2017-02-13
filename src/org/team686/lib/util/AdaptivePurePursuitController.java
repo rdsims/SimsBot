@@ -163,20 +163,29 @@ public class AdaptivePurePursuitController {
 				(0.5 * Math.abs((dx * dx + dy * dy) / cross_term)), (cross_product > 0)));
 	}
 
-	static public void log() {
-		DataLogger dataLogger = DataLogger.getInstance();
 
-		dataLogger.putNumber("DistFromPath", distanceFromPath);
-		dataLogger.putNumber("xLookahead", lookaheadPoint.translation.getX());
-		dataLogger.putNumber("yLookahead", lookaheadPoint.translation.getY());
-		dataLogger.putNumber("RemainingLength", remainingLength);
-		dataLogger.putNumber("Speed", speed);
-		// if (circle.isPresent())
-		// dataLogger.putNumber("PathRadius", circle.get().radius);
-		// else
-		// dataLogger.putNumber("PathRadius", 999);
-		dataLogger.putNumber("Cmd.X", cmd.dx);
-		dataLogger.putNumber("Cmd.Theta", cmd.dtheta);
-	}
-
+	
+	
+	
+	private final DataLogger logger = new DataLogger()
+    {
+        @Override
+        public void log()
+        {
+    		putNumber("DistFromPath", distanceFromPath);
+    		putNumber("xLookahead", lookaheadPoint.translation.getX());
+    		putNumber("yLookahead", lookaheadPoint.translation.getY());
+    		putNumber("RemainingLength", remainingLength);
+    		putNumber("Speed", speed);
+    		// if (circle.isPresent())
+    		// putNumber("PathRadius", circle.get().radius);
+    		// else
+    		// putNumber("PathRadius", 999);
+    		putNumber("Cmd.X", cmd.dx);
+    		putNumber("Cmd.Theta", cmd.dtheta);
+        }
+    };
+    
+    public DataLogger getLogger() { return logger; }
+	
 }

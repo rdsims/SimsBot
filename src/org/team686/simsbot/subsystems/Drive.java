@@ -323,24 +323,31 @@ public class Drive extends Subsystem
 	@Override
 	public void zeroSensors() { setResetEncoderCmd(true); }
 
-	@Override
-	public void log() {
-		DataLogger dataLogger = DataLogger.getInstance();
 
-		dataLogger.putString("driveMode", driveCmd.getMode().toString() );
-		dataLogger.putNumber("lMotorCmd", driveCmd.getLeftMotor() );
-		dataLogger.putNumber("rMotorCmd", driveCmd.getRightMotor() );
-		dataLogger.putBoolean("brakeMode", driveCmd.getBrake() );
-		dataLogger.putNumber("Heading Error", mLastHeadingErrorDegrees );
-		dataLogger.putNumber("Heading PID Error", velocityHeadingPID.getError() );
-		dataLogger.putNumber("Heading PID Output", velocityHeadingPID.get() );
-
-		try // pathFollowingController doesn't exist until started
-		{
-			AdaptivePurePursuitController.log();
-		} catch (NullPointerException e) {
-			// skip logging pathFollowingController when it doesn't exist
-		}
-	}
 	
+	
+	private final DataLogger logger = new DataLogger()
+    {
+        @Override
+        public void log()
+        {
+			putString("driveMode", driveCmd.getMode().toString() );
+			putNumber("lMotorCmd", driveCmd.getLeftMotor() );
+			putNumber("rMotorCmd", driveCmd.getRightMotor() );
+			putBoolean("brakeMode", driveCmd.getBrake() );
+			putNumber("Heading Error", mLastHeadingErrorDegrees );
+			putNumber("Heading PID Error", velocityHeadingPID.getError() );
+			putNumber("Heading PID Output", velocityHeadingPID.get() );
+
+			try // pathFollowingController doesn't exist until started
+			{
+//				AdaptivePurePursuitController.getLogger().log();
+			} catch (NullPointerException e) {
+				// skip logging pathFollowingController when it doesn't exist
+			}
+        }
+    };
+    
+    public DataLogger getLogger() { return logger; }
+    
 }

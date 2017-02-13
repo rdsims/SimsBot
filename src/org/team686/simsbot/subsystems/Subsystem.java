@@ -15,8 +15,6 @@ package org.team686.simsbot.subsystems;
  */
 public abstract class Subsystem 
 {
-    public abstract void log();
-
     public abstract void stop();
 
     public abstract void zeroSensors();

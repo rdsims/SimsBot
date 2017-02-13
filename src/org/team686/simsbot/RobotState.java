@@ -6,6 +6,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 
+import org.team686.lib.util.AdaptivePurePursuitController;
 import org.team686.lib.util.InterpolatingDouble;
 import org.team686.lib.util.InterpolatingTreeMap;
 import org.team686.lib.util.RigidTransform2d;
@@ -111,12 +112,21 @@ public class RobotState {
                 right_encoder_delta_distance, current_gyro_angle);
     }
 
-    public void log() {
-    	DataLogger dataLogger = DataLogger.getInstance();
-    	
-        RigidTransform2d odometry = getLatestFieldToVehicle();
-        dataLogger.putNumber("robot_pose_x", odometry.getTranslation().getX());
-        dataLogger.putNumber("robot_pose_y", odometry.getTranslation().getY());
-        dataLogger.putNumber("robot_pose_theta", odometry.getRotation().getDegrees());
-    }
+    
+    
+    
+	private final DataLogger logger = new DataLogger()
+    {
+        @Override
+        public void log()
+        {
+            RigidTransform2d odometry = getLatestFieldToVehicle();
+            putNumber("robot_pose_x", odometry.getTranslation().getX());
+            putNumber("robot_pose_y", odometry.getTranslation().getY());
+            putNumber("robot_pose_theta", odometry.getRotation().getDegrees());
+        }
+    };
+    
+    public DataLogger getLogger() { return logger; }
+    
 }

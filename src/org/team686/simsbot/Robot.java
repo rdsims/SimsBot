@@ -29,33 +29,29 @@ import org.team686.simsbot.subsystems.Drive;
 public class Robot extends IterativeRobot {
 	PowerDistributionPanel pdp = new PowerDistributionPanel();
 
+	LoopController loopController = new LoopController();
+
 	Drive drive = Drive.getInstance();
 	AutoModeExecuter mAutoModeExecuter = null;
 
 	JoystickControlsBase controls = ArcadeDriveJoystick.getInstance();
-	DataLogger dataLogger = DataLogger.getInstance();
-	//DataLogger autonomousLogger = DataLogger.getAutonomousInstance();
-	DataLogger visionLogger = DataLogger.getVisionInstance();
 	RobotState mRobotState = RobotState.getInstance();
 
-	LoopController loopController = new LoopController();
-
 	SmartDashboardInteractions mSmartDashboardInteractions = new SmartDashboardInteractions();
+	DataLogController robotLogger = DataLogController.getInstance();	// logger for Robot thread (autonomous thread has it's own logger)
 
-	enum OperationalMode {
+	enum OperationalMode 
+	{
 		DISABLED(0), AUTONOMOUS(1), TELEOP(2), TEST(3);
 
 		private int val;
 
-		private OperationalMode(int val) {
-			this.val = val;
-		}
-
-		public int getVal() {
-			return val;
-		}
+		private OperationalMode(int val) { this.val = val; }
+		public int getVal() { return val; }
 	}
 
+	OperationalMode operationalMode = OperationalMode.DISABLED;
+	
 	public Robot() {
 		CrashTracker.logRobotConstruction();
 	}
@@ -70,8 +66,10 @@ public class Robot extends IterativeRobot {
 	 * used for any initialization code.
 	 */
 	@Override
-	public void robotInit() {
-		try {
+	public void robotInit() 
+	{
+		try 
+		{
 			CrashTracker.logRobotInit();
 
 			// Reset all state
@@ -79,8 +77,8 @@ public class Robot extends IterativeRobot {
 
 			// Configure LoopController
 			loopController.register(drive.getVelocityPIDLoop());
-			loopController.register(VisionLoop.getInstance());
 			loopController.register(RobotStateLoop.getInstance());
+			loopController.register(VisionLoop.getInstance());
 
 			// Set dataLogger and Time information
 			TimeZone.setDefault(TimeZone.getTimeZone("America/New_York"));
@@ -88,30 +86,27 @@ public class Robot extends IterativeRobot {
 			mSmartDashboardInteractions.initWithDefaults();
 
 			// Determine folder for log files
-			DataLogger.findLogDirectory();
-			// set data logger file bases
-			dataLogger.setFileBase("main");
-			//autonomousLogger.setFileBase("auto");
-			visionLogger.setFileBase("vision");
+			DataLogController.findLogDirectory();
 			
-		} catch (Throwable t) {
+			// set data logger file base
+			robotLogger.setFileBase("robot");
+			
+			robotLogger.register(this.getLogger());
+			robotLogger.register(drive.getLogger());
+			robotLogger.register(mRobotState.getLogger());
+			
+		} 
+		catch (Throwable t) 
+		{
 			CrashTracker.logThrowableCrash(t);
 			throw t;
 		}
 	}
 
-	public void stopAll() {
+	public void stopAll() 
+	{
 		drive.stop();
 		// mSuperstructure.stop();
-	}
-
-	public void log() {
-		drive.log();
-		mRobotState.log();
-		loopController.log();
-		dataLogger.saveDataItems();
-		//autonomousLogger.saveDataItems();
-		visionLogger.saveDataItems();
 	}
 
 	/****************************************************************
@@ -119,10 +114,16 @@ public class Robot extends IterativeRobot {
 	 ****************************************************************/
 
 	@Override
-	public void disabledInit() {
-		try {
+	public void disabledInit() 
+	{
+		operationalMode = OperationalMode.DISABLED;
+		robotLogger.setOutputMode(DataLogController.OutputMode.SMARTDASHBOARD_ONLY);
+		
+		try 
+		{
 			CrashTracker.logDisabledInit();
-			if (mAutoModeExecuter != null) {
+			if (mAutoModeExecuter != null) 
+			{
 				mAutoModeExecuter.stop();
 			}
 			mAutoModeExecuter = null;
@@ -133,23 +134,26 @@ public class Robot extends IterativeRobot {
 
 			stopAll(); // Stop all actuators
 
-			dataLogger.putNumber("OperationalMode", OperationalMode.DISABLED.getVal());
-			DataLogger.setOutputMode(DataLogger.OutputMode.SMARTDASHBOARD_ONLY);
-		} catch (Throwable t) {
+		} 
+		catch (Throwable t) 
+		{
 			CrashTracker.logThrowableCrash(t);
 			throw t;
 		}
 	}
 
 	@Override
-	public void disabledPeriodic() {
-		try {
+	public void disabledPeriodic() 
+	{
+		try 
+		{
 			stopAll();
 			drive.resetEncoders();
-			log();
 
 			System.gc(); // runs garbage collector
-		} catch (Throwable t) {
+		} 
+		catch (Throwable t) 
+		{
 			CrashTracker.logThrowableCrash(t);
 			throw t;
 		}
@@ -160,10 +164,16 @@ public class Robot extends IterativeRobot {
 	 ****************************************************************/
 
 	@Override
-	public void autonomousInit() {
-		try {
+	public void autonomousInit() 
+	{
+		operationalMode = OperationalMode.AUTONOMOUS;
+		robotLogger.setOutputMode(DataLogController.OutputMode.SMARTDASHBOARD_AND_FILE);
+
+		try 
+		{
 			CrashTracker.logAutoInit();
-			if (mAutoModeExecuter != null) {
+			if (mAutoModeExecuter != null) 
+			{
 				mAutoModeExecuter.stop();
 			}
 			mAutoModeExecuter = null;
@@ -171,9 +181,6 @@ public class Robot extends IterativeRobot {
 			// Reset all sensors
 			drive.resetEncoders();
 			zeroAllSensors();
-
-			dataLogger.putNumber("OperationalMode", OperationalMode.AUTONOMOUS.getVal());
-			DataLogger.setOutputMode(DataLogger.OutputMode.SMARTDASHBOARD_AND_FILE);
 
 			loopController.start();
 
@@ -192,19 +199,24 @@ public class Robot extends IterativeRobot {
 			
 			mAutoModeExecuter.start();
 
-		} catch (Throwable t) {
+		} 
+		catch (Throwable t) 
+		{
 			CrashTracker.logThrowableCrash(t);
 			throw t;
 		}
 	}
 
 	@Override
-	public void autonomousPeriodic() {
-		try {
-			log();
+	public void autonomousPeriodic() 
+	{
+		try 
+		{
 			// outputAllToSmartDashboard();
 			// updateDriverFeedback();
-		} catch (Throwable t) {
+		} 
+		catch (Throwable t) 
+		{
 			CrashTracker.logThrowableCrash(t);
 			throw t;
 		}
@@ -215,8 +227,13 @@ public class Robot extends IterativeRobot {
 	 ****************************************************************/
 
 	@Override
-	public void teleopInit() {
-		try {
+	public void teleopInit() 
+	{
+		operationalMode = OperationalMode.TELEOP;
+		robotLogger.setOutputMode(DataLogController.OutputMode.SMARTDASHBOARD_AND_FILE);
+
+		try 
+		{
 			CrashTracker.logTeleopInit();
 
 			// Select joystick control method
@@ -230,9 +247,9 @@ public class Robot extends IterativeRobot {
 
 			drive.setOpenLoop(DriveCommand.NEUTRAL);
 
-			dataLogger.putNumber("OperationalMode", OperationalMode.TELEOP.getVal());
-			DataLogger.setOutputMode(DataLogger.OutputMode.SMARTDASHBOARD_AND_FILE);
-		} catch (Throwable t) {
+		} 
+		catch (Throwable t) 
+		{
 			CrashTracker.logThrowableCrash(t);
 			throw t;
 		}
@@ -240,12 +257,14 @@ public class Robot extends IterativeRobot {
 	}
 
 	@Override
-	public void teleopPeriodic() {
-		try {
+	public void teleopPeriodic() 
+	{
+		try 
+		{
 			drive.setOpenLoop(controls.getDriveCommand());
-
-			log();
-		} catch (Throwable t) {
+		} 
+		catch (Throwable t) 
+		{
 			CrashTracker.logThrowableCrash(t);
 			throw t;
 		}
@@ -254,6 +273,24 @@ public class Robot extends IterativeRobot {
 	
 	// called after disabledPeriodic, autoPeriodic, and teleopPeriodic 
 	@Override
-	public void robotPeriodic() {}
+	public void robotPeriodic()
+	{
+		robotLogger.log();
+	}
 
+
+	
+	
+	private final DataLogger logger = new DataLogger()
+    {
+        @Override
+        public void log()
+        {
+			putNumber("OperationalMode", operationalMode.getVal());
+        }
+    };
+    
+    public DataLogger getLogger() { return logger; }
+	
+	
 }
