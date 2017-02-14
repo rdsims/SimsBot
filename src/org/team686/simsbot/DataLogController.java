@@ -212,19 +212,32 @@ public class DataLogController
         		String key = entry.getKey();
         		Object value = entry.getValue();
         		
-        		if (value.getClass() == java.lang.Boolean)
-        			SmartDashboard.putBoolean(key, value.getBoolean());
-        		
+        		if (value.getClass().equals(Boolean.class))
+        			putValue(key, (Boolean)value);
+        		else if (value.getClass().equals(Integer.class))
+        			putValue(key, (Integer)value);
+        		else if (value.getClass().equals(Double.class))
+        			putValue(key, (Double)value);        		
+        		else if (value.getClass().equals(Float.class))
+        			putValue(key, (Double)value);        		
+        		else if (value.getClass().equals(String.class))
+        			putValue(key, (String)value);
+        		else
+        			putValue(key, "ERROR");
         	}
         }
 	}
+	
+	private void putValue(String key, boolean val) { SmartDashboard.putBoolean(key, val); }
+	private void putValue(String key, int val)     { SmartDashboard.putNumber(key, val); }
+	private void putValue(String key, double val)  { SmartDashboard.putNumber(key, val); }
+	private void putValue(String key, String val)  { SmartDashboard.putString(key, val); }
 	
 	private void clearLogs() 
 	{
         for (DataLogger logger : loggers) 
         {
-    		logger.dataNames.clear();
-    		logger.dataValues.clear();
+    		logger.logMap.clear();
         }
 	}
 	

@@ -14,6 +14,7 @@ import org.team686.lib.joystick.*;
 import org.team686.lib.util.*;
 
 import org.team686.simsbot.auto.AutoModeExecuter;
+import org.team686.simsbot.loops.DriveLoop;
 import org.team686.simsbot.loops.LoopController;
 import org.team686.simsbot.loops.RobotStateLoop;
 import org.team686.simsbot.loops.VisionLoop;
@@ -26,17 +27,20 @@ import org.team686.simsbot.subsystems.Drive;
  * creating this project, you must also update the manifest file in the resource
  * directory.
  */
-public class Robot extends IterativeRobot {
+public class Robot extends IterativeRobot 
+{
 	PowerDistributionPanel pdp = new PowerDistributionPanel();
 
-	LoopController loopController = new LoopController();
-
-	Drive drive = Drive.getInstance();
+	JoystickControlsBase controls = ArcadeDriveJoystick.getInstance();
+	RobotState mRobotState = RobotState.getInstance();	
+	Drive drive = Drive.getInstance();					
+	
 	AutoModeExecuter mAutoModeExecuter = null;
 
-	JoystickControlsBase controls = ArcadeDriveJoystick.getInstance();
-	RobotState mRobotState = RobotState.getInstance();
-
+	// instantiate loops after Drive, RobotState
+	LoopController loopController = new LoopController();
+	
+	
 	SmartDashboardInteractions mSmartDashboardInteractions = new SmartDashboardInteractions();
 	DataLogController robotLogger = new DataLogController();	// logger for Robot thread (autonomous thread has it's own logger)
 
@@ -77,6 +81,7 @@ public class Robot extends IterativeRobot {
 
 			// Configure LoopController
 			loopController.register(drive.getVelocityPIDLoop());
+			loopController.register(DriveLoop.getInstance());
 			loopController.register(RobotStateLoop.getInstance());
 			loopController.register(VisionLoop.getInstance());
 
@@ -92,8 +97,9 @@ public class Robot extends IterativeRobot {
 			robotLogger.setFileBase("robot");
 			
 			robotLogger.register(this.getLogger());
-			robotLogger.register(drive.getLogger());
-			robotLogger.register(mRobotState.getLogger());
+			robotLogger.register(Drive.getInstance().getLogger());
+			robotLogger.register(DriveStatus.getInstance().getLogger());
+			robotLogger.register(RobotState.getInstance().getLogger());
 			
 		} 
 		catch (Throwable t) 

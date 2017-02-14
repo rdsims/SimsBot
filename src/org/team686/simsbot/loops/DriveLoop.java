@@ -21,8 +21,9 @@ public class DriveLoop implements Loop
 	private static DriveLoop instance = new DriveLoop();
 	public static DriveLoop getInstance() { return instance; }
 	
-    private static Drive drive = Drive.getInstance();
-	private static BNO055 imu = BNO055.getInstance(Constants.BNO055_PORT);
+    private static Drive drive;
+	private static BNO055 imu;
+    private DriveStatus driveStatus;
     
 	DriveCommand currentState;
     
@@ -34,6 +35,10 @@ public class DriveLoop implements Loop
 	
 	private DriveLoop() 
 	{
+		drive = Drive.getInstance();
+		imu = BNO055.getInstance(Constants.BNO055_PORT);
+		driveStatus = DriveStatus.getInstance();
+		
 		lMotor = new CANTalon(Constants.kLeftMotorTalonId);
 		rMotor = new CANTalon(Constants.kRightMotorTalonId);
 
@@ -41,9 +46,14 @@ public class DriveLoop implements Loop
 		lMotor.setStatusFrameRateMs(CANTalon.StatusFrameRate.Feedback, 10);
 		rMotor.setStatusFrameRateMs(CANTalon.StatusFrameRate.Feedback, 10);
 
-		// Start in open loop mode
-		drive.setCommand(DriveCommand.NEUTRAL);
-		sendCommands();
+		// Set initial settings
+		currentState = DriveCommand.BRAKE;
+        lMotor.changeControlMode(CANTalon.TalonControlMode.PercentVbus);
+        rMotor.changeControlMode(CANTalon.TalonControlMode.PercentVbus);
+		lMotor.set(0);
+		rMotor.set(0);
+		lMotor.enableBrakeMode(true);
+		rMotor.enableBrakeMode(true);
 
 		// Set up the encoders
 		lMotor.setFeedbackDevice(CANTalon.FeedbackDevice.QuadEncoder);
@@ -72,8 +82,6 @@ public class DriveLoop implements Loop
 		rMotor.setPID(Constants.kDriveBaseLockKp, Constants.kDriveBaseLockKi, Constants.kDriveBaseLockKd,
 				Constants.kDriveBaseLockKf, Constants.kDriveBaseLockIZone, Constants.kDriveBaseLockRampRate,
 				kBaseLockControlSlot);
-
-		stopMotors();
 	}
 	
 	
@@ -104,14 +112,14 @@ public class DriveLoop implements Loop
 
 	private void getStatus()
 	{
-		synchronized(drive.driveStatus)	// lock DriveStatus until we update it, so that objects reading DriveStatus don't get partial updates	
+		synchronized(driveStatus)	// lock DriveStatus until we update it, so that objects reading DriveStatus don't get partial updates	
 		{
 			// get encoder values from hardware, set in Drive
-			drive.driveStatus.setLeftDistanceInches(  rotationsToInches( lMotor.getPosition() ));
-			drive.driveStatus.setRightDistanceInches( rotationsToInches( rMotor.getPosition() ));
+			driveStatus.setLeftDistanceInches(  rotationsToInches( lMotor.getPosition() ));
+			driveStatus.setRightDistanceInches( rotationsToInches( rMotor.getPosition() ));
 	
-			drive.driveStatus.setLeftSpeedInchesPerSec(  rpmToInchesPerSecond( lMotor.getSpeed() ));
-			drive.driveStatus.setRightSpeedInchesPerSec( rpmToInchesPerSecond( rMotor.getSpeed() ));
+			driveStatus.setLeftSpeedInchesPerSec(  rpmToInchesPerSecond( lMotor.getSpeed() ));
+			driveStatus.setRightSpeedInchesPerSec( rpmToInchesPerSecond( rMotor.getSpeed() ));
 	
 			/*
 			 * measured angle decreases with clockwise rotation
@@ -119,11 +127,11 @@ public class DriveLoop implements Loop
 			 * documentation, and standard right hand rule convention
 			 * negate it here to correct
 			 */
-			drive.driveStatus.setHeadingDeg( -imu.getHeading() );
+			driveStatus.setHeadingDeg( -imu.getHeading() );
 	
-			drive.driveStatus.setMotorCurrent(lMotor.getOutputCurrent(), rMotor.getOutputCurrent() );
-			drive.driveStatus.setMotorStatus(lMotor.get(), rMotor.get() );
-			drive.driveStatus.setMotorPIDError(lMotor.getClosedLoopError(), rMotor.getClosedLoopError() );
+			driveStatus.setMotorCurrent(lMotor.getOutputCurrent(), rMotor.getOutputCurrent() );
+			driveStatus.setMotorStatus(lMotor.get(), rMotor.get() );
+			driveStatus.setMotorPIDError(lMotor.getClosedLoopError(), rMotor.getClosedLoopError() );
 		}
 	}
 		

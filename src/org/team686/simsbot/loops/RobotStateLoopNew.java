@@ -16,7 +16,7 @@ import org.team686.simsbot.subsystems.Drive;
 public class RobotStateLoopNew implements Loop
 {
     RobotState robotState = RobotState.getInstance();
-    DriveStatus driveStatus = Drive.getInstance().driveStatus;
+    DriveStatus driveStatus = DriveStatus.getInstance();
 
     RobotPose pose;
     

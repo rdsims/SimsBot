@@ -1,12 +1,16 @@
 package org.team686.lib.util;
 
 import org.team686.simsbot.DataLogger;
+import org.team686.simsbot.loops.DriveLoop;
 
 /**
  * Drivetrain status structure, filled by DriveLoop.java
  */
 public class DriveStatus
 {
+	private static DriveStatus instance = new DriveStatus();
+	public static DriveStatus getInstance() { return instance; }	
+	
 	// all member variables should be private to force other object to use the set/get access methods
 	// which are synchronized to allow multi-thread synchronization
 
@@ -18,9 +22,7 @@ public class DriveStatus
 	private double lMotorStatus, rMotorStatus;
 	private double lMotorPIDError, rMotorPIDError;
 	
-	private DriveStatus() 
-	{
-	}
+	public DriveStatus() {}
 	
 	public synchronized void setLeftDistanceInches(double val)  { lDistanceInches = val; }
 	public synchronized void setRightDistanceInches(double val) { rDistanceInches = val; }
@@ -61,17 +63,17 @@ public class DriveStatus
         @Override
         public void log()
         {
-    		putNumber("lMotorCurrent", lMotorCurrent );
-    		putNumber("rMotorCurrent", rMotorCurrent );
-    		putNumber("lMotorStatus", lMotorStatus );
-    		putNumber("rMotorStatus", rMotorStatus );
-    		putNumber("lVelocity", lSpeedInchesPerSec );
-    		putNumber("rVelocity", rSpeedInchesPerSec );
-    		putNumber("lDistance", lDistanceInches );
-    		putNumber("rDistance", rDistanceInches );
-    		putNumber("Left PID Error",  lMotorPIDError );
-    		putNumber("Right PID Error", rMotorPIDError );
-    		putNumber("Heading", getHeadingDeg() );
+    		putNumber("DriveStatus/lMotorCurrent", lMotorCurrent );
+    		putNumber("DriveStatus/rMotorCurrent", rMotorCurrent );
+    		putNumber("DriveStatus/lMotorStatus", lMotorStatus );
+    		putNumber("DriveStatus/rMotorStatus", rMotorStatus );
+    		putNumber("DriveStatus/lVelocity", lSpeedInchesPerSec );	// used by RaspberryPi set LED velocity display
+    		putNumber("DriveStatus/rVelocity", rSpeedInchesPerSec );	// used by RaspberryPi set LED velocity display
+    		putNumber("DriveStatus/lDistance", lDistanceInches );
+    		putNumber("DriveStatus/rDistance", rDistanceInches );
+    		putNumber("DriveStatus/lPIDError",  lMotorPIDError );
+    		putNumber("DriveStatus/rPIDError", rMotorPIDError );
+    		putNumber("DriveStatus/Heading", getHeadingDeg() );
         }
     };
     

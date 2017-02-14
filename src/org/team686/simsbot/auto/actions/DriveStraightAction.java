@@ -1,6 +1,7 @@
 package org.team686.simsbot.auto.actions;
 
 import org.team686.simsbot.subsystems.Drive;
+import org.team686.lib.util.DriveStatus;
 import org.team686.lib.util.Rotation2d;
 
 /**
@@ -19,6 +20,7 @@ public class DriveStraightAction implements Action {
     private double mVelocity;
     private double mHeading;
     private Drive mDrive = Drive.getInstance();
+    private DriveStatus driveStatus = DriveStatus.getInstance();
 
     public DriveStraightAction(double distance, double velocity) {
         this(distance, velocity, 0);
@@ -60,6 +62,6 @@ public class DriveStraightAction implements Action {
     }
 
     private double getCurrentDistance() {
-        return (mDrive.driveStatus.getLeftDistanceInches() + mDrive.driveStatus.getRightDistanceInches()) / 2;
+        return (driveStatus.getLeftDistanceInches() + driveStatus.getRightDistanceInches()) / 2;
     }
 }

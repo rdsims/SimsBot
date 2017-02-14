@@ -56,12 +56,10 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
  * system.
  */
 
-public class RobotState {
+public class RobotState 
+{
     private static RobotState instance_ = new RobotState();
-
-    public static RobotState getInstance() {
-        return instance_;
-    }
+    public static RobotState getInstance() { return instance_; }
 
     public static final int kObservationBufferSize = 100;
     public static final double kMaxTargetAge = 0.4;
@@ -121,9 +119,9 @@ public class RobotState {
         public void log()
         {
             RigidTransform2d odometry = getLatestFieldToVehicle();
-            putNumber("robot_pose_x", odometry.getTranslation().getX());
-            putNumber("robot_pose_y", odometry.getTranslation().getY());
-            putNumber("robot_pose_theta", odometry.getRotation().getDegrees());
+            putNumber("RobotState/X", odometry.getTranslation().getX());
+            putNumber("RobotState/Y", odometry.getTranslation().getY());
+            putNumber("RobotState/Theta", odometry.getRotation().getDegrees());
         }
     };
     

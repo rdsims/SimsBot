@@ -17,18 +17,21 @@ import edu.wpi.first.wpilibj.Timer;
 public class RobotStateLoop implements Loop 
 {
     static RobotStateLoop instance = new RobotStateLoop();
+    public static RobotStateLoop getInstance() { return instance; }
 
-    public static RobotStateLoop getInstance() 
-    {
-        return instance;
-    }
-
-    RobotStateLoop() {}
-
-    RobotState robotState = RobotState.getInstance();
-    DriveStatus driveStatus = Drive.getInstance().driveStatus;
+    RobotState robotState;
+    DriveStatus driveStatus;
+    
     double prevLeftDistance = 0;
     double prevRightDistance = 0;
+    
+    RobotStateLoop() 
+    {
+        robotState = RobotState.getInstance();
+        driveStatus = DriveStatus.getInstance();
+    }
+    
+
 
     @Override
     public void onStart() 

@@ -31,8 +31,8 @@ public class Drive extends Subsystem
 	public static Drive getInstance() { return instance_; }
 
 	// drive commands
-	private DriveCommand driveCmd;
-	private boolean resetEncoderCmd;
+	private DriveCommand driveCmd = DriveCommand.NEUTRAL;
+	private boolean resetEncoderCmd = false;
 
 	// drive status
 	public DriveStatus driveStatus;
@@ -51,6 +51,9 @@ public class Drive extends Subsystem
 	// robot powers up
 	private Drive() 
 	{
+		driveCmd = DriveCommand.BRAKE;		
+		driveStatus = DriveStatus.getInstance();
+		
 		velocityHeadingPID = new SynchronousPID(Constants.kDriveHeadingVelocityKp, Constants.kDriveHeadingVelocityKi, Constants.kDriveHeadingVelocityKd);
 		velocityHeadingPID.setOutputRange(-30, 30);
 	}
@@ -331,13 +334,13 @@ public class Drive extends Subsystem
         @Override
         public void log()
         {
-			putString("driveMode", driveCmd.getMode().toString() );
-			putNumber("lMotorCmd", driveCmd.getLeftMotor() );
-			putNumber("rMotorCmd", driveCmd.getRightMotor() );
-			putBoolean("brakeMode", driveCmd.getBrake() );
-			putNumber("Heading Error", mLastHeadingErrorDegrees );
-			putNumber("Heading PID Error", velocityHeadingPID.getError() );
-			putNumber("Heading PID Output", velocityHeadingPID.get() );
+			putString("Drive/DriveControlMode", driveCmd.getMode().toString() );
+			putNumber("Drive/lMotorCmd", driveCmd.getLeftMotor() );
+			putNumber("Drive/rMotorCmd", driveCmd.getRightMotor() );
+			putBoolean("Drive/BrakeMode", driveCmd.getBrake() );
+			putNumber("VelocityHeading/HeadingError", mLastHeadingErrorDegrees );
+			putNumber("VelocityHeading/PIDError", velocityHeadingPID.getError() );
+			putNumber("VelocityHeading/PIDOutput", velocityHeadingPID.get() );
 
 			try // pathFollowingController doesn't exist until started
 			{
