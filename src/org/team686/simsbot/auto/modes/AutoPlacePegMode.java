@@ -7,6 +7,7 @@ import org.team686.lib.util.Path;
 import org.team686.lib.util.Translation2d;
 import org.team686.lib.util.Path.Waypoint;
 import org.team686.simsbot.Constants;
+import org.team686.simsbot.DataLogger;
 import org.team686.simsbot.auto.AutoModeBase;
 import org.team686.simsbot.auto.AutoModeEndedException;
 import org.team686.simsbot.auto.actions.*;
@@ -142,4 +143,5 @@ public class AutoPlacePegMode extends AutoModeBase
         // take path away from airship
 //        runAction(new FollowPathAction(new Path(autoPath3), false));   
     }
+    
 }

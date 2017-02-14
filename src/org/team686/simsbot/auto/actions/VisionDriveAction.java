@@ -172,9 +172,7 @@ imageTimestamp = currentTime;
 			
 		// store for next time through loop
 		prevTime = currentTime;
-		prevSpeed = speed;			// TODO: use measured speed instead of computed speed?
-		
-//		log();	// TODO: move to AutoModeBase
+		prevSpeed = speed;			// TODO: use measured speed instead of computed speed
 	}
 
 	public double getSpeed() { return speed; }

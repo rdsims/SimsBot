@@ -37,12 +37,10 @@ public class Robot extends IterativeRobot
 	
 	AutoModeExecuter mAutoModeExecuter = null;
 
-	// instantiate loops after Drive, RobotState
-	LoopController loopController = new LoopController();
+	LoopController loopController;
 	
-	
-	SmartDashboardInteractions mSmartDashboardInteractions = new SmartDashboardInteractions();
-	DataLogController robotLogger = new DataLogController();	// logger for Robot thread (autonomous thread has it's own logger)
+	SmartDashboardInteractions mSmartDashboardInteractions;
+	DataLogController robotLogger;	// logger for Robot thread (autonomous thread has it's own logger)
 
 	enum OperationalMode 
 	{
@@ -76,30 +74,30 @@ public class Robot extends IterativeRobot
 		{
 			CrashTracker.logRobotInit();
 
-			// Reset all state
-			zeroAllSensors();
-
 			// Configure LoopController
+			loopController = new LoopController();
 			loopController.register(drive.getVelocityPIDLoop());
 			loopController.register(DriveLoop.getInstance());
 			loopController.register(RobotStateLoop.getInstance());
 			loopController.register(VisionLoop.getInstance());
 
+			mSmartDashboardInteractions = new SmartDashboardInteractions();
+			mSmartDashboardInteractions.initWithDefaults();
+
 			// Set dataLogger and Time information
 			TimeZone.setDefault(TimeZone.getTimeZone("America/New_York"));
 
-			mSmartDashboardInteractions.initWithDefaults();
-
-			// Determine folder for log files
-			DataLogController.findLogDirectory();
-			
-			// set data logger file base
-			robotLogger.setFileBase("robot");
+			robotLogger = new DataLogController();
+			DataLogController.findLogDirectory();		// Determine folder for log files
+			robotLogger.setFileBase("robot");			// set data logger file base
 			
 			robotLogger.register(this.getLogger());
 			robotLogger.register(Drive.getInstance().getLogger());
 			robotLogger.register(DriveStatus.getInstance().getLogger());
 			robotLogger.register(RobotState.getInstance().getLogger());
+			
+			// Reset all state
+			zeroAllSensors();
 			
 		} 
 		catch (Throwable t) 
