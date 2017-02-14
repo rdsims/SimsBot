@@ -1,6 +1,7 @@
 package org.team686.simsbot.auto;
 
 import org.team686.lib.util.CrashTrackingRunnable;
+import org.team686.simsbot.DataLogController;
 
 /**
  * This class selects, runs, and stops (if necessary) a specified autonomous
@@ -10,7 +11,8 @@ public class AutoModeExecuter
 {
     private AutoModeBase m_auto_mode;
     private Thread m_thread = null;
-
+    DataLogController autoLogger;
+    
     public void setAutoMode(AutoModeBase new_auto_mode) 
     {
         m_auto_mode = new_auto_mode;
@@ -21,7 +23,10 @@ public class AutoModeExecuter
         return m_auto_mode;
     }
 
-    public void start() {
+    public void start() 
+    {
+		autoLogger = DataLogController.getAutoLogController();
+
         if (m_thread == null) 
         {
             m_thread = new Thread(new CrashTrackingRunnable() 
@@ -31,7 +36,7 @@ public class AutoModeExecuter
                 {
                     if (m_auto_mode != null) 
                     {
-                        m_auto_mode.run();
+                        m_auto_mode.run(autoLogger);
                     }
                 }
             });

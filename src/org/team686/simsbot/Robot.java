@@ -87,10 +87,7 @@ public class Robot extends IterativeRobot
 			// Set dataLogger and Time information
 			TimeZone.setDefault(TimeZone.getTimeZone("America/New_York"));
 
-			robotLogger = new DataLogController();
-			DataLogController.findLogDirectory();		// Determine folder for log files
-			robotLogger.setFileBase("robot");			// set data logger file base
-			
+			robotLogger = DataLogController.getRobotLogController();
 			robotLogger.register(this.getLogger());
 			robotLogger.register(Drive.getInstance().getLogger());
 			robotLogger.register(DriveStatus.getInstance().getLogger());

@@ -19,6 +19,19 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 public class DataLogController
 {
+	// define separate static instances for each thread
+	public static DataLogController robotInstance = new DataLogController("robot");			// log controller for the main robot thread 
+	public static DataLogController getRobotLogController() { return robotInstance; } 
+
+	public static DataLogController autoInstance = new DataLogController("auto");			// log controller for the autonomous thread
+	public static DataLogController getAutoLogController() { return autoInstance; } 
+	
+	public DataLogController(String _base)
+	{
+		findLogDirectory();
+		setFileBase(_base);
+	}
+	
 	static File parentDirectory;
 	String fileBase;
 	long minimumInterval = 0;	// 0: write as fast as possible

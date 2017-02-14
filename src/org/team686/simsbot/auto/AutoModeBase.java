@@ -22,7 +22,7 @@ public abstract class AutoModeBase extends DataLogger
     
     protected abstract void routine() throws AutoModeEndedException;
 
-    public void run() 
+    public void run(DataLogController autoLogger) 
     {
         m_active = true;
         try 
@@ -64,11 +64,13 @@ public abstract class AutoModeBase extends DataLogger
     public void runAction(Action action) throws AutoModeEndedException 
     {
         isActiveWithThrow();
+        autoLogger.reset();						// remove previous actions from registry
+        autoLogger.register(action.getLogger());
         action.start();
         while (isActiveWithThrow() && !action.isFinished()) 
         {
             action.update();
-            action.log();
+            autoLogger.log();
             long waitTime = (long) (m_update_rate * 1000.0);	// TODO: use timer to get more consistent update periods
             try
             {
@@ -82,11 +84,4 @@ public abstract class AutoModeBase extends DataLogger
         action.done();
     }
 
-    private void 
-	robotLogger = new DataLogController();
-	DataLogController.findLogDirectory();		// Determine folder for log files
-	robotLogger.setFileBase("robot");			// set data logger file base
-	
-	robotLogger.register(this.getLogger());
-    
 }
