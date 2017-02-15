@@ -293,7 +293,7 @@ public class Robot extends IterativeRobot
         @Override
         public void log()
         {
-			putNumber("OperationalMode", operationalMode.getVal());
+			put("OperationalMode", operationalMode.getVal());
         }
     };
     

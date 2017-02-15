@@ -1,5 +1,6 @@
 package org.team686.simsbot.auto.actions;
 
+import org.team686.simsbot.DataLogger;
 import org.team686.simsbot.subsystems.Drive;
 import org.team686.lib.util.Path;
 
@@ -54,4 +55,14 @@ public class FollowPathAction implements Action
         mDrive.followPath(mPath, mReversed);
     }
 
+
+	private final DataLogger logger = new DataLogger()
+    {
+        @Override
+        public void log()
+        {
+	    }
+    };
+	
+    public DataLogger getLogger() { return logger; }
 }

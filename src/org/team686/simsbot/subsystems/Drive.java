@@ -334,13 +334,13 @@ public class Drive extends Subsystem
         @Override
         public void log()
         {
-			putString("Drive/DriveControlMode", driveCmd.getMode().toString() );
-			putNumber("Drive/lMotorCmd", driveCmd.getLeftMotor() );
-			putNumber("Drive/rMotorCmd", driveCmd.getRightMotor() );
-			putBoolean("Drive/BrakeMode", driveCmd.getBrake() );
-			putNumber("VelocityHeading/HeadingError", mLastHeadingErrorDegrees );
-			putNumber("VelocityHeading/PIDError", velocityHeadingPID.getError() );
-			putNumber("VelocityHeading/PIDOutput", velocityHeadingPID.get() );
+			put("Drive/DriveControlMode", driveCmd.getMode().toString() );
+			put("Drive/lMotorCmd", driveCmd.getLeftMotor() );
+			put("Drive/rMotorCmd", driveCmd.getRightMotor() );
+			put("Drive/BrakeMode", driveCmd.getBrake() );
+			put("VelocityHeading/HeadingError", mLastHeadingErrorDegrees );
+			put("VelocityHeading/PIDError", velocityHeadingPID.getError() );
+			put("VelocityHeading/PIDOutput", velocityHeadingPID.get() );
 
 			try // pathFollowingController doesn't exist until started
 			{

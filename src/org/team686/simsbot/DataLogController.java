@@ -106,6 +106,12 @@ public class DataLogController
         loggers.add(logger);
     }
 	
+    public synchronized void deregister() 
+    {
+    	clearLogs();
+        loggers.clear();
+    }
+	
 	public void log() 
 	{
         for (DataLogger logger : loggers) 

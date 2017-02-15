@@ -4,6 +4,7 @@ import edu.wpi.first.wpilibj.networktables.NetworkTable;
 
 import org.team686.lib.util.DriveCommand;
 import org.team686.simsbot.Constants;
+import org.team686.simsbot.DataLogger;
 import org.team686.simsbot.subsystems.Drive;
 
 public class VisionTurnAction implements Action {
@@ -81,4 +82,14 @@ public class VisionTurnAction implements Action {
 		drive.stop();
 	}
 
+	private final DataLogger logger = new DataLogger()
+    {
+        @Override
+        public void log()
+        {
+	    }
+    };
+	
+    public DataLogger getLogger() { return logger; }
+	
 }

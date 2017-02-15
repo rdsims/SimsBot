@@ -199,31 +199,37 @@ imageTimestamp = currentTime;
 	}
 	
 
-	public void log()	
-	{
-		putNumber("VisionDrive/currentTime", currentTime);
-		putNumber("VisionDrive/imageTime", imageTimestamp);
-		putNumber("VisionDrive/normalizedTargetX", normalizedTargetX);
-		putNumber("VisionDrive/normalizedTargetWidth", normalizedTargetWidth);
-		putNumber("VisionDrive/previousPoseX", previousPose.getX());
-		putNumber("VisionDrive/previousPoseY", previousPose.getY());
-		putNumber("VisionDrive/previousPoseHeadingRad", previousPose.getHeadingRad());
-		putNumber("VisionDrive/prevDistanceToTargetInches", prevDistanceToTargetInches);
-		putNumber("VisionDrive/prevHeadingToTargetRadians", prevHeadingToTargetRadians);
-		putNumber("VisionDrive/targetLocationX", targetLocation.x);
-		putNumber("VisionDrive/targetLocationY", targetLocation.y);
-		putNumber("VisionDrive/avgTargetLocationX", avgTargetLocation.x);
-		putNumber("VisionDrive/avgTargetLocationY", avgTargetLocation.y);
-		putNumber("VisionDrive/avgCnt", avgCnt);
-		putNumber("VisionDrive/currentPoseX", currentPose.getX());
-		putNumber("VisionDrive/currentPoseY", currentPose.getY());
-		putNumber("VisionDrive/currentPoseHeadingRad", currentPose.getHeadingRad());
-		putNumber("VisionDrive/distanceToTargetInches", distanceToTargetInches);
-		putNumber("VisionDrive/headingToTargetRadians", headingToTargetRadians);
-		putNumber("VisionDrive/lookaheadDist", lookaheadDist);
-		putNumber("VisionDrive/curvature", curvature);
-		putNumber("VisionDrive/speed", speed);
-    }
-    	
+	private final DataLogger logger = new DataLogger()
+    {
+        @Override
+        public void log()
+        {
+			put("VisionDrive/currentTime", currentTime);
+			put("VisionDrive/imageTime", imageTimestamp);
+			put("VisionDrive/normalizedTargetX", normalizedTargetX);
+			put("VisionDrive/normalizedTargetWidth", normalizedTargetWidth);
+			put("VisionDrive/previousPoseX", previousPose.getX());
+			put("VisionDrive/previousPoseY", previousPose.getY());
+			put("VisionDrive/previousPoseHeadingRad", previousPose.getHeadingRad());
+			put("VisionDrive/prevDistanceToTargetInches", prevDistanceToTargetInches);
+			put("VisionDrive/prevHeadingToTargetRadians", prevHeadingToTargetRadians);
+			put("VisionDrive/targetLocationX", targetLocation.x);
+			put("VisionDrive/targetLocationY", targetLocation.y);
+			put("VisionDrive/avgTargetLocationX", avgTargetLocation.x);
+			put("VisionDrive/avgTargetLocationY", avgTargetLocation.y);
+			put("VisionDrive/avgCnt", avgCnt);
+			put("VisionDrive/currentPoseX", currentPose.getX());
+			put("VisionDrive/currentPoseY", currentPose.getY());
+			put("VisionDrive/currentPoseHeadingRad", currentPose.getHeadingRad());
+			put("VisionDrive/distanceToTargetInches", distanceToTargetInches);
+			put("VisionDrive/headingToTargetRadians", headingToTargetRadians);
+			put("VisionDrive/lookaheadDist", lookaheadDist);
+			put("VisionDrive/curvature", curvature);
+			put("VisionDrive/speed", speed);
+	    }
+    };
+	
+    public DataLogger getLogger() { return logger; }
+
 
 }

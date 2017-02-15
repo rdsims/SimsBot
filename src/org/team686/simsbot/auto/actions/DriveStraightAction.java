@@ -1,5 +1,6 @@
 package org.team686.simsbot.auto.actions;
 
+import org.team686.simsbot.DataLogger;
 import org.team686.simsbot.subsystems.Drive;
 import org.team686.lib.util.DriveStatus;
 import org.team686.lib.util.Rotation2d;
@@ -64,4 +65,15 @@ public class DriveStraightAction implements Action {
     private double getCurrentDistance() {
         return (driveStatus.getLeftDistanceInches() + driveStatus.getRightDistanceInches()) / 2;
     }
+    
+	private final DataLogger logger = new DataLogger()
+    {
+        @Override
+        public void log()
+        {
+	    }
+    };
+	
+    public DataLogger getLogger() { return logger; }
+    
 }

@@ -63,17 +63,17 @@ public class DriveStatus
         @Override
         public void log()
         {
-    		putNumber("DriveStatus/lMotorCurrent", lMotorCurrent );
-    		putNumber("DriveStatus/rMotorCurrent", rMotorCurrent );
-    		putNumber("DriveStatus/lMotorStatus", lMotorStatus );
-    		putNumber("DriveStatus/rMotorStatus", rMotorStatus );
-    		putNumber("DriveStatus/lVelocity", lSpeedInchesPerSec );	// used by RaspberryPi set LED velocity display
-    		putNumber("DriveStatus/rVelocity", rSpeedInchesPerSec );	// used by RaspberryPi set LED velocity display
-    		putNumber("DriveStatus/lDistance", lDistanceInches );
-    		putNumber("DriveStatus/rDistance", rDistanceInches );
-    		putNumber("DriveStatus/lPIDError",  lMotorPIDError );
-    		putNumber("DriveStatus/rPIDError", rMotorPIDError );
-    		putNumber("DriveStatus/Heading", getHeadingDeg() );
+    		put("DriveStatus/lMotorCurrent", lMotorCurrent );
+    		put("DriveStatus/rMotorCurrent", rMotorCurrent );
+    		put("DriveStatus/lMotorStatus", lMotorStatus );
+    		put("DriveStatus/rMotorStatus", rMotorStatus );
+    		put("DriveStatus/lVelocity", lSpeedInchesPerSec );	// used by RaspberryPi set LED velocity display
+    		put("DriveStatus/rVelocity", rSpeedInchesPerSec );	// used by RaspberryPi set LED velocity display
+    		put("DriveStatus/lDistance", lDistanceInches );
+    		put("DriveStatus/rDistance", rDistanceInches );
+    		put("DriveStatus/lPIDError",  lMotorPIDError );
+    		put("DriveStatus/rPIDError", rMotorPIDError );
+    		put("DriveStatus/Heading", getHeadingDeg() );
         }
     };
     

@@ -1,5 +1,7 @@
 package org.team686.simsbot.auto.actions;
 
+import org.team686.simsbot.DataLogger;
+
 import edu.wpi.first.wpilibj.Timer;
 
 /**
@@ -34,4 +36,16 @@ public class WaitAction implements Action {
     public void start() {
         mStartTime = Timer.getFPGATimestamp();
     }
+
+    
+	private final DataLogger logger = new DataLogger()
+    {
+        @Override
+        public void log()
+        {
+	    }
+    };
+	
+    public DataLogger getLogger() { return logger; }
+    
 }

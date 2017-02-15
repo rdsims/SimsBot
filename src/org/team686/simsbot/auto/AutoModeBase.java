@@ -10,11 +10,13 @@ import org.team686.simsbot.auto.actions.Action;
  * An abstract class that is the basis of the robot's autonomous routines. This
  * is implemented in auto.modes (which are routines that do actions).
  */
-public abstract class AutoModeBase extends DataLogger
+public abstract class AutoModeBase
 {
     protected double m_update_rate = 1.0 / 50.0;
     protected boolean m_active = false;
 
+    static DataLogController autoLogger = DataLogController.getAutoLogController();
+    
     public Translation2d getInitialPosition()
     {
     	return new Translation2d(0.0,0.0);
@@ -22,7 +24,7 @@ public abstract class AutoModeBase extends DataLogger
     
     protected abstract void routine() throws AutoModeEndedException;
 
-    public void run(DataLogController autoLogger) 
+    public void run() 
     {
         m_active = true;
         try 
@@ -64,7 +66,7 @@ public abstract class AutoModeBase extends DataLogger
     public void runAction(Action action) throws AutoModeEndedException 
     {
         isActiveWithThrow();
-        autoLogger.reset();						// remove previous actions from registry
+        autoLogger.deregister();						// remove previous action loggers from registry
         autoLogger.register(action.getLogger());
         action.start();
         while (isActiveWithThrow() && !action.isFinished()) 

@@ -1,5 +1,7 @@
 package org.team686.simsbot.auto.actions;
 
+import org.team686.simsbot.DataLogger;
+
 /**
  * Action Interface, an interface that describes an iterative action. It is run
  * by an autonomous action, called by the method runAction in AutoModeBase (or
@@ -33,4 +35,9 @@ public interface Action {
      * Run code once when the action is started, for set up
      */
     public abstract void start();
+
+    /**
+     * Returns reference to data logger for this action
+     */
+    public abstract DataLogger getLogger();
 }

@@ -172,17 +172,17 @@ public class AdaptivePurePursuitController {
         @Override
         public void log()
         {
-    		putNumber("DistFromPath", distanceFromPath);
-    		putNumber("xLookahead", lookaheadPoint.translation.getX());
-    		putNumber("yLookahead", lookaheadPoint.translation.getY());
-    		putNumber("RemainingLength", remainingLength);
-    		putNumber("Speed", speed);
+    		put("DistFromPath", distanceFromPath);
+    		put("xLookahead", lookaheadPoint.translation.getX());
+    		put("yLookahead", lookaheadPoint.translation.getY());
+    		put("RemainingLength", remainingLength);
+    		put("Speed", speed);
     		// if (circle.isPresent())
-    		// putNumber("PathRadius", circle.get().radius);
+    		// put("PathRadius", circle.get().radius);
     		// else
-    		// putNumber("PathRadius", 999);
-    		putNumber("Cmd.X", cmd.dx);
-    		putNumber("Cmd.Theta", cmd.dtheta);
+    		// put("PathRadius", 999);
+    		put("Cmd.X", cmd.dx);
+    		put("Cmd.Theta", cmd.dtheta);
         }
     };
     

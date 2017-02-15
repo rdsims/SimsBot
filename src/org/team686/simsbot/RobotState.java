@@ -119,9 +119,9 @@ public class RobotState
         public void log()
         {
             RigidTransform2d odometry = getLatestFieldToVehicle();
-            putNumber("RobotState/X", odometry.getTranslation().getX());
-            putNumber("RobotState/Y", odometry.getTranslation().getY());
-            putNumber("RobotState/Theta", odometry.getRotation().getDegrees());
+            put("RobotState/X", odometry.getTranslation().getX());
+            put("RobotState/Y", odometry.getTranslation().getY());
+            put("RobotState/Theta", odometry.getRotation().getDegrees());
         }
     };
     
