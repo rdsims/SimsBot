@@ -67,7 +67,7 @@ public abstract class AutoModeBase
     {
         isActiveWithThrow();
         autoLogger.deregister();						// remove previous action loggers from registry
-        autoLogger.register(action.getLogger());
+        autoLogger.register(action.getLogger());		// register logger for new action
         action.start();
         while (isActiveWithThrow() && !action.isFinished()) 
         {
