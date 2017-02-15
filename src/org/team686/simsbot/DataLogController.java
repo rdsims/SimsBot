@@ -110,6 +110,7 @@ public class DataLogController
     {
     	clearLogs();
         loggers.clear();
+        writeHeader = true;		// write a new header to indicate start of new action (autonomous mode only)
     }
 	
 	public void log() 
@@ -129,6 +130,7 @@ public class DataLogController
 	long startTime;
 	long timeUpdated;
 	long timeSinceLog;
+	boolean writeHeader = true;
 	
 	private boolean shouldLogData() 
 	{
@@ -145,7 +147,7 @@ public class DataLogController
 	}
 	
 	
-	private void saveDataItems()
+	synchronized private void saveDataItems()
 	{
 		if (shouldLogData())
 		{
@@ -154,24 +156,26 @@ public class DataLogController
 				if (fileOutput && (ps == null))
 				{
 					// file stream has not yet been initialized
-					synchronized (this)
+					String timestampString = LogTimestamp.getTimestampString();
+					if (timestampString != null) 
 					{
-						String timestampString = LogTimestamp.getTimestampString();
-						if (timestampString != null) 
-						{
-							String filename = timestampString + "_" + fileBase + ".csv";
-							File logFile = new File(parentDirectory, filename);
-							ps = new PrintStream(new FileOutputStream(logFile));
-							ps.print("time,timeSinceStart");
-							writeNames();
-							startTime = System.currentTimeMillis();
-						}
+						String filename = timestampString + "_" + fileBase + ".csv";
+						File logFile = new File(parentDirectory, filename);
+						ps = new PrintStream(new FileOutputStream(logFile));
+						startTime = System.currentTimeMillis();
 					}
 				}
 				else
 				{
 					if (fileOutput)
 					{
+						if (writeHeader)
+						{
+							ps.print("time,timeSinceStart");
+							writeNames();
+							writeHeader = false;
+						}
+						
 						timeUpdated = (System.currentTimeMillis()-startTime);
 						ps.print(getDate());
 						ps.print(',');
