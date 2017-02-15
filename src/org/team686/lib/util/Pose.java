@@ -3,7 +3,8 @@ package org.team686.lib.util;
 import java.text.DecimalFormat;
 
 import org.mini2Dx.gdx.math.*;
-import org.team686.lib.util.RigidTransform2d.Delta;
+
+
 
 /**
  * A class that stores the pose an object
@@ -11,7 +12,7 @@ import org.team686.lib.util.RigidTransform2d.Delta;
  * and it's orientation: the heading
  * The reference coordinate system for the pose is not defined in this class.  The caller must keep track of it.
  */
-public class Pose 
+public class Pose implements Interpolable<Pose>
 {
 	// using floats to take advantage of libgdx's speed optimizations
 	
@@ -19,6 +20,12 @@ public class Pose
     private float   heading;	// heading in radians
 
     static public Pose DEFAULT = new Pose(0f, 0f, 0f);
+
+    public Pose() 
+    {
+    	this(0f, 0f, 0f);
+    }
+
     
     public Pose(float _x, float _y) 
     {
@@ -39,6 +46,17 @@ public class Pose
     public Pose(double _x, double _y, double _thetaRad) 
     {
     	this((float)_x, (float)_y, (float)_thetaRad);
+    }
+
+    public Pose(Vector2 _position, float _heading) 
+    {
+    	this.position = _position.cpy();
+    	this.heading  = _heading;
+    }
+
+    public Pose(Vector2 _position, double _heading) 
+    {
+    	this(_position, (float)_heading);
     }
 
     public Pose(Pose that) 
@@ -77,10 +95,10 @@ public class Pose
     }
     
     // adjust Heading
-    public double addHeadingRad(double _thetaRad)
+    public Pose addHeadingRad(double _thetaRad)
     {
     	heading += _thetaRad;
-    	return heading;
+    	return this;
     }
     
     // sub performs vector translation.  The original heading is not changed
@@ -158,6 +176,41 @@ public class Pose
 		newPose.add(deltaPosition);											// update position							
 		newPose.addHeadingRad(dTheta);										// update heading
 		return newPose;														// return new pose
+    }
+
+    
+    
+    /*
+     * Apply rigid transform to Pose
+     */
+    public Pose transformBy(RigidTransform _T)
+    {
+    	// use identical function in RigidTransform
+    	RigidTransform pose = new RigidTransform(this.getPosition(), this.getHeadingRad());
+    	
+    	RigidTransform newPose = pose.transformBy(_T);
+    	
+    	return new Pose(newPose.getTranslation(), newPose.getRotationRad());
+    }
+    
+    
+     // Linear interpolation of poses
+    @Override
+    public Pose interpolate(Pose that, double u)
+    {
+    	Pose iPose;
+    	
+        if (u <= 0)
+            iPose = new Pose(this);	
+        else if (u >= 1) 
+            iPose = new Pose(that);
+        else
+        {
+        	Vector2 iPosition = position.lerp(that.position, (float)u);	// use Vector2's linear interpolation method
+        	double  iHeading  = (heading * (1-u)) + (that.heading * u);	// linear interpolation of heading
+        	iPose = new Pose(iPosition, iHeading); 
+        }        
+        return iPose;
     }
 
     

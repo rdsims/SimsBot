@@ -7,8 +7,7 @@ import org.team686.lib.util.DriveCommand;
 import org.team686.lib.util.DriveCommand.DriveControlMode;
 import org.team686.lib.util.DriveStatus;
 import org.team686.lib.util.Path;
-import org.team686.lib.util.RigidTransform2d;
-import org.team686.lib.util.Rotation2d;
+import org.team686.lib.util.Pose;
 import org.team686.lib.util.SynchronousPID;
 
 import org.team686.simsbot.Constants;
@@ -137,10 +136,10 @@ public class Drive extends Subsystem
 		driveCmd.setMotors(left_inches_per_sec, right_inches_per_sec);
 	}
 
-	public void setVelocityHeadingSetpoint(double forward_inches_per_sec, Rotation2d headingSetpoint) 
+	public void setVelocityHeadingSetpoint(double forward_inches_per_sec, double headingSetpointRad) 
 	{
 		driveCmd.setMode(DriveControlMode.VELOCITY_HEADING);
-		velocityHeadingSetpoint = new VelocityHeadingSetpoint(forward_inches_per_sec, forward_inches_per_sec, headingSetpoint);
+		velocityHeadingSetpoint = new VelocityHeadingSetpoint(forward_inches_per_sec, forward_inches_per_sec, headingSetpointRad);
 		updateVelocityHeadingSetpoint();
 	}
     
@@ -169,19 +168,19 @@ public class Drive extends Subsystem
 	{
 		private final double leftSpeed;
 		private final double rightSpeed;
-		private final Rotation2d headingSetpoint;
+		private final double headingSetpointDeg;
 
 		// Constructor for straight line motion
-		public VelocityHeadingSetpoint(double _leftSpeed, double _rightSpeed, Rotation2d _headingSetpoint) 
+		public VelocityHeadingSetpoint(double _leftSpeed, double _rightSpeed, double _headingSetpointDeg) 
 		{
 			leftSpeed = _leftSpeed;
 			rightSpeed = _rightSpeed;
-			headingSetpoint = _headingSetpoint;
+			headingSetpointDeg = _headingSetpointDeg;
 		}
 
 		public double getLeftSpeed() { return leftSpeed; }
 		public double getRightSpeed() {	return rightSpeed; }
-		public Rotation2d getHeading() { return headingSetpoint; }
+		public double getHeadingDeg() { return headingSetpointDeg; }
 	}
 	
 
@@ -223,8 +222,8 @@ public class Drive extends Subsystem
 	{
 // TODO: update AdaptivePurePursuitController to be like VisionDriveAction
 // have it call driveCurve()		
-		RigidTransform2d robot_pose = RobotState.getInstance().getLatestFieldToVehicle();
-		RigidTransform2d.Delta command = pathFollowingController.update(robot_pose, Timer.getFPGATimestamp());
+		Pose robot_pose = RobotState.getInstance().getLatestFieldToVehicle();
+		Pose.Delta command = pathFollowingController.update(robot_pose, Timer.getFPGATimestamp());
 		Kinematics.DriveVelocity setpoint = Kinematics.inverseKinematics(command);
 
 		// Scale the command to respect the max velocity limits
@@ -245,7 +244,7 @@ public class Drive extends Subsystem
         // curvature: curvature of circle to follow.  Curvature = 1/radius.  positive-->turn right, negative-->turn left
         // maxWheelSpeed: the desired velocity will be scaled so that neither wheel exceeds this speed
         
-        RigidTransform2d.Delta cmd = new RigidTransform2d.Delta(_robotSpeed, 0, _robotSpeed*_curvature); 
+    	Pose.Delta cmd = new Pose.Delta(_robotSpeed, _robotSpeed*_curvature); 
         Kinematics.DriveVelocity setpoint = Kinematics.inverseKinematics(cmd);
 
         // Scale the command to respect the max wheel velocity limits
@@ -263,9 +262,9 @@ public class Drive extends Subsystem
     
 	private void updateVelocityHeadingSetpoint() 
 	{
-		Rotation2d actualGyroAngle = Rotation2d.fromDegrees(driveStatus.getHeadingDeg());
+		double actualGyroAngleDeg = driveStatus.getHeadingDeg();
 
-		mLastHeadingErrorDegrees = velocityHeadingSetpoint.getHeading().rotateBy(actualGyroAngle.inverse()).getDegrees();
+		mLastHeadingErrorDegrees = velocityHeadingSetpoint.getHeadingDeg() - actualGyroAngleDeg;
 
 		double deltaSpeed = velocityHeadingPID.calculate(mLastHeadingErrorDegrees);
 		updateVelocitySetpoint(velocityHeadingSetpoint.getLeftSpeed()  + deltaSpeed / 2,

@@ -3,7 +3,6 @@ package org.team686.simsbot.auto.actions;
 import org.team686.simsbot.DataLogger;
 import org.team686.simsbot.subsystems.Drive;
 import org.team686.lib.util.DriveStatus;
-import org.team686.lib.util.Rotation2d;
 
 /**
  * DriveStraightAction drives the robot straight at a settable angle, distance,
@@ -19,7 +18,7 @@ public class DriveStraightAction implements Action {
     private double startingDistance;
     private double mWantedDistance;
     private double mVelocity;
-    private double mHeading;
+    private double mHeadingDeg;
     private Drive mDrive = Drive.getInstance();
     private DriveStatus driveStatus = DriveStatus.getInstance();
 
@@ -27,16 +26,16 @@ public class DriveStraightAction implements Action {
         this(distance, velocity, 0);
     }
 
-    public DriveStraightAction(double distance, double velocity, double heading) {
+    public DriveStraightAction(double distance, double velocity, double headingDeg) {
         mWantedDistance = distance;
         mVelocity = velocity;
-        mHeading = heading;
+        mHeadingDeg = headingDeg;
     }
 
     @Override
     public void start() {
         startingDistance = getCurrentDistance();
-        mDrive.setVelocityHeadingSetpoint(mVelocity, Rotation2d.fromDegrees(mHeading));
+        mDrive.setVelocityHeadingSetpoint(mVelocity, mHeadingDeg);
     }
 
     @Override

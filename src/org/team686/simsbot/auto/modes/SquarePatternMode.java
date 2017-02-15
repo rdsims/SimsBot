@@ -3,8 +3,9 @@ package org.team686.simsbot.auto.modes;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.mini2Dx.gdx.math.Vector2;
+
 import org.team686.lib.util.Path;
-import org.team686.lib.util.Translation2d;
 import org.team686.lib.util.Path.Waypoint;
 
 import org.team686.simsbot.auto.AutoModeBase;
@@ -29,21 +30,21 @@ public class SquarePatternMode extends AutoModeBase {
 
     	double vel = 36.0;
     	 
-    	double D = 72.0;
+    	float D = 72.0f;
     	
         List<Waypoint> first_path = new ArrayList<>();
-        first_path.add(new Waypoint(new Translation2d( 0, 0), vel));
-        first_path.add(new Waypoint(new Translation2d( D, 0), vel));
-        first_path.add(new Waypoint(new Translation2d( D, D), vel));
-        first_path.add(new Waypoint(new Translation2d( 0, D), vel));
-        first_path.add(new Waypoint(new Translation2d( 0, 0), vel));
+        first_path.add(new Waypoint(new Vector2( 0f, 0f), vel));
+        first_path.add(new Waypoint(new Vector2( D, 0f), vel));
+        first_path.add(new Waypoint(new Vector2( D, D), vel));
+        first_path.add(new Waypoint(new Vector2( 0f, D), vel));
+        first_path.add(new Waypoint(new Vector2( 0f, 0f), vel));
         
         List<Waypoint> return_path = new ArrayList<>();
-        return_path.add(new Waypoint(new Translation2d( 0, 0), vel));
-        return_path.add(new Waypoint(new Translation2d( 0, D), vel));
-        return_path.add(new Waypoint(new Translation2d( D, D), vel));
-        return_path.add(new Waypoint(new Translation2d( D, 0), vel));
-        return_path.add(new Waypoint(new Translation2d( 0, 0), vel));
+        return_path.add(new Waypoint(new Vector2( 0f, 0f), vel));
+        return_path.add(new Waypoint(new Vector2( 0f, D), vel));
+        return_path.add(new Waypoint(new Vector2( D, D), vel));
+        return_path.add(new Waypoint(new Vector2( D, 0f), vel));
+        return_path.add(new Waypoint(new Vector2( 0f, 0f), vel));
         
         runAction(new FollowPathAction(new Path(first_path), false));   
         

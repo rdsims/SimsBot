@@ -11,9 +11,6 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.mini2Dx.gdx.math.Vector2;
 import org.team686.lib.util.Pose;
-import org.team686.lib.util.RigidTransform2d;
-import org.team686.lib.util.Rotation2d;
-import org.team686.lib.util.Translation2d;
 import org.team686.lib.util.Util;
 import org.team686.simsbot.Constants;
 import org.team686.simsbot.RobotState;
@@ -105,7 +102,7 @@ public class TestVisionDrive
 			System.out.println(actualRobotLocation);
 			
 			// log RobotPose
-			RigidTransform2d observation = new RigidTransform2d(new Translation2d(actualRobotLocation.getX(), actualRobotLocation.getY()), Rotation2d.fromRadians(actualRobotLocation.getHeadingRad()));
+			Pose observation = new Pose(actualRobotLocation);
 			robotState.addFieldToVehicleObservation(currentTime, observation);
 
 			// calculate relative position of target
@@ -140,14 +137,12 @@ public class TestVisionDrive
 			// Run test
 			//---------------------------------------------------
 			
-			RigidTransform2d  cPose = robotState.getLatestFieldToVehicle();		// using CheesyPoof's RigidTransform2d for now.  TODO: replace		
-			Pose currentPose = new Pose(cPose.getTranslation().getX(), cPose.getTranslation().getY(), cPose.getRotation().getRadians());
+			Pose currentPose = robotState.getLatestFieldToVehicle();		
 	
 			imageTimestamp -= Constants.kCameraLatencySeconds;		// remove camera latency
 			
 			// calculate target location based on *previous* robot pose
-			RigidTransform2d pPose = robotState.getFieldToVehicle(imageTimestamp);	// using CheesyPoof's RigidTransform2d for now  TODO: replace
-			Pose previousPose = new Pose(pPose.getTranslation().getX(), pPose.getTranslation().getY(), pPose.getRotation().getRadians());
+			Pose previousPose = robotState.getFieldToVehicle(imageTimestamp);
 	
 			//---------------------------------------------------
 			// Process

@@ -60,7 +60,7 @@ public class Robot extends IterativeRobot
 
 	public void zeroAllSensors() {
 		drive.zeroSensors();
-		mRobotState.reset(Timer.getFPGATimestamp(), new RigidTransform2d(), new Rotation2d());
+		mRobotState.reset(Timer.getFPGATimestamp(), new Pose() );
 	}
 
 	/**
@@ -195,7 +195,7 @@ public class Robot extends IterativeRobot
 /*			
 			AutoModeBase mAutoMode = mAutoModeExecuter.getAutoMode();
 			if (mAutoMode instanceof AutoPlacePegMode) {
-				Translation2d initialPosition = mAutoMode.getInitialPosition();
+				Vector2 initialPosition = mAutoMode.getInitialPosition();
 				Rotation2d initialHeading = new Rotation2d();
 				System.out.println("InitialPosition: (" + initialPosition.getX() + ", " + initialPosition.getY() + ")");
 				mRobotState.reset(0.0, new RigidTransform2d(initialPosition, initialHeading), new Rotation2d());

@@ -5,14 +5,12 @@ import org.mini2Dx.gdx.math.*;
 import edu.wpi.first.wpilibj.Timer;
 
 import org.team686.lib.util.Pose;
-import org.team686.lib.util.RigidTransform2d;
 import org.team686.lib.util.Util;
 import org.team686.simsbot.Constants;
 import org.team686.simsbot.DataLogger;
 import org.team686.simsbot.RobotState;
 import org.team686.simsbot.VisionStatus;
 import org.team686.simsbot.subsystems.Drive;
-import org.team686.simsbot.DataLogger;
 
 
 public class VisionDriveAction implements Action 
@@ -25,7 +23,7 @@ public class VisionDriveAction implements Action
 	private double maxAccel;
 	private double prevTime;
 	private double prevSpeed;
-	private Vector2 avgTargetLocation = Vector2.Zero;
+	private Vector2 avgTargetLocation = new Vector2(0f, 0f);
 	private int  avgCnt;
 
 	// for logging only
@@ -36,7 +34,7 @@ public class VisionDriveAction implements Action
 	private Pose previousPose = Pose.DEFAULT;
 	private double prevDistanceToTargetInches;
 	private double prevHeadingToTargetRadians;
-	private Vector2 targetLocation = Vector2.Zero;
+	private Vector2 targetLocation = new Vector2(0f, 0f);
 	private Pose currentPose = Pose.DEFAULT;
 	private double distanceToTargetInches;
 	private double headingToTargetRadians;
@@ -77,8 +75,7 @@ public class VisionDriveAction implements Action
 		normalizedTargetX 	  = visionStatus.getNormalizedTargetX();
 		normalizedTargetWidth = visionStatus.getNormalizedTargetWidth();
 
-		RigidTransform2d  cPose = robotState.getLatestFieldToVehicle();		// using CheesyPoof's RigidTransform2d for now.  TODO: replace		
-		Pose currentPose = new Pose(cPose.getTranslation().getX(), cPose.getTranslation().getY(), cPose.getRotation().getRadians());
+		Pose currentPose = robotState.getLatestFieldToVehicle();		
 
 		currentTime = Timer.getFPGATimestamp();
 
@@ -87,8 +84,7 @@ imageTimestamp = currentTime;
 		imageTimestamp -= Constants.kCameraLatencySeconds;		// remove camera latency
 		
 		// calculate target location based on *previous* robot pose
-		RigidTransform2d pPose = robotState.getFieldToVehicle(imageTimestamp);	// using CheesyPoof's RigidTransform2d for now  TODO: replace
-		Pose previousPose = new Pose(pPose.getTranslation().getX(), pPose.getTranslation().getY(), pPose.getRotation().getRadians());
+		Pose previousPose = robotState.getFieldToVehicle(imageTimestamp);
 
 		//---------------------------------------------------
 		// Process

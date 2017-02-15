@@ -1,7 +1,6 @@
 package org.team686.simsbot.auto;
 
-import org.team686.lib.util.RigidTransform2d;
-import org.team686.lib.util.Translation2d;
+import org.mini2Dx.gdx.math.Vector2;
 import org.team686.simsbot.DataLogController;
 import org.team686.simsbot.DataLogger;
 import org.team686.simsbot.auto.actions.Action;
@@ -17,9 +16,9 @@ public abstract class AutoModeBase
 
     static DataLogController autoLogger = DataLogController.getAutoLogController();
     
-    public Translation2d getInitialPosition()
+    public Vector2 getInitialPosition()
     {
-    	return new Translation2d(0.0,0.0);
+    	return new Vector2(0f, 0f);
     }
     
     protected abstract void routine() throws AutoModeEndedException;

@@ -9,9 +9,7 @@ import java.util.Map;
 import org.team686.lib.util.AdaptivePurePursuitController;
 import org.team686.lib.util.InterpolatingDouble;
 import org.team686.lib.util.InterpolatingTreeMap;
-import org.team686.lib.util.RigidTransform2d;
-import org.team686.lib.util.Rotation2d;
-import org.team686.lib.util.Translation2d;
+import org.team686.lib.util.Pose;
 
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
@@ -58,56 +56,55 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 public class RobotState 
 {
-    private static RobotState instance_ = new RobotState();
-    public static RobotState getInstance() { return instance_; }
+    private static RobotState instance = new RobotState();
+    public static RobotState getInstance() { return instance; }
 
     public static final int kObservationBufferSize = 100;
     public static final double kMaxTargetAge = 0.4;
 
-    // FPGATimestamp -> RigidTransform2d or Rotation2d
-    protected InterpolatingTreeMap<InterpolatingDouble, RigidTransform2d> field_to_vehicle_;
-    protected RigidTransform2d.Delta vehicle_velocity_;
+    protected InterpolatingTreeMap<InterpolatingDouble, Pose> fieldToRobot;
+    protected Pose.Delta robotSpeed;
 
-    protected RobotState() {
-        reset(0, new RigidTransform2d(), new Rotation2d());
+    protected RobotState() { reset(0, new Pose()); }
+
+	public synchronized void reset(double start_time, Pose initialFieldToRobot) 
+	{
+        fieldToRobot = new InterpolatingTreeMap<>(kObservationBufferSize);
+        fieldToRobot.put(new InterpolatingDouble(start_time), initialFieldToRobot);
+        robotSpeed = new Pose.Delta(0, 0);
     }
 
-	public synchronized void reset(double start_time, RigidTransform2d initial_field_to_vehicle,
-            Rotation2d initial_turret_rotation) {
-        field_to_vehicle_ = new InterpolatingTreeMap<>(kObservationBufferSize);
-        field_to_vehicle_.put(new InterpolatingDouble(start_time), initial_field_to_vehicle);
-        vehicle_velocity_ = new RigidTransform2d.Delta(0, 0, 0);
+	public synchronized Pose getFieldToVehicle(double timestamp) 
+	{
+        return fieldToRobot.getInterpolated(new InterpolatingDouble(timestamp));
     }
 
-	public synchronized RigidTransform2d getFieldToVehicle(double timestamp) {
-        return field_to_vehicle_.getInterpolated(new InterpolatingDouble(timestamp));
+    public synchronized Pose getLatestFieldToVehicle() 
+    {
+        return fieldToRobot.lastEntry().getValue();
     }
 
-    public synchronized RigidTransform2d getLatestFieldToVehicle() {
-        return field_to_vehicle_.lastEntry().getValue();
+    public synchronized Pose getPredictedFieldToVehicle(double lookahead_time) 
+    {
+    	Pose.Delta delta = new Pose.Delta(robotSpeed.dDistance * lookahead_time, robotSpeed.dHeadingRad * lookahead_time);
+        return getLatestFieldToVehicle().travelArc(delta);
     }
 
-    public synchronized RigidTransform2d getPredictedFieldToVehicle(double lookahead_time) {
-        return getLatestFieldToVehicle().transformBy(
-                RigidTransform2d.fromVelocity(new RigidTransform2d.Delta(vehicle_velocity_.dx * lookahead_time,
-                        vehicle_velocity_.dy * lookahead_time, vehicle_velocity_.dtheta * lookahead_time)));
+    public synchronized void addFieldToVehicleObservation(double timestamp, Pose observation)
+    {
+        fieldToRobot.put(new InterpolatingDouble(timestamp), observation);
     }
 
-    public synchronized void addFieldToVehicleObservation(double timestamp, RigidTransform2d observation) {
-        field_to_vehicle_.put(new InterpolatingDouble(timestamp), observation);
-    }
-
-    public synchronized void addObservations(double timestamp, RigidTransform2d field_to_vehicle,
-            RigidTransform2d.Delta velocity) {
+    public synchronized void addObservations(double timestamp, Pose field_to_vehicle, Pose.Delta velocity) 
+    {
         addFieldToVehicleObservation(timestamp, field_to_vehicle);
-        vehicle_velocity_ = velocity;
+        robotSpeed = velocity;
     }
 
-    public RigidTransform2d generateOdometryFromSensors(double left_encoder_delta_distance,
-            double right_encoder_delta_distance, Rotation2d current_gyro_angle) {
-        RigidTransform2d last_measurement = getLatestFieldToVehicle();
-        return Kinematics.integrateForwardKinematics(last_measurement, left_encoder_delta_distance,
-                right_encoder_delta_distance, current_gyro_angle);
+    public Pose generateOdometryFromSensors(double lEncoderDeltaDistance, double rEncoderDeltaDistance, double currentGyroAngle) 
+    {
+        Pose lastPose = getLatestFieldToVehicle();
+        return Kinematics.integrateForwardKinematics(lastPose, lEncoderDeltaDistance, rEncoderDeltaDistance, currentGyroAngle);
     }
 
     
@@ -118,10 +115,10 @@ public class RobotState
         @Override
         public void log()
         {
-            RigidTransform2d odometry = getLatestFieldToVehicle();
-            put("RobotState/X", odometry.getTranslation().getX());
-            put("RobotState/Y", odometry.getTranslation().getY());
-            put("RobotState/Theta", odometry.getRotation().getDegrees());
+            Pose odometry = getLatestFieldToVehicle();
+            put("RobotState/X", odometry.getX());
+            put("RobotState/Y", odometry.getY());
+            put("RobotState/H", odometry.getHeadingDeg());
         }
     };
     

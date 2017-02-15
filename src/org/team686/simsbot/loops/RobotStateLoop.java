@@ -2,10 +2,8 @@ package org.team686.simsbot.loops;
 
 import org.team686.simsbot.Kinematics;
 import org.team686.simsbot.RobotState;
-import org.team686.simsbot.subsystems.Drive;
 import org.team686.lib.util.DriveStatus;
-import org.team686.lib.util.RigidTransform2d;
-import org.team686.lib.util.Rotation2d;
+import org.team686.lib.util.Pose;
 
 import edu.wpi.first.wpilibj.Timer;
 
@@ -48,11 +46,10 @@ public class RobotStateLoop implements Loop
         double rightDistance = driveStatus.getRightDistanceInches();
         double leftSpeed     = driveStatus.getLeftSpeedInchesPerSec();
         double rightSpeed    = driveStatus.getRightSpeedInchesPerSec(); 
-        Rotation2d gyroAngle = Rotation2d.fromDegrees(driveStatus.getHeadingDeg());
+        double gyroAngle     = driveStatus.getHeadingDeg();
 
-        RigidTransform2d odometry = robotState.generateOdometryFromSensors(
-                leftDistance-prevLeftDistance, rightDistance-prevRightDistance, gyroAngle);
-        RigidTransform2d.Delta velocity = Kinematics.forwardKinematics(leftSpeed, rightSpeed);
+        Pose odometry = robotState.generateOdometryFromSensors(leftDistance-prevLeftDistance, rightDistance-prevRightDistance, gyroAngle);
+        Pose.Delta velocity = Kinematics.forwardKinematics(leftSpeed, rightSpeed);
                 
         robotState.addObservations(time, odometry, velocity);
         prevLeftDistance = leftDistance;

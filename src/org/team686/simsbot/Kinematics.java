@@ -1,7 +1,6 @@
 package org.team686.simsbot;
 
 import org.team686.lib.util.Pose;
-import org.team686.lib.util.Pose.Delta;
 
 /**
  * Provides forward and inverse kinematics equations for the robot modeling the
@@ -26,12 +25,12 @@ public class Kinematics
         return new RigidTransform2d.Delta(linear_velocity, 0, delta_rotation);
     }
 */
-    public static Delta forwardKinematics(double ldeltaDist, double rDeltaDist)
+    public static Pose.Delta forwardKinematics(double ldeltaDist, double rDeltaDist)
     {
     	double deltaDist = (ldeltaDist + rDeltaDist)/2;		// linear speed of center of robot is the average of the left and right
     	double diffDist  = (rDeltaDist - ldeltaDist)/2;		// differential speed of wheels (positive: turning to left, increasing theta)
     	double deltaHeading = diffDist * 2 * Constants.kTrackScrubFactor / Constants.kTrackEffectiveDiameter;		// change in heading due to differential speed
-        return new Delta(deltaDist, deltaHeading);			// change in pose
+        return new Pose.Delta(deltaDist, deltaHeading);			// change in pose
     }
     
     /**
@@ -43,9 +42,9 @@ public class Kinematics
         return new RigidTransform2d.Delta((left_wheel_delta + right_wheel_delta) / 2, 0, delta_rotation_rads);
     }
 */
-    public static Delta forwardKinematics(double lSpeed, double rSpeed, double deltaHeadingRad)
+    public static Pose.Delta forwardKinematics(double lSpeed, double rSpeed, double deltaHeadingRad)
     {
-        return new Delta((lSpeed + rSpeed)/2, deltaHeadingRad);
+        return new Pose.Delta((lSpeed + rSpeed)/2, deltaHeadingRad);
     }
 
     
@@ -60,7 +59,7 @@ public class Kinematics
 */
     public static Pose integrateForwardKinematics(Pose currentPose, double lSpeed, double rSpeed, double currentHeadingRad)
     {
-        Delta delta = forwardKinematics(lSpeed, rSpeed, currentHeadingRad - currentPose.getHeadingRad());
+    	Pose.Delta delta = forwardKinematics(lSpeed, rSpeed, currentHeadingRad - currentPose.getHeadingRad());
         return currentPose.travelArc(delta);
     }
     
@@ -85,7 +84,7 @@ public class Kinematics
     /*
      * Calculate left/right wheel speeds that will give desired robot speed and change of heading
      */
-    public static DriveVelocity inverseKinematics(Delta delta) 
+    public static DriveVelocity inverseKinematics(Pose.Delta delta) 
     {
     	double diffSpeed = 0.0;
         if (Math.abs(delta.dHeadingRad) > kEpsilon)

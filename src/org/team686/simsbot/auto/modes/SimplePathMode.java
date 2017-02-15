@@ -3,8 +3,9 @@ package org.team686.simsbot.auto.modes;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.mini2Dx.gdx.math.Vector2;
+
 import org.team686.lib.util.Path;
-import org.team686.lib.util.Translation2d;
 import org.team686.lib.util.Path.Waypoint;
 
 import org.team686.simsbot.auto.AutoModeBase;
@@ -28,28 +29,23 @@ public class SimplePathMode extends AutoModeBase {
     	System.out.println("Starting Auto Mode: Square Pattern");
 
 
-    	double vel = 48.0;
+    	double vel = 48.0f;
     	
-       	double XX = 48.0;
-       	double X = 96.0;
-        double Y = 18.0;
-    	/* hit Matthew
-       	double XX = 36.0;
-       	double X = 96.0;
-        double Y = 48.0;
-    	*/
+    	float XX = 48.0f;
+    	float X = 96.0f;
+    	float Y = 18.0f;
     	
         List<Waypoint> first_path = new ArrayList<>();
-        first_path.add(new Waypoint(new Translation2d(  0, 0), vel));
-        first_path.add(new Waypoint(new Translation2d( XX, 0), vel));
-        first_path.add(new Waypoint(new Translation2d( XX, Y), vel));
-        first_path.add(new Waypoint(new Translation2d(  X, Y), vel));
+        first_path.add(new Waypoint(new Vector2(  0f, 0f), vel));
+        first_path.add(new Waypoint(new Vector2( XX, 0f), vel));
+        first_path.add(new Waypoint(new Vector2( XX, Y), vel));
+        first_path.add(new Waypoint(new Vector2(  X, Y), vel));
 
         List<Waypoint> return_path = new ArrayList<>();
-        return_path.add(new Waypoint(new Translation2d(  X, Y), vel));
-        return_path.add(new Waypoint(new Translation2d( XX, Y), vel));
-        return_path.add(new Waypoint(new Translation2d( XX, 0), vel));
-        return_path.add(new Waypoint(new Translation2d(  0, 0), vel));
+        return_path.add(new Waypoint(new Vector2(  X, Y), vel));
+        return_path.add(new Waypoint(new Vector2( XX, Y), vel));
+        return_path.add(new Waypoint(new Vector2( XX, 0f), vel));
+        return_path.add(new Waypoint(new Vector2(  0f, 0f), vel));
         
         
         runAction(new FollowPathAction(new Path(first_path), false));       		         
