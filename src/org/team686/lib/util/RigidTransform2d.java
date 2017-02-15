@@ -54,14 +54,18 @@ public class RigidTransform2d implements Interpolable<RigidTransform2d> {
      * Obtain a new RigidTransform2d from a (constant curvature) velocity. See:
      * https://github.com/strasdat/Sophus/blob/master/sophus/se2.hpp
      */
-    public static RigidTransform2d fromVelocity(Delta delta) {
+    public static RigidTransform2d fromVelocity(Delta delta)
+    {
         double sin_theta = Math.sin(delta.dtheta);
         double cos_theta = Math.cos(delta.dtheta);
         double s, c;
-        if (Math.abs(delta.dtheta) < kEps) {
+        if (Math.abs(delta.dtheta) < kEps)
+        {
             s = 1.0 - 1.0 / 6.0 * delta.dtheta * delta.dtheta;
             c = .5 * delta.dtheta;
-        } else {
+        }
+        else 
+        {
             s = sin_theta / delta.dtheta;
             c = (1.0 - cos_theta) / delta.dtheta;
         }

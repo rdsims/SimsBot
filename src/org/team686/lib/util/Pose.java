@@ -3,6 +3,7 @@ package org.team686.lib.util;
 import java.text.DecimalFormat;
 
 import org.mini2Dx.gdx.math.*;
+import org.team686.lib.util.RigidTransform2d.Delta;
 
 /**
  * A class that stores the pose an object
@@ -40,6 +41,13 @@ public class Pose
     	this((float)_x, (float)_y, (float)_thetaRad);
     }
 
+    public Pose(Pose that) 
+    {
+    	this.position = that.position.cpy();
+    	this.heading  = that.heading;
+    }
+
+    
     public static Pose fromMagnitudeAngleRad(float _rho, float _thetaRad)
     {
     	Pose pose = new Pose(_rho, 0.0f, _thetaRad);	// arbitrarily setting heading to thetaRad
@@ -115,8 +123,48 @@ public class Pose
     	return delta.angle();
     }
     
+    
+    
+    public static class Delta
+    {
+        public final double dDistance;
+        public final double dHeadingRad;
+
+        public Delta(double _dDistance, double _dHeadingRad)
+        {
+            dDistance = _dDistance;
+            dHeadingRad = _dHeadingRad;
+        }
+    }
+    
+    
+    /*
+     * Obtain a new Pose from travel along a constant curvature path.
+     */
+    public Pose travelArc(Delta delta)
+    {
+		double D = delta.dDistance;				// distance traveled = arc-length of circle
+		double L = D;							// chord-length
+		
+		double dTheta = delta.dHeadingRad;
+		if (dTheta > 1e-9)
+			L = 2*D*Math.sin(dTheta/2)/dTheta;			// chord-length given change in heading
+				
+		double avgHeading = heading + dTheta/2;			// mean of current and final headings
+
+		// update pose
+		Pose newPose = new Pose(this);										// copy current pose
+		Vector2 deltaPosition = Util.fromMagnitudeAngleRad(L, avgHeading);	// calculate change in position
+		newPose.add(deltaPosition);											// update position							
+		newPose.addHeadingRad(dTheta);										// update heading
+		return newPose;														// return new pose
+    }
+
+    
+    
     @Override
-    public String toString() {
+    public String toString() 
+    {
         final DecimalFormat fmt = new DecimalFormat("#0.000");
         String ret = this.position.toString() + ", H:" + fmt.format(this.getHeadingDeg());
         return ret;
