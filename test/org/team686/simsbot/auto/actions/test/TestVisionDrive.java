@@ -12,6 +12,7 @@ import org.junit.Test;
 import org.mini2Dx.gdx.math.Vector2;
 import org.team686.lib.util.Pose;
 import org.team686.lib.util.Util;
+import org.team686.lib.util.Vector;
 import org.team686.simsbot.Constants;
 import org.team686.simsbot.RobotState;
 import org.team686.simsbot.auto.actions.VisionDriveAction;
@@ -47,7 +48,7 @@ public class TestVisionDrive
 		actualRobotLocation  = new Pose( 0, 0,  0);
 		actualTargetLocation = new Pose(96,36,180);
 
-//		Vector2 targetHalfWidth = Util.fromMagnitudeAngleRad(targetWidth/2, actualTargetLocation.getHeadingRad()+Math.PI/2);
+//		Vector targetHalfWidth = Util.fromMagnitudeAngleRad(targetWidth/2, actualTargetLocation.getHeadingRad()+Math.PI/2);
 //		targetLeft  = new Vector2(actualTargetLocation.getPosition()).add(targetHalfWidth);
 //		targetRight = new Vector2(actualTargetLocation.getPosition()).sub(targetHalfWidth);
 		
@@ -96,19 +97,20 @@ public class TestVisionDrive
 			if (dTheta > 1e-9)
 				L = 2*D*Math.sin(dTheta/2)/dTheta;		
 					
-			actualRobotLocation.add(Util.fromMagnitudeAngleRad(L, theta_m));
-			actualRobotLocation.addHeadingRad(dTheta);
+			actualRobotLocation = actualRobotLocation.add(Vector.magnitudeAngle(L, theta_m));
+			actualRobotLocation = actualRobotLocation.turnRad(dTheta);
 			
-			System.out.println(actualRobotLocation);
+//			System.out.println(actualRobotLocation);
+			System.out.println(visionDriveAction.avgTargetLocation);
 			
 			// log RobotPose
-			Pose observation = new Pose(actualRobotLocation);
+			Pose observation = actualRobotLocation;
 			robotState.addFieldToVehicleObservation(currentTime, observation);
 
 			// calculate relative position of target
-			Vector2 robotToTarget = new Vector2(actualTargetLocation.getPosition()).sub(actualRobotLocation.getPosition());
-			double  distToTarget = robotToTarget.len(); 
-			double angleToTarget = robotToTarget.angleRad();
+			Vector robotToTarget = new Vector(actualTargetLocation.getPosition()).sub(actualRobotLocation.getPosition());
+			double  distToTarget = robotToTarget.length(); 
+			double angleToTarget = robotToTarget.angle();
 			
 			// calculate Vision output
 			double imageTimestamp = currentTime;
@@ -171,9 +173,9 @@ public class TestVisionDrive
 		 ***********************************************/
 
 		// calculate relative position of target
-		Vector2 robotToTarget = new Vector2(actualTargetLocation.getPosition()).sub(actualRobotLocation.getPosition());
-		double  distToTarget = robotToTarget.len(); 
-		double angleToTarget = robotToTarget.angleRad();
+		Vector robotToTarget = new Vector(actualTargetLocation.getPosition()).sub(actualRobotLocation.getPosition());
+		double  distToTarget = robotToTarget.length(); 
+		double angleToTarget = robotToTarget.angle();
         
 		assertEquals(Constants.kPegTargetDistanceThresholdInches, distToTarget, 1);
 		assertEquals(angleToTarget, actualRobotLocation.getHeadingRad(), 0.1);

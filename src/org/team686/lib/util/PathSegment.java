@@ -1,9 +1,8 @@
 package org.team686.lib.util;
 
-import org.mini2Dx.gdx.math.Vector2;
 
 /**
- * A PathSegment consists of two Vector2 objects (the start and end
+ * A PathSegment consists of two Vector objects (the start and end
  * points) as well as the speed of the robot.
  *
  */
@@ -12,20 +11,20 @@ public class PathSegment {
 
     public static class Sample
     {
-        public final Vector2 position;
+        public final Vector position;
         public final double speed;
 
-        public Sample(Vector2 translation, double speed) 
+        public Sample(Vector _position, double _speed) 
         {
-            this.position = translation.cpy();
-            this.speed = speed;
+            this.position = _position;
+            this.speed = _speed;
         }
     }
 
     protected double mSpeed;
-    protected Vector2 mStart;
-    protected Vector2 mEnd;
-    protected Vector2 mStartToEnd; // pre-computed for efficiency
+    protected Vector mStart;
+    protected Vector mEnd;
+    protected Vector mStartToEnd; // pre-computed for efficiency
     protected double mLength; // pre-computed for efficiency
 
     public static class ClosestPointReport 
@@ -33,47 +32,44 @@ public class PathSegment {
         public double index; // Index of the point on the path segment (not
                              // clamped to [0, 1])
         public double clamped_index; // As above, but clamped to [0, 1]
-        public Vector2 closest_point; // The result of
+        public Vector closest_point; // The result of
                                             // interpolate(clamped_index)
         public double distance; // The distance from closest_point to the query
                                 // point
     }
 
-    public PathSegment(Vector2 start, Vector2 end, double speed) 
+    public PathSegment(Vector start, Vector end, double speed) 
     {
-        mEnd = end.cpy();	// local copy
+        mEnd = end;
         mSpeed = speed;
         updateStart(start);
     }
 
-    public void updateStart(Vector2 new_start)
+    public void updateStart(Vector new_start)
     {
-        mStart = new_start.cpy();		
-        Vector2 tempEnd = mEnd.cpy();	// local copy, so mEnd isn't modified
-        mStartToEnd = tempEnd.sub(mStart);
-        mLength = mStartToEnd.len();
+        mStart = new_start;		
+        mStartToEnd = mEnd.sub(mStart);
+        mLength = mStartToEnd.length();
     }
 
-    public double  getSpeed()  { return mSpeed; }
-    public Vector2 getStart()  { return mStart; }
-    public Vector2 getEnd()    { return mEnd; }
-    public double  getLength() { return mLength; }
+    public double getSpeed()  { return mSpeed; }
+    public Vector getStart()  { return mStart; }
+    public Vector getEnd()    { return mEnd; }
+    public double getLength() { return mLength; }
 
     // Index is on [0, 1]
-    public Vector2 interpolate(double index)
+    public Vector interpolate(double index)
     {
-    	Vector2 start = mStart.cpy();	// local copy
-    	return start.lerp(mEnd, (float)index);
+    	return mStart.interpolate(mEnd, index);
     }
 
-    public double dotProduct(Vector2 _other)
+    public double dotProduct(Vector _other)
     {
-    	Vector2 other = _other.cpy();	// local copy
-        Vector2 startToOther = other.sub(mStart);
+        Vector startToOther = _other.sub(mStart);
         return mStartToEnd.dot(startToOther);
     }
 
-    public ClosestPointReport getClosestPoint(Vector2 query_point) 
+    public ClosestPointReport getClosestPoint(Vector query_point) 
     {
         ClosestPointReport rv = new ClosestPointReport();
         if (mLength > kEpsilon) 
@@ -86,9 +82,9 @@ public class PathSegment {
         else 
         {
             rv.index = rv.clamped_index = 0.0;
-            rv.closest_point = new Vector2(mStart);
+            rv.closest_point = new Vector(mStart);
         }
-        rv.distance = (query_point.sub(rv.closest_point)).len();
+        rv.distance = query_point.distance(rv.closest_point);
         return rv;
     }
 }

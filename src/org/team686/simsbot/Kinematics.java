@@ -87,8 +87,8 @@ public class Kinematics
     public static DriveVelocity inverseKinematics(Pose.Delta delta) 
     {
     	double diffSpeed = 0.0;
-        if (Math.abs(delta.dHeadingRad) > kEpsilon)
-        	diffSpeed = delta.dHeadingRad * Constants.kTrackEffectiveDiameter / (2 * Constants.kTrackScrubFactor);
+        if (Math.abs(delta.dHeading) > kEpsilon)
+        	diffSpeed = delta.dHeading * Constants.kTrackEffectiveDiameter / (2 * Constants.kTrackScrubFactor);
 
         return new DriveVelocity(delta.dDistance - diffSpeed, delta.dDistance + diffSpeed); 
     }

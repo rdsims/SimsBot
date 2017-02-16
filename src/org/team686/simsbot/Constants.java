@@ -12,7 +12,8 @@ import edu.wpi.first.wpilibj.I2C;
  * A list of constants used by the rest of the robot code. This include physics
  * constants as well as constants determined through calibrations.
  */
-public class Constants extends ConstantsBase {
+public class Constants extends ConstantsBase
+{
     public static double kLoopDt = 0.01;
 
 	// Wheels
@@ -105,7 +106,7 @@ public class Constants extends ConstantsBase {
     public static int kXboxRStickYAxis  = 5;
     
     public static double kTargetWidthInches = 10.25;
-    public static float kTargetLocationFilterConstant = (float) (3.0 * kLoopDt);		// 3 time constants in 1 second
+    public static double kTargetLocationFilterConstant = (3.0 * kLoopDt);		// 3 time constants in 1 second
     public static double kCameraFOVDegrees = 42.5;			// Camera Field of View (degrees)
     public static double kCameraHalfFOVRadians = kCameraFOVDegrees/2.0 * Math.PI/180.0;			// Half of Camera Field of View (radians)
     public static double kTangentCameraHalfFOV = Math.tan(kCameraHalfFOVRadians);
@@ -114,4 +115,4 @@ public class Constants extends ConstantsBase {
     public static double kVisionMaxVel    = 20.0; // inches/sec  		// RS measured ~100 inches/sec on carpet
     public static double kVisionMaxAccel  = 24.0; // inches/sec^2		// RS measured 800-1000 inches/sec^2 on carpet
     public static double kVisionLookaheadDist = 24.0;	// inches
-    }
+}

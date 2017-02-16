@@ -86,7 +86,7 @@ public class RobotState
 
     public synchronized Pose getPredictedFieldToVehicle(double lookahead_time) 
     {
-    	Pose.Delta delta = new Pose.Delta(robotSpeed.dDistance * lookahead_time, robotSpeed.dHeadingRad * lookahead_time);
+    	Pose.Delta delta = new Pose.Delta(robotSpeed.dDistance * lookahead_time, robotSpeed.dHeading * lookahead_time);
         return getLatestFieldToVehicle().travelArc(delta);
     }
 

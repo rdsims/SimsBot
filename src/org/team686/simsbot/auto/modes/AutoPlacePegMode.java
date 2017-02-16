@@ -3,9 +3,9 @@ package org.team686.simsbot.auto.modes;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.mini2Dx.gdx.math.Vector2;
 import org.team686.lib.util.Path;
 import org.team686.lib.util.Path.Waypoint;
+import org.team686.lib.util.Vector;
 import org.team686.simsbot.Constants;
 import org.team686.simsbot.DataLogger;
 import org.team686.simsbot.auto.AutoModeBase;
@@ -25,7 +25,7 @@ public class AutoPlacePegMode extends AutoModeBase
 	
     public AutoPlacePegMode(int lane, boolean isShooting) 
     {
-    	Vector2 startPos, prePegPos, pegPos, postPegPos, preShootPos, shootPos, finishPos;
+    	Vector startPos, prePegPos, pegPos, postPegPos, preShootPos, shootPos, finishPos;
     	
     	autoLane = lane;
     	
@@ -40,34 +40,34 @@ public class AutoPlacePegMode extends AutoModeBase
 /*		
 		// use negative x coords because original orientation is assumed 0
 		
-		startPos        = new Vector2(-308,  64*yScale);
+		startPos        = new Vector(-308,  64*yScale);
 		if (lane==1 || lane==3)
 		{
-			prePegPos       = new Vector2(-208,  64*yScale);
-			pegPos          = new Vector2(-188,  52*yScale);
+			prePegPos       = new Vector(-208,  64*yScale);
+			pegPos          = new Vector(-188,  52*yScale);
 		}
 		else
 		{
-			prePegPos       = new Vector2(-232,  0);
-			pegPos          = new Vector2(-196,  0);
+			prePegPos       = new Vector(-232,  0);
+			pegPos          = new Vector(-196,  0);
 		}
 		postPegPos      = prePegPos;	// in reverse
 		// TODO: zero point turn to new orientation
 		if (isShooting)
 		{
 			if (lane==1)
-				preShootPos = new Vector2(-280,  36);		// go around airship
+				preShootPos = new Vector(-280,  36);		// go around airship
 			else
 				preShootPos = postPegPos;						// skip this step
 			
-			shootPos    = new Vector2(-280,-126);
+			shootPos    = new Vector(-280,-126);
 		}
 		else
 		{
 			preShootPos = prePegPos;							// skip this step
 			shootPos    = prePegPos;							// skip this step
 		}
-		finishPos       = new Vector2( -86,-126);
+		finishPos       = new Vector( -86,-126);
 */
 		
 		
@@ -75,18 +75,18 @@ public class AutoPlacePegMode extends AutoModeBase
     
 		// use negative x coords because original orientation is assumed 0
 		
-		startPos        = new Vector2(18f, 48f*yScale);
-		prePegPos       = new Vector2(60f, 48f*yScale);
-		pegPos          = new Vector2(96f,  0f*yScale);
+		startPos        = new Vector(18, 48*yScale);
+		prePegPos       = new Vector(60, 48*yScale);
+		pegPos          = new Vector(96,  0*yScale);
 		postPegPos      = prePegPos;	// in reverse
 		// TODO: zero point turn to new orientation
 		if (lane==1)
-			preShootPos = new Vector2(36f, -24f);		// go around airship
+			preShootPos = new Vector(36, -24);		// go around airship
 		else
-			preShootPos = new Vector2(36f,  0f);
+			preShootPos = new Vector(36,  0);
 			
-		shootPos        = new Vector2( 36f, 48f);
-		finishPos       = new Vector2(160f, -48f);
+		shootPos        = new Vector( 36, 48);
+		finishPos       = new Vector(160, -48);
  
 
 		// making everying relative to startPos
@@ -123,7 +123,7 @@ public class AutoPlacePegMode extends AutoModeBase
     
     }
 
-    public Vector2 getInitialPosition()
+    public Vector getInitialPosition()
     {
     	Waypoint wp = autoPath1.get(0);
     	return wp.position;

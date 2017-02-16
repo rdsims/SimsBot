@@ -1,6 +1,6 @@
 package org.team686.simsbot.auto;
 
-import org.mini2Dx.gdx.math.Vector2;
+import org.team686.lib.util.Vector;
 import org.team686.simsbot.DataLogController;
 import org.team686.simsbot.DataLogger;
 import org.team686.simsbot.auto.actions.Action;
@@ -16,9 +16,9 @@ public abstract class AutoModeBase
 
     static DataLogController autoLogger = DataLogController.getAutoLogController();
     
-    public Vector2 getInitialPosition()
+    public Vector getInitialPosition()
     {
-    	return new Vector2(0f, 0f);
+    	return new Vector(0, 0);
     }
     
     protected abstract void routine() throws AutoModeEndedException;

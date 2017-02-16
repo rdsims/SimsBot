@@ -15,7 +15,8 @@ import org.team686.simsbot.DataLogger;
  * specified distance ahead of us, and we look further ahead the greater our
  * tracking error.
  */
-public class AdaptivePurePursuitController {
+public class AdaptivePurePursuitController 
+{
 	private static final double kEpsilon = 1E-9;
 
 	double mFixedLookahead;
@@ -35,7 +36,8 @@ public class AdaptivePurePursuitController {
 	static Pose.Delta cmd;
 
 	public AdaptivePurePursuitController(double fixed_lookahead, double max_accel, double nominal_dt, Path path,
-			boolean reversed, double path_completion_tolerance) {
+			boolean reversed, double path_completion_tolerance) 
+	{
 		mFixedLookahead = fixed_lookahead;
 		mMaxAccel = max_accel;
 		mPath = path;
@@ -45,7 +47,8 @@ public class AdaptivePurePursuitController {
 		mPathCompletionTolerance = path_completion_tolerance;
 	}
 
-	public boolean isDone() {
+	public boolean isDone() 
+	{
 		remainingLength = mPath.getRemainingLength();
 		return remainingLength <= mPathCompletionTolerance;
 	}
@@ -55,7 +58,7 @@ public class AdaptivePurePursuitController {
 		Pose pose = new Pose(robot_pose);
 		if (mReversed)
 		{
-			pose.addHeadingRad(Math.PI);
+			pose.turnRad(Math.PI);
 		}
 
 		double distanceFromPath = mPath.update(robot_pose.getPosition());
@@ -118,37 +121,41 @@ public class AdaptivePurePursuitController {
 		System.out.printf("Lookahead=(%.1f,%.1f), ", lookaheadPoint.position.x,
 				lookaheadPoint.position.y);
 		System.out.printf("Speed=%.2f, ", speed);
-		System.out.printf("Cmd=(%.2f,%.2f)\n", cmd.dDistance, cmd.dHeadingRad);
+		System.out.printf("Cmd=(%.2f,%.2f)\n", cmd.dDistance, cmd.dHeading);
 
 		return cmd;
 	}
 
-	public Set<String> getMarkersCrossed() {
+	public Set<String> getMarkersCrossed()
+	{
 		return mPath.getMarkersCrossed();
 	}
 
-	public static class Circle {
-		public final Vector2 center;
+	public static class Circle
+	{
+		public final Vector center;
 		public final double radius;
 		public final boolean turn_right;
 
-		public Circle(Vector2 center, double radius, boolean turn_right) {
+		public Circle(Vector center, double radius, boolean turn_right) 
+		{
 			this.center = center;
 			this.radius = radius;
 			this.turn_right = turn_right;
 		}
 	}
 
-	public static Optional<Circle> joinPath(Pose robot_pose, Vector2 lookaheadPoint) {
+	public static Optional<Circle> joinPath(Pose robot_pose, Vector lookaheadPoint)
+	{
 		double x1 = robot_pose.getX();
 		double y1 = robot_pose.getY();
 		double x2 = lookaheadPoint.x;
 		double y2 = lookaheadPoint.y;
 
-		Vector2 pose_to_lookahead = lookaheadPoint.sub(robot_pose.getPosition());
-		double cross_product = pose_to_lookahead.x * Math.sin(robot_pose.getHeadingRad())
-				- pose_to_lookahead.y * Math.cos(robot_pose.getHeadingRad());
-		if (Math.abs(cross_product) < kEpsilon) {
+		Vector pose_to_lookahead = lookaheadPoint.sub(robot_pose.getPosition());
+		double cross_product = pose_to_lookahead.cross(robot_pose.getHeadingUnitVector());
+		if (Math.abs(cross_product) < kEpsilon) 
+		{
 			return Optional.empty();
 		}
 
@@ -165,8 +172,8 @@ public class AdaptivePurePursuitController {
 		}
 
 		return Optional.of(new Circle(
-				new Vector2((float)((mx * (x1 * x1 - x2 * x2 - dy * dy) + 2 * my * x1 * dy) / (2 * cross_term)),
-						(float)((-my * (-y1 * y1 + y2 * y2 + dx * dx) + 2 * mx * y1 * dx) / (2 * cross_term))),
+				new Vector(( mx * ( x1 * x1 - x2 * x2 - dy * dy) + 2 * my * x1 * dy) / (2 * cross_term),
+						   (-my * (-y1 * y1 + y2 * y2 + dx * dx) + 2 * mx * y1 * dx) / (2 * cross_term)),
 				(0.5 * Math.abs((dx * dx + dy * dy) / cross_term)), (cross_product > 0)));
 	}
 
@@ -189,7 +196,7 @@ public class AdaptivePurePursuitController {
     		// else
     		// put("PathRadius", 999);
     		put("Cmd.X", cmd.dDistance);
-    		put("Cmd.Theta", cmd.dHeadingRad);
+    		put("Cmd.Theta", cmd.dHeading);
         }
     };
     

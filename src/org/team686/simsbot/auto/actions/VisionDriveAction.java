@@ -1,11 +1,9 @@
 package org.team686.simsbot.auto.actions;
 
-import org.mini2Dx.gdx.math.*;
-
 import edu.wpi.first.wpilibj.Timer;
 
 import org.team686.lib.util.Pose;
-import org.team686.lib.util.Util;
+import org.team686.lib.util.Vector;
 import org.team686.simsbot.Constants;
 import org.team686.simsbot.DataLogger;
 import org.team686.simsbot.RobotState;
@@ -16,31 +14,31 @@ import org.team686.simsbot.subsystems.Drive;
 public class VisionDriveAction implements Action 
 {
 	// properties needed for class
-	private VisionStatus visionStatus = VisionStatus.getInstance();
-	private RobotState robotState = RobotState.getInstance();
-	private Drive drive = Drive.getInstance();
-	private double maxSpeed;
-	private double maxAccel;
-	private double prevTime;
-	private double prevSpeed;
-	private Vector2 avgTargetLocation = new Vector2(0f, 0f);
-	private int  avgCnt;
+	public VisionStatus visionStatus = VisionStatus.getInstance();
+	public RobotState robotState = RobotState.getInstance();
+	public Drive drive = Drive.getInstance();
+	public double maxSpeed;
+	public double maxAccel;
+	public double prevTime;
+	public double prevSpeed;
+	public Vector avgTargetLocation = new Vector(0,0);
+	public int  avgCnt;
 
 	// for logging only
-	private double currentTime;
-	private double imageTimestamp;
-	private double normalizedTargetX;
-	private double normalizedTargetWidth;
-	private Pose previousPose = Pose.DEFAULT;
-	private double prevDistanceToTargetInches;
-	private double prevHeadingToTargetRadians;
-	private Vector2 targetLocation = new Vector2(0f, 0f);
-	private Pose currentPose = Pose.DEFAULT;
-	private double distanceToTargetInches;
-	private double headingToTargetRadians;
-	private double lookaheadDist;
-	private double curvature;
-	private double speed;
+	public double currentTime;
+	public double imageTimestamp;
+	public double normalizedTargetX;
+	public double normalizedTargetWidth;
+	public Pose previousPose = new Pose();
+	public double prevDistanceToTargetInches;
+	public double prevHeadingToTargetRadians;
+	public Vector targetLocation = new Vector(0,0);
+	public Pose currentPose = new Pose();
+	public double distanceToTargetInches;
+	public double headingToTargetRadians;
+	public double lookaheadDist;
+	public double curvature;
+	public double speed;
 	
 	
 	public VisionDriveAction(double _maxSpeed, double _maxAccel) 
@@ -109,14 +107,14 @@ imageTimestamp = currentTime;
 			//-----------------------------------------------------
 			prevDistanceToTargetInches = Constants.kTargetWidthInches / (2.0*normalizedTargetWidth*Constants.kTangentCameraHalfFOV);
 			prevHeadingToTargetRadians = previousPose.getHeadingRad() + (-normalizedTargetX*Constants.kCameraHalfFOVRadians);
-			Vector2 prevToTarget = Util.fromMagnitudeAngleRad(prevDistanceToTargetInches, prevHeadingToTargetRadians);
-			targetLocation = (new Vector2(previousPose.getPosition())).add(prevToTarget); 	// make a copy of previousPose so that add doesn't change it
+			Vector prevToTarget = Vector.magnitudeAngle(prevDistanceToTargetInches, prevHeadingToTargetRadians);
+			targetLocation = previousPose.getPosition().add(prevToTarget); 	
 			
 			// filter target location with exponential averaging
 			if (avgCnt == 0)
 				avgTargetLocation = targetLocation;
 			else
-				Util.expAverage(avgTargetLocation, targetLocation, Constants.kTargetLocationFilterConstant);
+				avgTargetLocation = avgTargetLocation.expAverage(targetLocation, Constants.kTargetLocationFilterConstant);
 			avgCnt++;
 		}
 		
@@ -124,10 +122,9 @@ imageTimestamp = currentTime;
 		// drive towards it, even if we didn't get a valid Vision co-processor message this time
 		if (avgCnt > 0)
 		{
-			Vector2 robotToTarget = (new Vector2(avgTargetLocation)).sub(currentPose.getPosition());	// make a copy of avgTargetLocation so that sub doesn't change it
-			distanceToTargetInches = robotToTarget.len();									// distance to target
-			headingToTargetRadians = robotToTarget.angleRad() - currentPose.getHeadingRad();								// change in heading from current pose to target (tangent to circle to be travelled)
-
+			distanceToTargetInches = currentPose.getPosition().distance(avgTargetLocation);
+			headingToTargetRadians = currentPose.getPosition().angle(avgTargetLocation);
+			
 			//---------------------------------------------------
 			// Apply speed control
 			//---------------------------------------------------
@@ -157,8 +154,8 @@ imageTimestamp = currentTime;
 			//---------------------------------------------------
 			// Calculate motor settings to turn towards target   
 			//---------------------------------------------------
-			lookaheadDist = Math.min(Constants.kVisionLookaheadDist, distanceToTargetInches);				// length of chord <= kVisionLookaheadDist
-			curvature = 2.0 * Math.sin(headingToTargetRadians) / lookaheadDist;										// curvature = 1/radius of circle (negative: turn left, positive: turn right)
+			lookaheadDist = Math.min(Constants.kVisionLookaheadDist, distanceToTargetInches);	// length of chord <= kVisionLookaheadDist
+			curvature = 2.0 * Math.sin(headingToTargetRadians) / lookaheadDist;					// curvature = 1/radius of circle (negative: turn left, positive: turn right)
 
 		}
 		else
@@ -209,10 +206,10 @@ imageTimestamp = currentTime;
 			put("VisionDrive/previousPoseHeadingRad", previousPose.getHeadingRad());
 			put("VisionDrive/prevDistanceToTargetInches", prevDistanceToTargetInches);
 			put("VisionDrive/prevHeadingToTargetRadians", prevHeadingToTargetRadians);
-			put("VisionDrive/targetLocationX", targetLocation.x);
-			put("VisionDrive/targetLocationY", targetLocation.y);
-			put("VisionDrive/avgTargetLocationX", avgTargetLocation.x);
-			put("VisionDrive/avgTargetLocationY", avgTargetLocation.y);
+			put("VisionDrive/targetLocationX", targetLocation.getX());
+			put("VisionDrive/targetLocationY", targetLocation.getY());
+			put("VisionDrive/avgTargetLocationX", avgTargetLocation.getX());
+			put("VisionDrive/avgTargetLocationY", avgTargetLocation.getY());
 			put("VisionDrive/avgCnt", avgCnt);
 			put("VisionDrive/currentPoseX", currentPose.getX());
 			put("VisionDrive/currentPoseY", currentPose.getY());

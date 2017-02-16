@@ -2,10 +2,6 @@ package org.team686.lib.util;
 
 import java.text.DecimalFormat;
 
-import org.mini2Dx.gdx.math.*;
-
-
-
 /**
  * A class that stores the pose an object
  * The pose consists of it's position: (x,y) coordinates
@@ -14,144 +10,113 @@ import org.mini2Dx.gdx.math.*;
  */
 public class Pose implements Interpolable<Pose>
 {
-	// using floats to take advantage of libgdx's speed optimizations
-	
-    private Vector2 position;	// position (x,y) in inches
-    private float   heading;	// heading in radians
+    private Vector position;	// position (x,y) in inches
+    private double heading;		// heading in radians
 
-    static public Pose DEFAULT = new Pose(0f, 0f, 0f);
-
+    // constructors
     public Pose() 
     {
-    	this(0f, 0f, 0f);
-    }
-
-    
-    public Pose(float _x, float _y) 
-    {
-    	this(_x, _y, 0.0f);
-    }
-
-    public Pose(float _x, float _y, float _thetaRad) 
-    {
-        position = new Vector2(_x,_y);
-        heading  = _thetaRad;
+    	this(0, 0, 0);
     }
 
     public Pose(double _x, double _y) 
     {
-    	this((float)_x, (float)_y, 0.0f);
+    	this(_x, _y, 0.0);
     }
 
-    public Pose(double _x, double _y, double _thetaRad) 
+    public Pose(double _x, double _y, double _headingRad) 
     {
-    	this((float)_x, (float)_y, (float)_thetaRad);
+        position = new Vector(_x,_y);
+        heading  = _headingRad;
     }
 
-    public Pose(Vector2 _position, float _heading) 
+    public Pose(Vector _position, double _headingRad) 
     {
-    	this.position = _position.cpy();
-    	this.heading  = _heading;
-    }
-
-    public Pose(Vector2 _position, double _heading) 
-    {
-    	this(_position, (float)_heading);
+    	position = new Vector(_position);
+		heading  = _headingRad;
     }
 
     public Pose(Pose that) 
     {
-    	this.position = that.position.cpy();
-    	this.heading  = that.heading;
+    	this(that.position, that.heading);
     }
 
     
-    public static Pose fromMagnitudeAngleRad(float _rho, float _thetaRad)
+	/** multiply by this to convert from radians to degrees */
+	static public final double radiansToDegrees = 180 / Math.PI;
+	static public final double radDeg = radiansToDegrees;
+	/** multiply by this to convert from degrees to radians */
+	static public final double degreesToRadians = Math.PI / 180;
+	static public final double degRad = degreesToRadians;
+    
+    public static Pose fromMagnitudeAngleRad(double _rho, double _thetaRad)
     {
-    	Pose pose = new Pose(_rho, 0.0f, _thetaRad);	// arbitrarily setting heading to thetaRad
-    	pose.position.rotateRad(_thetaRad);
-    	return pose;
+    	Vector p = new Vector(_rho, 0);
+    	p.rotate(_thetaRad);
+    	return new Pose(p, _thetaRad);		// arbitrarily setting heading to thetaRad
     }
     
-    public void set(float _x, float _y, float _thetaRad)
-    {
-    	this.position.set(_x, _y);
-        heading = _thetaRad;
-    }
-
-    public float getX() { return position.x; }
-    public float getY() { return position.y; }
-    public Vector2 getPosition() { return position; }
-    public float getHeadingRad() { return heading; }
-    public float getHeadingDeg() { return heading * MathUtils.radiansToDegrees; }
-    public Vector2 getHeadingVector2() { return new Vector2((float)Math.cos(heading), (float)Math.sin(heading)); }
+    public double getX() { return position.x; }
+    public double getY() { return position.y; }
+    public Vector getPosition() { return position; }
+    public double getHeadingRad() { return heading; }
+    public double getHeadingDeg() { return heading * radiansToDegrees; }
+    public Vector getHeadingUnitVector() { return new Vector(Math.cos(heading), Math.sin(heading)); }
     
     
     // add performs vector translation.  The original heading is not changed
-    public Pose add(Vector2 v)
+    public Pose add(Vector _translation)
     {
-    	position.add(v);
-    	return this;
-    }
-    
-    // adjust Heading
-    public Pose addHeadingRad(double _thetaRad)
-    {
-    	heading += _thetaRad;
-    	return this;
+    	return new Pose(position.add(_translation), heading);
     }
     
     // sub performs vector translation.  The original heading is not changed
-    public Pose sub(Vector2 v)
+    public Pose sub(Vector _translation)
     {
-    	position.sub(v);
-    	return this;
+    	return new Pose(position.sub(_translation), heading);
+    }
+    
+    // adjust heading without changing position
+    public Pose turnRad(double _thetaRad)
+    {
+    	return new Pose(position, heading+_thetaRad);
     }
     
     // performs rotation.  The original (x,y) location is not changed
-    public Pose rotateRad(float radians)
+    public Pose rotateRad(double _thetaRad)
     {
-    	position.rotateRad(radians);
-    	return this;
+    	return new Pose(position.rotate(_thetaRad), heading+_thetaRad);
     }
 
-    // performs rotation.  The original (x,y) location is not changed
-    public Pose rotateDeg(float degrees)
+    // get distance from this pose to vector v
+    public double distance(Vector _that)
     {
-    	position.rotate(degrees);
-    	return this;
-    }
-    
-    public float distance(Vector2 v)
-    {
-    	return position.dst(v);
+    	return position.distance(_that);
     }
 
     // heading from this to that in radians
-    public double headingRadians(Vector2 that)
+    public double headingRad(Vector _that)
     {
-    	Vector2 delta = that.sub(position);		// vector from this to that
-    	return delta.angleRad();
+    	return this.position.angle(_that);
     }
 
     // heading from this to that in degrees
-    public double headingDegrees(Vector2 that)
+    public double headingDeg(Vector _that)
     {
-    	Vector2 delta = that.sub(position);		// vector from this to that
-    	return delta.angle();
+    	return headingRad(_that) * radiansToDegrees;
     }
     
     
     
     public static class Delta
     {
-        public final double dDistance;
-        public final double dHeadingRad;
+        public final double dDistance;		// change in position in inches
+        public final double dHeading;		// change in heading in radians
 
         public Delta(double _dDistance, double _dHeadingRad)
         {
             dDistance = _dDistance;
-            dHeadingRad = _dHeadingRad;
+            dHeading = _dHeadingRad;
         }
     }
     
@@ -164,18 +129,18 @@ public class Pose implements Interpolable<Pose>
 		double D = delta.dDistance;				// distance traveled = arc-length of circle
 		double L = D;							// chord-length
 		
-		double dTheta = delta.dHeadingRad;
+		double dTheta = delta.dHeading;
 		if (dTheta > 1e-9)
 			L = 2*D*Math.sin(dTheta/2)/dTheta;			// chord-length given change in heading
 				
 		double avgHeading = heading + dTheta/2;			// mean of current and final headings
 
 		// update pose
-		Pose newPose = new Pose(this);										// copy current pose
-		Vector2 deltaPosition = Util.fromMagnitudeAngleRad(L, avgHeading);	// calculate change in position
-		newPose.add(deltaPosition);											// update position							
-		newPose.addHeadingRad(dTheta);										// update heading
-		return newPose;														// return new pose
+		Pose newPose = new Pose(this);									// copy current pose
+		Vector deltaPosition = Vector.magnitudeAngle(L, avgHeading);	// calculate change in position
+		newPose.add(deltaPosition);										// update position							
+		newPose.turnRad(dTheta);										// update heading
+		return newPose;													// return new pose
     }
 
     
@@ -196,21 +161,18 @@ public class Pose implements Interpolable<Pose>
     
      // Linear interpolation of poses
     @Override
-    public Pose interpolate(Pose that, double u)
+    public Pose interpolate(Pose _that, double _u)
     {
-    	Pose iPose;
-    	
-        if (u <= 0)
-            iPose = new Pose(this);	
-        else if (u >= 1) 
-            iPose = new Pose(that);
-        else
-        {
-        	Vector2 iPosition = position.lerp(that.position, (float)u);	// use Vector2's linear interpolation method
-        	double  iHeading  = (heading * (1-u)) + (that.heading * u);	// linear interpolation of heading
-        	iPose = new Pose(iPosition, iHeading); 
-        }        
-        return iPose;
+    	double u = _u;
+        if (u < 0)
+            u = 0;	
+        if (u > 1) 
+            u = 1;
+        
+    	Vector iPosition = position.interpolate(_that.position, u);			// interpolate position
+    	double  iHeading = this.heading + u*(this.heading - _that.heading);	// interpolate heading
+    	 
+        return new Pose(iPosition, iHeading);
     }
 
     
