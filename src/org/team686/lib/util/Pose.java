@@ -70,19 +70,26 @@ public class Pose implements Interpolable<Pose>
     	return new Pose(position.add(_translation), heading);
     }
     
-    // sub performs vector translation.  The original heading is not changed
-    public Pose sub(Vector _translation)
+    // returns vector from that to this.position
+    public Vector sub(Vector _translation)
     {
-    	return new Pose(position.sub(_translation), heading);
+    	return position.sub(_translation);
+    }
+    
+    // returns vector from that.position to this.position
+    public Vector sub(Pose _that)
+    {
+    	return this.sub(_that.position);
     }
     
     // adjust heading without changing position
+    // (use rotateRad to rotate about origin)
     public Pose turnRad(double _thetaRad)
     {
     	return new Pose(position, heading+_thetaRad);
     }
     
-    // performs rotation.  The original (x,y) location is not changed
+    // rotates position about origin, and adjusts heading by _thetaRad
     public Pose rotateRad(double _thetaRad)
     {
     	return new Pose(position.rotate(_thetaRad), heading+_thetaRad);
@@ -170,7 +177,7 @@ public class Pose implements Interpolable<Pose>
             u = 1;
         
     	Vector iPosition = position.interpolate(_that.position, u);			// interpolate position
-    	double  iHeading = this.heading + u*(this.heading - _that.heading);	// interpolate heading
+    	double  iHeading = this.heading + u*(_that.heading - this.heading);	// interpolate heading
     	 
         return new Pose(iPosition, iHeading);
     }
@@ -180,9 +187,7 @@ public class Pose implements Interpolable<Pose>
     @Override
     public String toString() 
     {
-        final DecimalFormat fmt = new DecimalFormat("#0.000");
-        String ret = this.position.toString() + ", H:" + fmt.format(this.getHeadingDeg());
-        return ret;
+    	return String.format("%s, H: % 5.1f deg", position.toString(), getHeadingDeg());
     }
 }
 

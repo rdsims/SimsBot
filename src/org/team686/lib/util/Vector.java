@@ -34,10 +34,18 @@ public class Vector implements Interpolable<Vector>
 	public double getY() { return y; }
 
 	
+	// radians<-->degrees conversions
+	static public final double radiansToDegrees = 180 / Math.PI;
+	static public final double radDeg = radiansToDegrees;
+	static public final double degreesToRadians = Math.PI / 180;
+	static public final double degRad = degreesToRadians;
+    
+	
+	
 	// arithmetic
 	public Vector add(Vector _v) { return new Vector(x + _v.x, y + _v.y); }
     public Vector sub(Vector _v) { return new Vector(x - _v.x, y - _v.y); }
-    public Vector neg(Vector _v) { return new Vector(-_v.x, -_v.y); }
+    public Vector neg() { return new Vector(-x, -y); }
 
     // absolute value (length) of vector
     public double abs()
@@ -115,7 +123,7 @@ public class Vector implements Interpolable<Vector>
     }
     
 	// Rotates Vector by the given angle
-	public Vector rotate (double _angleRad)
+	public Vector rotate(double _angleRad)
 	{
 		double cos = Math.cos(_angleRad);
 		double sin = Math.sin(_angleRad);
@@ -123,6 +131,12 @@ public class Vector implements Interpolable<Vector>
 		double x = this.x * cos - this.y * sin;
 		double y = this.x * sin + this.y * cos;
 		return new Vector(x,y);
+	}
+    
+	// Rotates Vector by the given angle
+	public Vector rotateDeg(double _angleDeg)
+	{
+		return this.rotate(_angleDeg * degreesToRadians);
 	}
     
 
@@ -136,8 +150,8 @@ public class Vector implements Interpolable<Vector>
         if (u > 1)
         	u = 1;
         
-        double x = this.x + u*(this.x - that.x);
-        double y = this.y + u*(this.y - that.y);
+        double x = this.x + u*(that.x - this.x);
+        double y = this.y + u*(that.y - this.y);
 		return new Vector(x,y);
     }
     
@@ -145,7 +159,7 @@ public class Vector implements Interpolable<Vector>
 	@Override
 	public String toString ()
 	{
-		return "(" + x + "," + y + ")";
+		return String.format("(% 7.3f, % 7.3f)", x, y);
 	}
     
 }

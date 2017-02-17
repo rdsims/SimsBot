@@ -29,8 +29,6 @@ public class TestVisionDrive
 	final double dt = 1.0/50.0;
 
 	final double targetWidth = 10.25;
-//	Vector2 targetLeft;
-//	Vector2 targetRight;
 
 	ArrayList<Double> cameraTimestampQueue;
 	ArrayList<Double> cameraTargetXQueue;
@@ -48,10 +46,6 @@ public class TestVisionDrive
 		actualRobotLocation  = new Pose( 0, 0,  0);
 		actualTargetLocation = new Pose(96,36,180);
 
-//		Vector targetHalfWidth = Util.fromMagnitudeAngleRad(targetWidth/2, actualTargetLocation.getHeadingRad()+Math.PI/2);
-//		targetLeft  = new Vector2(actualTargetLocation.getPosition()).add(targetHalfWidth);
-//		targetRight = new Vector2(actualTargetLocation.getPosition()).sub(targetHalfWidth);
-		
 		visionDriveAction = new VisionDriveAction(Constants.kVisionMaxVel, Constants.kVisionMaxAccel);
 		currentTime = (double)(System.currentTimeMillis())/1000.0;
 
@@ -93,24 +87,23 @@ public class TestVisionDrive
 			double theta_m = actualRobotLocation.getHeadingRad() + dTheta/2;
 	
 			double D = speed*dt;					// arc-length
-			double L = D;							// chord-length
+			double L = D;							// chord-length (= arc-length if no curvature)
 			if (dTheta > 1e-9)
-				L = 2*D*Math.sin(dTheta/2)/dTheta;		
+				L = 2*D*Math.sin(dTheta/2)/dTheta;	// adjust chord-length for curvature	
 					
 			actualRobotLocation = actualRobotLocation.add(Vector.magnitudeAngle(L, theta_m));
 			actualRobotLocation = actualRobotLocation.turnRad(dTheta);
 			
-//			System.out.println(actualRobotLocation);
-			System.out.println(visionDriveAction.avgTargetLocation);
+System.out.println("Robot: " + actualRobotLocation + ", AvgTarget: " + visionDriveAction.avgTargetLocation);
 			
 			// log RobotPose
 			Pose observation = actualRobotLocation;
 			robotState.addFieldToVehicleObservation(currentTime, observation);
 
 			// calculate relative position of target
-			Vector robotToTarget = new Vector(actualTargetLocation.getPosition()).sub(actualRobotLocation.getPosition());
+			Vector robotToTarget = actualTargetLocation.sub(actualRobotLocation);
 			double  distToTarget = robotToTarget.length(); 
-			double angleToTarget = robotToTarget.angle();
+			double angleToTarget = robotToTarget.angle() - actualRobotLocation.getHeadingRad();
 			
 			// calculate Vision output
 			double imageTimestamp = currentTime;
@@ -133,6 +126,8 @@ public class TestVisionDrive
 			imageTimestamp = cameraTimestampQueue.remove(0);
 			normalizedTargetX = cameraTargetXQueue.remove(0);
 			normalizedTargetWidth = cameraTargetWidthQueue.remove(0);
+			
+System.out.printf("Vision X = % 7.3f, Width = % 7.3f ---- ", normalizedTargetX, normalizedTargetWidth);
 			
 			
 			//---------------------------------------------------

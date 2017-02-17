@@ -3,13 +3,12 @@ package org.team686.lib.util.test;
 import static org.junit.Assert.*;
 
 import org.junit.Test;
-import org.mini2Dx.gdx.math.MathUtils;
-import org.mini2Dx.gdx.math.Vector2;
 import org.team686.lib.util.Pose;
 import org.team686.lib.util.RigidTransform;
+import org.team686.lib.util.Vector;
 
 public class TestRigidTransform2d {
-    public static final double kTestEpsilon = 1E-6;
+    public static final double kTestEpsilon = 1E-9;
 
 /*    
     @Test
@@ -117,69 +116,70 @@ public class TestRigidTransform2d {
     @Test
     public void testTranslation2d() {
         // Test constructors
-        Vector2 pos1 = new Vector2();
-        assertEquals(0, pos1.x, kTestEpsilon);
-        assertEquals(0, pos1.y, kTestEpsilon);
-        assertEquals(0, pos1.len(), kTestEpsilon);
+        Vector pos1 = new Vector();
+        assertEquals(0, pos1.getX(), kTestEpsilon);
+        assertEquals(0, pos1.getY(), kTestEpsilon);
+        assertEquals(0, pos1.length(), kTestEpsilon);
 
-        pos1.x = 3;
-        pos1.y = 4;
-        assertEquals(3, pos1.x, kTestEpsilon);
-        assertEquals(4, pos1.y, kTestEpsilon);
-        assertEquals(5, pos1.len(), kTestEpsilon);
+        pos1.setX(3);
+        pos1.setY(4);
+        assertEquals(3, pos1.getX(), kTestEpsilon);
+        assertEquals(4, pos1.getY(), kTestEpsilon);
+        assertEquals(5, pos1.length(), kTestEpsilon);
 
-        pos1 = new Vector2(3, 4);
-        assertEquals(3, pos1.x, kTestEpsilon);
-        assertEquals(4, pos1.y, kTestEpsilon);
-        assertEquals(5, pos1.len(), kTestEpsilon);
+        pos1 = new Vector(3, 4);
+        assertEquals(3, pos1.getX(), kTestEpsilon);
+        assertEquals(4, pos1.getY(), kTestEpsilon);
+        assertEquals(5, pos1.length(), kTestEpsilon);
 
         // Test inversion
-        pos1 = new Vector2(3.152f, 4.1666f);
-        Vector2 pos2 = new Vector2(0,0).sub(pos1);
-        assertEquals(-pos1.x, pos2.x, kTestEpsilon);
-        assertEquals(-pos1.y, pos2.y, kTestEpsilon);
-        assertEquals(pos1.len(), pos2.len(), kTestEpsilon);
+        pos1 = new Vector(3.152f, 4.1666f);
+        Vector pos2 = pos1.neg();
+        assertEquals(-pos1.getX(), pos2.getX(), kTestEpsilon);
+        assertEquals(-pos1.getY(), pos2.getY(), kTestEpsilon);
+        assertEquals(pos1.length(), pos2.length(), kTestEpsilon);
 
         // Test rotateBy
-        pos1 = new Vector2(2, 0);
-        pos2 = new Vector2(pos1).rotate(90);
-        assertEquals(0, pos2.x, kTestEpsilon);
-        assertEquals(2, pos2.y, kTestEpsilon);
-        assertEquals(pos1.len(), pos2.len(), kTestEpsilon);
+        pos1 = new Vector(2, 0);
+        pos2 = pos1.rotateDeg(90);
+        assertEquals(0, pos2.getX(), kTestEpsilon);
+        assertEquals(2, pos2.getY(), kTestEpsilon);
+        assertEquals(pos1.length(), pos2.length(), kTestEpsilon);
 
-        pos1 = new Vector2(2, 0);
-        pos2 = new Vector2(pos1).rotate(-45);
-        assertEquals(Math.sqrt(2), pos2.x, kTestEpsilon);
-        assertEquals(-Math.sqrt(2), pos2.y, kTestEpsilon);
-        assertEquals(pos1.len(), pos2.len(), kTestEpsilon);
+        pos1 = new Vector(2, 0);
+        pos2 = pos1.rotateDeg(-45);
+        assertEquals(Math.sqrt(2), pos2.getX(), kTestEpsilon);
+        assertEquals(-Math.sqrt(2), pos2.getY(), kTestEpsilon);
+        assertEquals(pos1.length(), pos2.length(), kTestEpsilon);
 
         // Test translateBy
-        pos1 = new Vector2(2, 0);
-        pos2 = new Vector2(-2, 1);
-        Vector2 pos3 = new Vector2(pos1).add(pos2);
-        assertEquals(0, pos3.x, kTestEpsilon);
-        assertEquals(1, pos3.y, kTestEpsilon);
-        assertEquals(1, pos3.len(), kTestEpsilon);
+        pos1 = new Vector(2, 0);
+        pos2 = new Vector(-2, 1);
+        Vector pos3 = pos1.add(pos2);
+        assertEquals(0, pos3.getX(), kTestEpsilon);
+        assertEquals(1, pos3.getY(), kTestEpsilon);
+        assertEquals(1, pos3.length(), kTestEpsilon);
 
         // A translation times its inverse should be the identity
-        Vector2 identity = new Vector2();
-        pos2 = pos1.add(new Vector2(0,0).sub(pos1));
-        assertEquals(identity.x, pos2.x, kTestEpsilon);
-        assertEquals(identity.y, pos2.y, kTestEpsilon);
-        assertEquals(identity.len(), pos2.len(), kTestEpsilon);
+        Vector identity = new Vector();
+        RigidTransform T1 = new RigidTransform(2.16612, -23.55);
+        RigidTransform T2 = T1.transformBy(T1.inverse());
+        assertEquals(identity.getX(), T2.getX(), kTestEpsilon);
+        assertEquals(identity.getY(), T2.getY(), kTestEpsilon);
+        assertEquals(identity.length(), T2.getTranslation().length(), kTestEpsilon);
 
         // Test interpolation
-        pos1 = new Vector2(0, 1);
-        pos2 = new Vector2(10, -1);
-        pos3 = new Vector2(pos1).lerp(pos2, .5f);
-        assertEquals(5, pos3.x, kTestEpsilon);
-        assertEquals(0, pos3.y, kTestEpsilon);
+        pos1 = new Vector(0, 1);
+        pos2 = new Vector(10, -1);
+        pos3 = pos1.interpolate(pos2, .5);
+        assertEquals(5, pos3.getX(), kTestEpsilon);
+        assertEquals(0, pos3.getY(), kTestEpsilon);
 
-        pos1 = new Vector2(0, 1);
-        pos2 = new Vector2(10, -1);
-        pos3 = new Vector2(pos1).lerp(pos2, .75f);
-        assertEquals(7.5, pos3.x, kTestEpsilon);
-        assertEquals(-.5, pos3.y, kTestEpsilon);
+        pos1 = new Vector(0, 1);
+        pos2 = new Vector(10, -1);
+        pos3 = pos1.interpolate(pos2, .75);
+        assertEquals(7.5, pos3.getX(), kTestEpsilon);
+        assertEquals(-.5, pos3.getY(), kTestEpsilon);
     }
 
     @Test
@@ -190,21 +190,21 @@ public class TestRigidTransform2d {
         assertEquals(0, pose1.getY(), kTestEpsilon);
         assertEquals(0, pose1.getHeadingDeg(), kTestEpsilon);
 
-        pose1 = new Pose(new Vector2(3, 4), 45*MathUtils.degreesToRadians);
+        pose1 = new Pose(3, 4, 45*Vector.degreesToRadians);
         assertEquals(3, pose1.getX(), kTestEpsilon);
         assertEquals(4, pose1.getY(), kTestEpsilon);
         assertEquals(45, pose1.getHeadingDeg(), kTestEpsilon);
 
         // Test transformation
-        pose1 = new Pose(new Vector2(3, 4), 90*MathUtils.degreesToRadians);
-        RigidTransform T = new RigidTransform(new Vector2(1, 0), 0);
+        pose1 = new Pose(3, 4, 90*Vector.degreesToRadians);
+        RigidTransform T = new RigidTransform(1, 0, 0);
         Pose pose3 = pose1.transformBy(T);
         assertEquals(3, pose3.getX(), kTestEpsilon);
         assertEquals(5, pose3.getY(), kTestEpsilon);
         assertEquals(90, pose3.getHeadingDeg(), kTestEpsilon);
 
-        pose1 = new Pose(new Vector2(3, 4),  90*MathUtils.degreesToRadians);
-        T = new RigidTransform(new Vector2(1, 0), -90*MathUtils.degreesToRadians);
+        pose1 = new Pose(3, 4,  90*Vector.degreesToRadians);
+        T = new RigidTransform(1, 0, -90*Vector.degreesToRadians);
         pose3 = pose1.transformBy(T);
         assertEquals(3, pose3.getX(), kTestEpsilon);
         assertEquals(5, pose3.getY(), kTestEpsilon);
@@ -212,22 +212,22 @@ public class TestRigidTransform2d {
 
         // A pose times its inverse should be the identity
         RigidTransform identity = new RigidTransform();
-        RigidTransform T1 = new RigidTransform(new Vector2(3.51512152f, 4.23f), 91.6*MathUtils.degreesToRadians);
+        RigidTransform T1 = new RigidTransform(3.51512152, 4.23, 91.6*Vector.degreesToRadians);
         RigidTransform T2 = T1.transformBy(T1.inverse());
         assertEquals(identity.getX(), T2.getX(), kTestEpsilon);
         assertEquals(identity.getY(), T2.getY(), kTestEpsilon);
         assertEquals(identity.getRotationDeg(), T2.getRotationDeg(), kTestEpsilon);
 
         // Test interpolation
-        pose1 = new Pose(new Vector2(3, 4), 90*MathUtils.degreesToRadians);
-        Pose pose2 = new Pose(new Vector2(13, -6), -90*MathUtils.degreesToRadians);
+        pose1 = new Pose(3, 4, 90*Vector.degreesToRadians);
+        Pose pose2 = new Pose(13, -6, -90*Vector.degreesToRadians);
         pose3 = pose1.interpolate(pose2, .5);
         assertEquals(8, pose3.getX(), kTestEpsilon);
         assertEquals(-1, pose3.getY(), kTestEpsilon);
         assertEquals(0, pose3.getHeadingDeg(), kTestEpsilon);
 
-        pose1 = new Pose(new Vector2(3, 4), 90*MathUtils.degreesToRadians);
-        pose2 = new Pose(new Vector2(13, -6), -90*MathUtils.degreesToRadians);
+        pose1 = new Pose(3, 4, 90*Vector.degreesToRadians);
+        pose2 = new Pose(13, -6, -90*Vector.degreesToRadians);
         pose3 = pose1.interpolate(pose2, .75);
         assertEquals(10.5, pose3.getX(), kTestEpsilon);
         assertEquals(-3.5, pose3.getY(), kTestEpsilon);

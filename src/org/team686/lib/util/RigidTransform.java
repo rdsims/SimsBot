@@ -102,10 +102,8 @@ public class RigidTransform implements Interpolable<RigidTransform>
      */
     public RigidTransform rotateRad(float _rotationRad)
     {
-    	// caution: rotation affects this 
-    	translation.rotate(_rotationRad);			// rotate translation by _rotationRad
-    	// this.rotation is not affected
-    	return this; 
+    	return new RigidTransform(translation.rotate(_rotationRad), rotation);	// rotate translation by _rotationRad
+    																			// this.rotation is not affected
     }
     
     /**
@@ -115,8 +113,7 @@ public class RigidTransform implements Interpolable<RigidTransform>
     public RigidTransform inverse()
     {
     	RigidTransform T = new RigidTransform(-this.translation.x, -this.translation.y, 0);	// invert translation
-    	T.rotateRad(-this.rotation);														// rotate translation by inverse of rotation
-    	T.rotation = -this.rotation;														// invert rotation
+    	T = T.rotateRad(-this.rotation);													// rotate translation by inverse of rotation
     	return T;												
     }
     
@@ -134,7 +131,7 @@ public class RigidTransform implements Interpolable<RigidTransform>
             u = 1;
         
     	Vector iTranslation = translation.interpolate(_that.translation, u);	// interpolate position
-    	double  iRotation = this.rotation + u*(this.rotation - _that.rotation);	// interpolate heading
+    	double  iRotation = this.rotation + u*(_that.rotation - this.rotation);	// interpolate heading
     	 
         return new RigidTransform(iTranslation, iRotation);
     }

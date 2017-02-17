@@ -73,7 +73,7 @@ public class VisionDriveAction implements Action
 		normalizedTargetX 	  = visionStatus.getNormalizedTargetX();
 		normalizedTargetWidth = visionStatus.getNormalizedTargetWidth();
 
-		Pose currentPose = robotState.getLatestFieldToVehicle();		
+		currentPose = robotState.getLatestFieldToVehicle();		
 
 		currentTime = Timer.getFPGATimestamp();
 
@@ -82,7 +82,7 @@ imageTimestamp = currentTime;
 		imageTimestamp -= Constants.kCameraLatencySeconds;		// remove camera latency
 		
 		// calculate target location based on *previous* robot pose
-		Pose previousPose = robotState.getFieldToVehicle(imageTimestamp);
+		previousPose = robotState.getFieldToVehicle(imageTimestamp);
 
 		//---------------------------------------------------
 		// Process
@@ -122,8 +122,9 @@ imageTimestamp = currentTime;
 		// drive towards it, even if we didn't get a valid Vision co-processor message this time
 		if (avgCnt > 0)
 		{
-			distanceToTargetInches = currentPose.getPosition().distance(avgTargetLocation);
-			headingToTargetRadians = currentPose.getPosition().angle(avgTargetLocation);
+			Vector robotToTarget = avgTargetLocation.sub(currentPose.getPosition());
+			distanceToTargetInches = robotToTarget.length();
+			headingToTargetRadians = robotToTarget.angle() - currentPose.getHeadingRad();
 			
 			//---------------------------------------------------
 			// Apply speed control
@@ -155,7 +156,7 @@ imageTimestamp = currentTime;
 			// Calculate motor settings to turn towards target   
 			//---------------------------------------------------
 			lookaheadDist = Math.min(Constants.kVisionLookaheadDist, distanceToTargetInches);	// length of chord <= kVisionLookaheadDist
-			curvature = 2.0 * Math.sin(headingToTargetRadians) / lookaheadDist;					// curvature = 1/radius of circle (negative: turn left, positive: turn right)
+			curvature     = 2 * Math.sin(headingToTargetRadians) / lookaheadDist;				// curvature = 1/radius of circle (positive: turn left, negative: turn right)
 
 		}
 		else
