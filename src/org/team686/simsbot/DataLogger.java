@@ -21,6 +21,11 @@ public abstract class DataLogger
 		logMap.put(name, Double.valueOf(value));
 	}
 	
+	public void put(String name, float value)
+	{
+		logMap.put(name, Double.valueOf((double)value));
+	}
+	
 	public void put(String name, int value)
 	{
 		logMap.put(name, Integer.valueOf(value));

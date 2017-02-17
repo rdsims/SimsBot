@@ -9,8 +9,11 @@
 	<classpathentry kind="var" path="USERLIBS_DIR/libgdx-math.jar" sourcepath="/LIBGDX_MATH_HOME"/>
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="src" path="test"/>
+<<<<<<< HEAD
 	<classpathentry kind="var" path="USERLIBS_DIR/hamcrest-core-1.3.jar"/>
 	<classpathentry kind="var" path="USERLIBS_DIR/junit-4.12.jar"/>
+=======
+>>>>>>> refs/remotes/origin/unit_test
 	<classpathentry kind="var" path="USERLIBS_DIR/TalonSRXLibJava.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

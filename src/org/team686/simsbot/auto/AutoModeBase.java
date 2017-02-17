@@ -64,14 +64,16 @@ public abstract class AutoModeBase
 
     public void runAction(Action action) throws AutoModeEndedException 
     {
-        isActiveWithThrow();
         autoLogger.deregister();						// remove previous action loggers from registry
-        autoLogger.register(action.getLogger());		// register logger for new action
+        autoLogger.register(action.getLogger());		// register logger for new action        isActiveWithThrow();
+        autoLogger.setOutputMode(true, true);
+        
         action.start();
         while (isActiveWithThrow() && !action.isFinished()) 
         {
             action.update();
             autoLogger.log();
+            
             long waitTime = (long) (m_update_rate * 1000.0);	// TODO: use timer to get more consistent update periods
             try
             {
