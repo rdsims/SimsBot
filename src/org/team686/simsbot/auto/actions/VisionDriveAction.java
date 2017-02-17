@@ -77,8 +77,8 @@ public class VisionDriveAction implements Action
 		normalizedTargetX 	  = visionStatus.getNormalizedTargetX();
 		normalizedTargetWidth = visionStatus.getNormalizedTargetWidth();
 
-		RigidTransform2d  cPose = robotState.getLatestFieldToVehicle();		// using CheesyPoof's RigidTransform2d for now.  TODO: replace		
-		Pose currentPose = new Pose(cPose.getTranslation().getX(), cPose.getTranslation().getY(), cPose.getRotation().getRadians());
+		RigidTransform2d  cPose = robotState.getLatestFieldToVehicle();		// using CheesyPoof's RigidTransform2d for now.  TODO: replace
+		currentPose = new Pose(cPose.getTranslation().getX(), cPose.getTranslation().getY(), cPose.getRotation().getRadians());
 
 		currentTime = Timer.getFPGATimestamp();
 
@@ -88,7 +88,7 @@ imageTimestamp = currentTime;
 		
 		// calculate target location based on *previous* robot pose
 		RigidTransform2d pPose = robotState.getFieldToVehicle(imageTimestamp);	// using CheesyPoof's RigidTransform2d for now  TODO: replace
-		Pose previousPose = new Pose(pPose.getTranslation().getX(), pPose.getTranslation().getY(), pPose.getRotation().getRadians());
+		previousPose = new Pose(pPose.getTranslation().getX(), pPose.getTranslation().getY(), pPose.getRotation().getRadians());
 
 		//---------------------------------------------------
 		// Process
@@ -131,6 +131,7 @@ imageTimestamp = currentTime;
 			Vector2 robotToTarget = (new Vector2(avgTargetLocation)).sub(currentPose.getPosition());	// make a copy of avgTargetLocation so that sub doesn't change it
 			distanceToTargetInches = robotToTarget.len();									// distance to target
 			headingToTargetRadians = robotToTarget.angleRad() - currentPose.getHeadingRad();								// change in heading from current pose to target (tangent to circle to be travelled)
+System.out.println(distanceToTargetInches);		
 
 			//---------------------------------------------------
 			// Apply speed control
