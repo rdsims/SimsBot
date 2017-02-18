@@ -44,8 +44,8 @@ public class SquarePatternMode extends AutoModeBase {
         return_path.add(new Waypoint(new Vector( D, 0), vel));
         return_path.add(new Waypoint(new Vector( 0, 0), vel));
         
-        runAction(new FollowPathAction(new Path(first_path), false));   
+        runAction(new PathFollowerAction(new Path(first_path), false));   
         
-        runAction(new FollowPathAction(new Path(return_path), true));       		         
+        runAction(new PathFollowerAction(new Path(return_path), true));       		         
     }
 }

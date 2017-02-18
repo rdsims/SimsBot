@@ -20,9 +20,6 @@ public class RobotStateLoop implements Loop
     RobotState robotState;
     DriveStatus driveStatus;
     
-    double prevLeftDistance = 0;
-    double prevRightDistance = 0;
-    
     RobotStateLoop() 
     {
         robotState = RobotState.getInstance();
@@ -34,8 +31,7 @@ public class RobotStateLoop implements Loop
     @Override
     public void onStart() 
     {
-        prevLeftDistance  = driveStatus.getLeftDistanceInches();
-        prevRightDistance = driveStatus.getRightDistanceInches();
+    	robotState.setPrevEncoderDistance(driveStatus.getLeftDistanceInches(), driveStatus.getRightDistanceInches());
     }
 
     @Override
@@ -48,12 +44,10 @@ public class RobotStateLoop implements Loop
         double rightSpeed    = driveStatus.getRightSpeedInchesPerSec(); 
         double gyroAngleRad  = driveStatus.getHeadingRad();
 
-        Pose odometry = robotState.generateOdometryFromSensors(leftDistance-prevLeftDistance, rightDistance-prevRightDistance, gyroAngleRad);
+        Pose odometry = robotState.generateOdometryFromSensors(leftDistance, rightDistance, gyroAngleRad);
         Pose.Delta velocity = Kinematics.forwardKinematics(leftSpeed, rightSpeed);
                 
         robotState.addObservations(time, odometry, velocity);
-        prevLeftDistance = leftDistance;
-        prevRightDistance = rightDistance;
     }
 
     @Override

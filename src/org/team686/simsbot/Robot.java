@@ -55,11 +55,6 @@ public class Robot extends IterativeRobot
 		CrashTracker.logRobotConstruction();
 	}
 
-	public void zeroAllSensors() {
-		drive.zeroSensors();
-		mRobotState.reset(Timer.getFPGATimestamp(), new Pose() );
-	}
-
 	/**
 	 * This function is run when the robot is first started up and should be
 	 * used for any initialization code.
@@ -101,6 +96,15 @@ public class Robot extends IterativeRobot
 		}
 	}
 
+	public void zeroAllSensors() 
+	{
+		drive.zeroSensors();
+		// mSuperstructure.zeroSensors();
+
+		mRobotState.reset(Timer.getFPGATimestamp(), new Pose() );
+	}
+
+	
 	public void stopAll() 
 	{
 		drive.stop();
@@ -115,7 +119,7 @@ public class Robot extends IterativeRobot
 	public void disabledInit() 
 	{
 		operationalMode = OperationalMode.DISABLED;
-		boolean logToFile = false;
+		boolean logToFile = true;
 		boolean logToSmartDashboard = true;
 		robotLogger.setOutputMode(logToFile, logToSmartDashboard);
 		
@@ -128,11 +132,10 @@ public class Robot extends IterativeRobot
 			}
 			mAutoModeExecuter = null;
 
-			loopController.stop();
+			loopController.stop();	
 
-			drive.setOpenLoop(DriveCommand.NEUTRAL);
-
-			stopAll(); // Stop all actuators
+			stopAll(); 			// stop all actuators
+			zeroAllSensors();	// keep sensors in reset, as robot is moved onto field
 
 		} 
 		catch (Throwable t) 
@@ -147,8 +150,8 @@ public class Robot extends IterativeRobot
 	{
 		try 
 		{
-			stopAll();
-			drive.resetEncoders();
+			stopAll(); 			// stop all actuators
+			zeroAllSensors();	// keep sensors in reset, as robot is moved onto field
 
 			System.gc(); // runs garbage collector
 		} 
@@ -180,25 +183,16 @@ public class Robot extends IterativeRobot
 			}
 			mAutoModeExecuter = null;
 
-			// Reset all sensors
-			drive.resetEncoders();
-			zeroAllSensors();
+			zeroAllSensors();		// one last reset of sensors.  Will not be reset during auto or teleop
+
+			Pose startPose = mSmartDashboardInteractions.getStartPose();
+			System.out.println("InitialPosition: " + startPose);
+			mRobotState.reset(0.0, startPose);			
+			
+			mAutoModeExecuter = new AutoModeExecuter();
+			mAutoModeExecuter.setAutoMode(mSmartDashboardInteractions.getAutoModeSelection());
 
 			loopController.start();
-
-			mAutoModeExecuter = new AutoModeExecuter();
-			mAutoModeExecuter.setAutoMode(mSmartDashboardInteractions.getSelectedAutonMode());
-
-/*			
-			AutoModeBase mAutoMode = mAutoModeExecuter.getAutoMode();
-			if (mAutoMode instanceof AutoPlacePegMode) {
-				Vector2 initialPosition = mAutoMode.getInitialPosition();
-				Rotation2d initialHeading = new Rotation2d();
-				System.out.println("InitialPosition: (" + initialPosition.getX() + ", " + initialPosition.getY() + ")");
-				mRobotState.reset(0.0, new RigidTransform2d(initialPosition, initialHeading), new Rotation2d());
-			}
-*/
-			
 			mAutoModeExecuter.start();
 
 		} 
@@ -243,13 +237,10 @@ public class Robot extends IterativeRobot
 			// Select joystick control method
 			controls = mSmartDashboardInteractions.getJoystickControlsMode();
 
-			// Reset drive
-			drive.resetEncoders();
-
 			// Configure looper
 			loopController.start();
 
-			drive.setOpenLoop(DriveCommand.NEUTRAL);
+			drive.setOpenLoop(DriveCommand.NEUTRAL());
 
 		} 
 		catch (Throwable t) 

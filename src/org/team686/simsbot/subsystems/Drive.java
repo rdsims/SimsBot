@@ -2,7 +2,6 @@ package org.team686.simsbot.subsystems;
 
 import edu.wpi.first.wpilibj.Timer;
 
-import org.team686.lib.util.AdaptivePurePursuitController;
 import org.team686.lib.util.DriveCommand;
 import org.team686.lib.util.DriveCommand.DriveControlMode;
 import org.team686.lib.util.DriveStatus;
@@ -30,8 +29,8 @@ public class Drive extends Subsystem
 	public static Drive getInstance() { return instance; }
 
 	// drive commands
-	private DriveCommand driveCmd = DriveCommand.NEUTRAL;
-	private boolean resetEncoderCmd = false;
+	private DriveCommand driveCmd;
+	private boolean resetEncoderCmd;
 
 	// drive status
 	public DriveStatus driveStatus;
@@ -39,16 +38,14 @@ public class Drive extends Subsystem
 	// velocity heading
 	private VelocityHeadingSetpoint velocityHeadingSetpoint = new VelocityHeadingSetpoint();
 
-	// path following
-	private AdaptivePurePursuitController pathFollowingController;
-
 	
 
 	// The constructor instantiates all of the drivetrain components when the
 	// robot powers up
 	private Drive() 
 	{
-		driveCmd = DriveCommand.NEUTRAL;		
+		driveCmd = DriveCommand.NEUTRAL();	
+		resetEncoderCmd = false;
 		driveStatus = DriveStatus.getInstance();
 	}
 
@@ -57,13 +54,12 @@ public class Drive extends Subsystem
 	/*
 	 * Loop to tend to velocity control loops, where Talon SRXs are monitoring the wheel velocities
 	 */
-    private final Loop velocityPIDLoop = new Loop() 
+    private final Loop velocityControlLoop = new Loop() 
     {
         @Override
         public void onStart()
         {
-            setOpenLoop(DriveCommand.NEUTRAL);
-            pathFollowingController = null;
+            setOpenLoop(DriveCommand.NEUTRAL());
         }
 
         @Override
@@ -85,13 +81,6 @@ public class Drive extends Subsystem
     				updateVelocityHeading();
     				return;
     				
-    			case PATH_FOLLOWING:
-    				// Need to adjust left/right motor velocities to follow path
-    				updatePathFollower();
-    				if(isFinishedPath())
-    					stop();
-    				break;
-    				
     			default:
     				System.out.println("Unexpected drive control state: " + driveCmd.getDriveControlMode());
     				break;
@@ -101,11 +90,11 @@ public class Drive extends Subsystem
         @Override
         public void onStop() 
         {
-            setOpenLoop(DriveCommand.NEUTRAL);
+            setOpenLoop(DriveCommand.NEUTRAL());
         }
     };
 
-    public Loop getVelocityPIDLoop() { return velocityPIDLoop; }
+    public Loop getVelocityPIDLoop() { return velocityControlLoop; }
     
     
     /*
@@ -145,8 +134,6 @@ public class Drive extends Subsystem
 	public void setCommand(DriveCommand cmd) { driveCmd = cmd; }
 	public DriveCommand getCommand() { return driveCmd; }
 
-	public void resetEncoders() { setResetEncoderCmd(true); }
-	
     public void setResetEncoderCmd(boolean flag) { resetEncoderCmd = flag; }		// will be picked up by DriveLoop on next iteration
     public boolean getResetEncoderCmd() { return resetEncoderCmd; }
 	
@@ -189,59 +176,13 @@ public class Drive extends Subsystem
 
 	
 	/**************************************************************************
-	 * Path Follower Code
-	 * (updates VelocitySetpoints in order to follow a path)
+	 * driveCurve()
+	 * 
+	 * Updates VelocitySetpoints in order to follow a path
+	 * Used by PathFollowerAction, VisionDriveAction
 	 *************************************************************************/
 	
-	/**
-	 * The robot follows a set path, which is defined by Waypoint objects.
-	 * 
-	 * @param Path
-	 *            to follow
-	 * @param _reversed
-	 * @see com.team254.lib.util/Path.java
-	 */
-	public void followPath(Path _path, boolean	_reversed) 
-	{
-		driveCmd.setDriveMode(DriveControlMode.PATH_FOLLOWING);
-		pathFollowingController = new AdaptivePurePursuitController(Constants.kPathFollowingLookahead,
-				Constants.kPathFollowingMaxAccel, Constants.kLoopDt, _path, _reversed, 1.0);
-		updatePathFollower();
-	}
-
-	/**
-	 * @return Returns if the robot mode is Path Following Control and the set
-	 *         path is complete.
-	 */
-	public boolean isFinishedPath()
-	{
-		if (driveCmd.getDriveControlMode() == DriveControlMode.PATH_FOLLOWING)
-			return pathFollowingController.isDone();
-		else
-			return true;
-	}
-
-	private void updatePathFollower() 
-	{
-// TODO: update AdaptivePurePursuitController to be like VisionDriveAction
-// have it call driveCurve()		
-		Pose robot_pose = RobotState.getInstance().getLatestFieldToVehicle();
-		Pose.Delta command = pathFollowingController.update(robot_pose, Timer.getFPGATimestamp());
-		Kinematics.DriveVelocity setpoint = Kinematics.inverseKinematics(command);
-
-		// Scale the command to respect the max velocity limits
-		double max_vel = 0.0;
-		max_vel = Math.max(max_vel, Math.abs(setpoint.left));
-		max_vel = Math.max(max_vel, Math.abs(setpoint.right));
-		if (max_vel > Constants.kPathFollowingMaxVel) 
-		{
-			double scaling = Constants.kPathFollowingMaxVel / max_vel;
-			setpoint = new Kinematics.DriveVelocity(setpoint.left * scaling, setpoint.right * scaling);
-		}
-		updateVelocitySetpoint(setpoint.left, setpoint.right);
-	}
-
-    public void driveCurve(double _robotSpeed, double _curvature, double _wheelSpeedLimit)
+	public void driveCurve(double _robotSpeed, double _curvature, double _wheelSpeedLimit)
     {
         // robotSpeed: desired forward speed of robot
         // curvature: curvature of circle to follow.  Curvature = 1/radius.  positive-->turn right, negative-->turn left
@@ -312,7 +253,7 @@ public class Drive extends Subsystem
 	@Override
 	public void stop()
 	{ 
-		setOpenLoop(DriveCommand.NEUTRAL); 
+		setOpenLoop(DriveCommand.NEUTRAL()); 
 	}
 
 	@Override

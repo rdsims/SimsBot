@@ -4,6 +4,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 import org.team686.lib.joystick.*;
+import org.team686.lib.util.Pose;
 import org.team686.simsbot.auto.AutoModeBase;
 import org.team686.simsbot.auto.modes.*;
 
@@ -18,11 +19,11 @@ import org.team686.simsbot.auto.modes.*;
  */
 public class SmartDashboardInteractions {
 
-    SendableChooser<AutonOption> autoModeChooser;
-    SendableChooser<Integer> autoLaneChooser;
+    SendableChooser<AutoModeOption> autoModeChooser;
+    SendableChooser<AutoStartOption> startPositionChooser;
     SendableChooser<Integer> autoShootChooser;
     
-    enum AutonOption 
+    enum AutoModeOption 
     {
         PLACE_PEG("Place Peg"),
         STAND_STILL("Stand Still"),
@@ -31,22 +32,26 @@ public class SmartDashboardInteractions {
 
         public final String name;
 
-        AutonOption(String name) {
+        AutoModeOption(String name) {
             this.name = name;
         }
     }
 
-    enum AutonLane 
+    enum AutoStartOption 
     {
-        LANE_1(160, "1"), LANE_2(205, "2"), LANE_3(160, "3"), LANE_4(155, "4"), LANE_5(220, "5");
+        START_POS_1("Position 1", 1, new Pose(1,1,0)), 
+        START_POS_2("Position 2", 2, new Pose(2,2,0)), 
+        START_POS_3("Position 3", 3, new Pose(3,3,0));
 
-        public final double distanceToDrive;
-        public final String numberString;
+        public String name;
+        public int number;
+        public Pose startPose;
 
-        AutonLane(double distanceToDrive, String numberString)
+        AutoStartOption(String _name, int _number, Pose _startPose)
         {
-            this.distanceToDrive = distanceToDrive;
-            this.numberString = numberString;
+            name = _name;
+            number = _number;
+            startPose = _startPose;
         }
     }
     
@@ -74,18 +79,18 @@ public class SmartDashboardInteractions {
     
     public void initWithDefaults() 
     {
-    	autoModeChooser = new SendableChooser<AutonOption>();
-    	autoModeChooser.addObject(AutonOption.STAND_STILL.toString(),    AutonOption.STAND_STILL);
-    	autoModeChooser.addDefault( AutonOption.PLACE_PEG.toString(),      AutonOption.PLACE_PEG);
-    	autoModeChooser.addObject( AutonOption.DRIVE_STRAIGHT.toString(), AutonOption.DRIVE_STRAIGHT);
-    	autoModeChooser.addObject( AutonOption.SQUARE_PATTERN.toString(), AutonOption.SQUARE_PATTERN);
+    	autoModeChooser = new SendableChooser<AutoModeOption>();
+    	autoModeChooser.addObject(AutoModeOption.STAND_STILL.toString(),    AutoModeOption.STAND_STILL);
+    	autoModeChooser.addDefault( AutoModeOption.PLACE_PEG.toString(),      AutoModeOption.PLACE_PEG);
+    	autoModeChooser.addObject( AutoModeOption.DRIVE_STRAIGHT.toString(), AutoModeOption.DRIVE_STRAIGHT);
+    	autoModeChooser.addObject( AutoModeOption.SQUARE_PATTERN.toString(), AutoModeOption.SQUARE_PATTERN);
     	SmartDashboard.putData("Auto Mode Chooser", autoModeChooser);
     	
-    	autoLaneChooser = new SendableChooser<Integer>();
-    	autoLaneChooser.addDefault("Lane 1", 1);
-    	autoLaneChooser.addObject( "Lane 2", 2);
-    	autoLaneChooser.addObject( "Lane 3", 3);
-    	SmartDashboard.putData("Auto Lane Chooser", autoLaneChooser);
+    	startPositionChooser = new SendableChooser<AutoStartOption>();
+    	startPositionChooser.addDefault(AutoStartOption.START_POS_1.toString(), AutoStartOption.START_POS_1);
+    	startPositionChooser.addObject( AutoStartOption.START_POS_2.toString(), AutoStartOption.START_POS_2);
+    	startPositionChooser.addObject( AutoStartOption.START_POS_3.toString(), AutoStartOption.START_POS_3);
+    	SmartDashboard.putData("Start Position Chooser", startPositionChooser);
     	
     	autoShootChooser = new SendableChooser<Integer>();
     	autoShootChooser.addDefault("Do Not Shoot", 0);
@@ -105,10 +110,11 @@ public class SmartDashboardInteractions {
     	
      }
     
-    public AutoModeBase getSelectedAutonMode() 
+    
+    public AutoModeBase getAutoModeSelection() 
     {
-    	AutonOption selMode = (AutonOption)autoModeChooser.getSelected(); 
-    	int selLane = (int)autoLaneChooser.getSelected();
+    	AutoModeOption selMode = (AutoModeOption)autoModeChooser.getSelected(); 
+    	int selLane = startPositionChooser.getSelected().number;
     	
     	switch (selMode)
     	{
@@ -129,6 +135,13 @@ public class SmartDashboardInteractions {
             System.out.println("ERROR: unexpected auto mode: " + selMode);
 			return new StandStillMode();
     	}
+    }
+
+
+    public Pose getStartPose() 
+    {
+    	AutoStartOption selection = (AutoStartOption)startPositionChooser.getSelected();
+    	return new Pose(selection.startPose);
     }
 
 

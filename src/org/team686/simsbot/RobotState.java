@@ -56,6 +56,9 @@ public class RobotState
     protected InterpolatingTreeMap<InterpolatingDouble, Pose> fieldToRobot;
     protected Pose.Delta robotSpeed;
 
+    private double prevLeftDistance = 0;
+    private double prevRightDistance = 0;
+    
     protected RobotState() { reset(0, new Pose()); }
 
 	public synchronized void reset(double start_time, Pose initialFieldToRobot) 
@@ -63,8 +66,16 @@ public class RobotState
         fieldToRobot = new InterpolatingTreeMap<>(kObservationBufferSize);
         fieldToRobot.put(new InterpolatingDouble(start_time), initialFieldToRobot);
         robotSpeed = new Pose.Delta(0, 0);
+        
+        setPrevEncoderDistance(0, 0);
     }
 
+	public void setPrevEncoderDistance(double _prevLeftDistance, double _prevRightDistance)
+	{
+        prevLeftDistance  = _prevLeftDistance;
+        prevRightDistance = _prevRightDistance;     
+	}
+	 	
 	public synchronized Pose getFieldToVehicle(double timestamp) 
 	{
         return fieldToRobot.getInterpolated(new InterpolatingDouble(timestamp));
@@ -92,10 +103,18 @@ public class RobotState
         robotSpeed = velocity;
     }
 
-    public Pose generateOdometryFromSensors(double lEncoderDeltaDistance, double rEncoderDeltaDistance, double gyroAngleRad) 
+    public Pose generateOdometryFromSensors(double lEncoderDistance, double rEncoderDistance, double gyroAngleRad) 
     {
         Pose lastPose = getLatestFieldToVehicle();
-        return Kinematics.integrateForwardKinematics(lastPose, lEncoderDeltaDistance, rEncoderDeltaDistance, gyroAngleRad);
+        
+        // get change in encoder distance from last call
+        double dLeftDistance  = lEncoderDistance - prevLeftDistance; 
+        double dRightDistance = rEncoderDistance - prevRightDistance;
+
+        prevLeftDistance  = lEncoderDistance;
+        prevRightDistance = rEncoderDistance;
+                
+        return Kinematics.integrateForwardKinematics(lastPose, dLeftDistance, dRightDistance, gyroAngleRad);
     }
 
     

@@ -26,8 +26,6 @@ public class DriveLoop implements Loop
 	private static BNO055 imu;
     private DriveStatus driveStatus;
     
-	DriveCommand currentState;
-    
 	public final CANTalon lMotor, rMotor;
 
 	private static final int kVelocityControlSlot = 0;
@@ -48,13 +46,17 @@ public class DriveLoop implements Loop
 		rMotor.setStatusFrameRateMs(CANTalon.StatusFrameRate.Feedback, 10);
 
 		// Set initial settings
-		currentState = DriveCommand.NEUTRAL;
+		DriveCommand neutralCmd = DriveCommand.NEUTRAL();
+		setControlMode(neutralCmd);
+		setMotors(neutralCmd);
+		setBrakeMode(neutralCmd);
+		
         lMotor.changeControlMode(CANTalon.TalonControlMode.PercentVbus);
         rMotor.changeControlMode(CANTalon.TalonControlMode.PercentVbus);
 		lMotor.set(0);
 		rMotor.set(0);
-		lMotor.enableBrakeMode(true);
-		rMotor.enableBrakeMode(true);
+		lMotor.enableBrakeMode(false);
+		rMotor.enableBrakeMode(false);
 
 		// Set up the encoders
 		lMotor.setFeedbackDevice(CANTalon.FeedbackDevice.QuadEncoder);
@@ -107,7 +109,8 @@ public class DriveLoop implements Loop
 
 	private void stopMotors()
 	{
-		drive.setCommand(DriveCommand.NEUTRAL);		// override any incoming commands
+		System.out.println("Stop Motors");
+		drive.setCommand(DriveCommand.NEUTRAL());		// override any incoming commands
 		sendCommands();
 	}
 
@@ -148,8 +151,8 @@ public class DriveLoop implements Loop
 		synchronized(newCmd)	// lock DriveCommand so no one changes it under us while we are sending the commands
 		{
 			setControlMode(newCmd);
-			setBrakeMode(newCmd);
 			setMotors(newCmd);
+			setBrakeMode(newCmd);
 		}
 	}
 	

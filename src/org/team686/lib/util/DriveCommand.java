@@ -42,7 +42,7 @@ public class DriveCommand
 	// all member variables should be private to force other object to use the set/get access methods
 	// which are synchronized to allow multi-thread synchronization	
 	private DriveControlMode driveMode = DriveControlMode.OPEN_LOOP;
-	private TalonControlMode talonMode = TalonControlMode.Disabled;
+	private TalonControlMode talonMode = TalonControlMode.PercentVbus;
 	private double left;
 	private double right;
 	private boolean brake;
@@ -101,11 +101,14 @@ public class DriveCommand
     public synchronized void    setBrake(boolean _brake) { brake = _brake; }
     public synchronized boolean getBrake()  { return brake; }
     
-    public static DriveCommand NEUTRAL = new DriveCommand(DriveControlMode.OPEN_LOOP, 0, 0, false);
-    public static DriveCommand BRAKE   = new DriveCommand(DriveControlMode.OPEN_LOOP, 0, 0, true);
-
+    // special constant commands
+    public static DriveCommand NEUTRAL() { return new DriveCommand(DriveControlMode.OPEN_LOOP, 0, 0, false); }
+    public static DriveCommand BRAKE()   { return new DriveCommand(DriveControlMode.OPEN_LOOP, 0, 0, true); }
+    
+    
     @Override
-    public synchronized String toString() {
-        return "L: " + left + ", R: " + right;
+    public synchronized String toString() 
+    {
+    	return String.format("%s, %s, %s, L/R: (%+7.3f, % 7.3f)", driveMode, talonMode, brake, left, right);
     }
 }

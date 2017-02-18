@@ -87,7 +87,7 @@ imageTimestamp = currentTime;
 		//---------------------------------------------------
 		// Process
 		//---------------------------------------------------
-		visionDrive(currentTime, imageTimestamp, normalizedTargetX, normalizedTargetWidth, currentPose, previousPose);
+		visionDrive(currentTime, currentPose, previousPose, imageTimestamp, normalizedTargetX, normalizedTargetWidth);
 
 		//---------------------------------------------------
 		// Output: Send drive control
@@ -96,19 +96,19 @@ imageTimestamp = currentTime;
 	}
 	
 	// visionDrive() is written outside of update() to facilitate unit level testing
-	public void visionDrive(double currentTime, double imageTimestamp, double normalizedTargetX, double normalizedTargetWidth, Pose currentPose, Pose previousPose)
+	public void visionDrive(double _currentTime, Pose _currentPose, Pose _previousPose, double _imageTimestamp, double _normalizedTargetX, double _normalizedTargetWidth)
 	{
 		// If we get a valid message from the Vision co-processor, update our estimate of the target location
-		if (normalizedTargetWidth > 0) 
+		if (_normalizedTargetWidth > 0) 
 		{
 			//-----------------------------------------------------
 			// Estimate target location based on previous location,
 			// to compensate for latency in processing image
 			//-----------------------------------------------------
-			prevDistanceToTargetInches = Constants.kTargetWidthInches / (2.0*normalizedTargetWidth*Constants.kTangentCameraHalfFOV);
-			prevHeadingToTargetRadians = previousPose.getHeadingRad() + (-normalizedTargetX*Constants.kCameraHalfFOVRadians);
+			prevDistanceToTargetInches = Constants.kTargetWidthInches / (2.0*_normalizedTargetWidth*Constants.kTangentCameraHalfFOV);
+			prevHeadingToTargetRadians = _previousPose.getHeadingRad() + (-_normalizedTargetX*Constants.kCameraHalfFOVRadians);
 			Vector prevToTarget = Vector.magnitudeAngle(prevDistanceToTargetInches, prevHeadingToTargetRadians);
-			targetLocation = previousPose.getPosition().add(prevToTarget); 	
+			targetLocation = _previousPose.getPosition().add(prevToTarget); 	
 			
 			// filter target location with exponential averaging
 			if (avgCnt == 0)
@@ -122,15 +122,15 @@ imageTimestamp = currentTime;
 		// drive towards it, even if we didn't get a valid Vision co-processor message this time
 		if (avgCnt > 0)
 		{
-			Vector robotToTarget = avgTargetLocation.sub(currentPose.getPosition());
+			Vector robotToTarget = avgTargetLocation.sub(_currentPose.getPosition());
 			distanceToTargetInches = robotToTarget.length();
-			headingToTargetRadians = robotToTarget.angle() - currentPose.getHeadingRad();
+			headingToTargetRadians = robotToTarget.angle() - _currentPose.getHeadingRad();
 			
 			//---------------------------------------------------
 			// Apply speed control
 			//---------------------------------------------------
 			speed = maxSpeed;	// goal is to get to maximum speed
-			double dt = currentTime - prevTime; 
+			double dt = _currentTime - prevTime; 
 			
 			// apply acceleration limits
 			double accel = (speed - prevSpeed) / dt;
@@ -141,9 +141,9 @@ imageTimestamp = currentTime;
 
 			// apply braking distance limits
 			// vf^2 = v^2 + 2*a*d   Solve for v, given vf=0, configured a, and measured d
-			double stoppingDistance = distanceToTargetInches - Constants.kPegTargetDistanceThresholdInches;
+			double stoppingDistance = Math.max(distanceToTargetInches - Constants.kPegTargetDistanceThresholdInches, 0);
 			double maxBrakingSpeed = Math.sqrt(2.0 * maxAccel * stoppingDistance);
-			if (Math.abs(speed) > maxSpeed)
+			if (Math.abs(speed) > maxBrakingSpeed)
 				speed = Math.signum(speed) * maxBrakingSpeed;
 
 			// apply minimum velocity limit (Talons can't track low speeds well)
@@ -166,7 +166,7 @@ imageTimestamp = currentTime;
 		}
 			
 		// store for next time through loop
-		prevTime = currentTime;
+		prevTime = _currentTime;
 		prevSpeed = speed;			// TODO: use measured speed instead of computed speed
 	}
 

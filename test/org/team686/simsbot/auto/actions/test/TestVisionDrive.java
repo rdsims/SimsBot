@@ -142,7 +142,7 @@ System.out.printf("Vision X = % 7.3f, Width = % 7.3f ---- ", normalizedTargetX, 
 			//---------------------------------------------------
 			// Process
 			//---------------------------------------------------
-			visionDriveAction.visionDrive(currentTime, imageTimestamp, normalizedTargetX, normalizedTargetWidth, currentPose, previousPose);
+			visionDriveAction.visionDrive(currentTime, currentPose, previousPose, imageTimestamp, normalizedTargetX, normalizedTargetWidth);
 	
 			//---------------------------------------------------
 			// Output: Send drive control
