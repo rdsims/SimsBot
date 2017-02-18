@@ -113,7 +113,7 @@ public class Constants extends ConstantsBase
 //    public static double kCameraLatencySeconds = 0.500;			// Camera image capturing latency
     public static double kCameraLatencySeconds = 0;			// Camera image capturing latency
     public static double kPegTargetDistanceThresholdInches = 20;		// inches to stop from target (15" from camera = 4.5" from bumpers
-    public static double kVisionMaxVel    = 20.0; // inches/sec  		// RS measured ~100 inches/sec on carpet
+    public static double kVisionMaxVel    = 36.0; // inches/sec  		// RS measured ~100 inches/sec on carpet
     public static double kVisionMaxAccel  = 24.0; // inches/sec^2		// RS measured 800-1000 inches/sec^2 on carpet
     public static double kVisionLookaheadDist = 24.0;	// inches
 }

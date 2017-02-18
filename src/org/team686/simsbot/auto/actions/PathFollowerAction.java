@@ -61,15 +61,18 @@ public class PathFollowerAction implements Action
     @Override
     public void start() 
     {
+		System.out.println("Starting PathFollowerAction");
 		prevSpeed = 0;
 		prevTime  = 0;		
-        hasStarted = false;	// make sure we run update at least once before finishing
+        hasStarted = false;	// make sure we run update() at least once before finishing
     }
 
 
     @Override
     public void update() 
     {
+    	hasStarted = true;	// make sure we run update() at least once before finishing
+    	
 		currentTime = Timer.getFPGATimestamp();
 		
 		currentPose = RobotState.getInstance().getLatestFieldToVehicle();
@@ -165,6 +168,7 @@ public class PathFollowerAction implements Action
         @Override
         public void log()
         {
+			put("VisionDrive/reversed", reversed);
 			put("VisionDrive/currentTime", currentTime);
 			put("VisionDrive/currentPoseX", currentPose.getX());
 			put("VisionDrive/currentPoseY", currentPose.getY());

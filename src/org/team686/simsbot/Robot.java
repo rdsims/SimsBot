@@ -185,10 +185,6 @@ public class Robot extends IterativeRobot
 
 			zeroAllSensors();		// one last reset of sensors.  Will not be reset during auto or teleop
 
-			Pose startPose = mSmartDashboardInteractions.getStartPose();
-			System.out.println("InitialPosition: " + startPose);
-			mRobotState.reset(0.0, startPose);			
-			
 			mAutoModeExecuter = new AutoModeExecuter();
 			mAutoModeExecuter.setAutoMode(mSmartDashboardInteractions.getAutoModeSelection());
 

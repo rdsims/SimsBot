@@ -1,18 +1,14 @@
 package org.team686.simsbot.subsystems;
 
-import edu.wpi.first.wpilibj.Timer;
-
 import org.team686.lib.util.DriveCommand;
 import org.team686.lib.util.DriveCommand.DriveControlMode;
 import org.team686.lib.util.DriveStatus;
-import org.team686.lib.util.Path;
 import org.team686.lib.util.Pose;
 import org.team686.lib.util.SynchronousPID;
 
 import org.team686.simsbot.Constants;
 import org.team686.simsbot.DataLogger;
 import org.team686.simsbot.Kinematics;
-import org.team686.simsbot.RobotState;
 import org.team686.simsbot.loops.Loop;
 
 /**

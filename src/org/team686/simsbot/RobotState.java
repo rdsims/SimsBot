@@ -56,6 +56,8 @@ public class RobotState
     protected InterpolatingTreeMap<InterpolatingDouble, Pose> fieldToRobot;
     protected Pose.Delta robotSpeed;
 
+    private double initialGyroOffset;
+    
     private double prevLeftDistance = 0;
     private double prevRightDistance = 0;
     
@@ -67,6 +69,7 @@ public class RobotState
         fieldToRobot.put(new InterpolatingDouble(start_time), initialFieldToRobot);
         robotSpeed = new Pose.Delta(0, 0);
         
+        initialGyroOffset = initialFieldToRobot.getHeadingRad();
         setPrevEncoderDistance(0, 0);
     }
 
@@ -111,10 +114,9 @@ public class RobotState
         double dLeftDistance  = lEncoderDistance - prevLeftDistance; 
         double dRightDistance = rEncoderDistance - prevRightDistance;
 
-        prevLeftDistance  = lEncoderDistance;
-        prevRightDistance = rEncoderDistance;
+        setPrevEncoderDistance(lEncoderDistance, rEncoderDistance);
                 
-        return Kinematics.integrateForwardKinematics(lastPose, dLeftDistance, dRightDistance, gyroAngleRad);
+        return Kinematics.integrateForwardKinematics(lastPose, dLeftDistance, dRightDistance, gyroAngleRad + initialGyroOffset);
     }
 
     

@@ -3,9 +3,12 @@ package org.team686.simsbot.auto.modes;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.team686.lib.util.Path;
+import org.team686.lib.util.Pose;
 import org.team686.lib.util.Path.Waypoint;
 import org.team686.lib.util.Vector;
 import org.team686.simsbot.Constants;
+import org.team686.simsbot.RobotState;
 import org.team686.simsbot.auto.AutoModeBase;
 import org.team686.simsbot.auto.AutoModeEndedException;
 import org.team686.simsbot.auto.actions.*;
@@ -18,129 +21,99 @@ import org.team686.simsbot.auto.actions.*;
  */
 public class AutoPlacePegMode extends AutoModeBase 
 {
-	List<Waypoint> autoPath1, autoPath2, autoPath3;
-	int autoLane;
+	List<Waypoint> path1, path2, path3, path4, path5, path6, path7;
+	int lane;
+	RobotState robotState;
 	
-    public AutoPlacePegMode(int lane, boolean isShooting) 
+	
+	Pose start1 = new Pose(120,-90,180*Pose.degreesToRadians);
+	Pose start2 = new Pose(120,  0,180*Pose.degreesToRadians);
+	Pose start3 = new Pose(120,+90,180*Pose.degreesToRadians);
+	
+	Vector approach1 = new Vector( 45,-90);
+	Vector approach2 = new Vector( 90,  0);
+	Vector approach3 = new Vector( 45,+90);
+	
+	Vector vision1 = new Vector( 30,-64);
+	Vector vision2 = new Vector( 60,  0);
+	Vector vision3 = new Vector( 36,+64);
+	
+	Vector target1 = new Vector(  0,-12);
+	Vector target2 = new Vector(  0,  0);
+	Vector target3 = new Vector(  0,+12);
+	
+	
+    public AutoPlacePegMode(int _lane, boolean isShooting) 
     {
-    	Vector startPos, prePegPos, pegPos, postPegPos, preShootPos, shootPos, finishPos;
+    	robotState = RobotState.getInstance();
+    	Pose startPose = new Pose();
     	
-    	autoLane = lane;
-    	
-		float yScale;
-		if (lane == 1)
-			yScale = -1.0f;
-		else if (lane == 2)
-			yScale =  0.0f;
-		else
-			yScale = +1.0f;
-		
-/*		
-		// use negative x coords because original orientation is assumed 0
-		
-		startPos        = new Vector(-308,  64*yScale);
-		if (lane==1 || lane==3)
-		{
-			prePegPos       = new Vector(-208,  64*yScale);
-			pegPos          = new Vector(-188,  52*yScale);
-		}
-		else
-		{
-			prePegPos       = new Vector(-232,  0);
-			pegPos          = new Vector(-196,  0);
-		}
-		postPegPos      = prePegPos;	// in reverse
-		// TODO: zero point turn to new orientation
-		if (isShooting)
-		{
-			if (lane==1)
-				preShootPos = new Vector(-280,  36);		// go around airship
-			else
-				preShootPos = postPegPos;						// skip this step
-			
-			shootPos    = new Vector(-280,-126);
-		}
-		else
-		{
-			preShootPos = prePegPos;							// skip this step
-			shootPos    = prePegPos;							// skip this step
-		}
-		finishPos       = new Vector( -86,-126);
-*/
-		
-		
-		
-    
-		// use negative x coords because original orientation is assumed 0
-		
-		startPos        = new Vector(18, 48*yScale);
-		prePegPos       = new Vector(60, 48*yScale);
-		pegPos          = new Vector(96,  0*yScale);
-		postPegPos      = prePegPos;	// in reverse
-		// TODO: zero point turn to new orientation
-		if (lane==1)
-			preShootPos = new Vector(36, -24);		// go around airship
-		else
-			preShootPos = new Vector(36,  0);
-			
-		shootPos        = new Vector( 36, 48);
-		finishPos       = new Vector(160, -48);
- 
+    	lane = _lane;
+		double vel = 50;
 
-		// making everying relative to startPos
-		// TODO: allow absolute positioning, not just relative positioning
-		prePegPos.sub(startPos);
-		postPegPos.sub(startPos);
-		preShootPos.sub(startPos);
-		shootPos.sub(startPos);
-		finishPos.sub(startPos);
-		startPos.sub(startPos);
-		
-		
-		
-    
-		double vel = 36;
-		
-		autoPath1 = new ArrayList<>();
-		autoPath1.add(new Waypoint(startPos,   vel));
-		autoPath1.add(new Waypoint(prePegPos,  vel));
-		autoPath1.add(new Waypoint(pegPos,     vel));
-		
-		autoPath2 = new ArrayList<>();
-		autoPath2.add(new Waypoint(pegPos,     vel));
-		autoPath2.add(new Waypoint(prePegPos,  vel));
-
-		autoPath3 = new ArrayList<>();
-		autoPath3.add(new Waypoint(prePegPos,  vel));
-		if (isShooting)
+		switch (lane)
 		{
-			autoPath3.add(new Waypoint(preShootPos,vel));
-        	autoPath3.add(new Waypoint(shootPos,   vel));
+		case 3:
+			startPose = start3;
+			
+			path1 = new ArrayList<>();
+			path1.add(new Waypoint(startPose.getPosition(),    vel));
+			path1.add(new Waypoint(approach3, vel));
+			path1.add(new Waypoint(  vision3,   vel));
+			
+			path2 = new ArrayList<>();
+			path2.add(new Waypoint(  target3, vel));
+			path2.add(new Waypoint(approach3, vel));
+			
+			path3 = new ArrayList<>();
+			path3.add(new Waypoint(approach3, vel));
+			path3.add(new Waypoint(approach2, vel));
+			path3.add(new Waypoint(  vision2, vel));
+			
+			path4 = new ArrayList<>();
+			path4.add(new Waypoint(  target2, vel));
+			path4.add(new Waypoint(approach2, vel));
+
+			path5 = new ArrayList<>();
+			path5.add(new Waypoint(approach2, vel));
+			path5.add(new Waypoint(approach1, vel));
+			path5.add(new Waypoint(  vision1, vel));
+
+			path6 = new ArrayList<>();
+			path6.add(new Waypoint(  target1, vel));
+			path6.add(new Waypoint(approach1, vel));
+
+			path7 = new ArrayList<>();
+			path7.add(new Waypoint(approach1, vel));
+			path7.add(new Waypoint(approach2, vel));
+			path7.add(new Waypoint(startPose.getPosition(), vel));
+			
 		}
-        autoPath3.add(new Waypoint(finishPos,  vel));
-    
+		
+		System.out.println("InitialPose: " + startPose);
+		robotState.reset(0.0, startPose);			
+				
     }
 
-    public Vector getInitialPosition()
-    {
-    	Waypoint wp = autoPath1.get(0);
-    	return wp.position;
-    }
-    
-    @Override
+     @Override
     protected void routine() throws AutoModeEndedException 
     {
-    	System.out.println("Starting Auto Mode: Peg Mode, lane " + autoLane);
+    	System.out.println("Starting AutoPlacePegMode, lane " + lane);
 
     	// drive towards target
-//        runAction(new FollowPathAction(new Path(autoPath1), false));   
-        // use vision to finish path to target
+        runAction(new PathFollowerAction(new Path(path1), false));   
         runAction(new VisionDriveAction(Constants.kVisionMaxVel, Constants.kVisionMaxAccel));
-//        runAction(new VisionTurnAction(30));
-        // back away from target (note: 2nd parameter is true for reverse)
-//        runAction(new FollowPathAction(new Path(autoPath2), true));   
-        // take path away from airship
-//        runAction(new FollowPathAction(new Path(autoPath3), false));   
+        
+        runAction(new PathFollowerAction(new Path(path2), true));   
+        runAction(new PathFollowerAction(new Path(path3), false));   
+        runAction(new VisionDriveAction(Constants.kVisionMaxVel, Constants.kVisionMaxAccel));
+        
+        runAction(new PathFollowerAction(new Path(path4), true));   
+        runAction(new PathFollowerAction(new Path(path5), false));   
+        runAction(new VisionDriveAction(Constants.kVisionMaxVel, Constants.kVisionMaxAccel));
+        
+        runAction(new PathFollowerAction(new Path(path6), true));   
+        runAction(new PathFollowerAction(new Path(path7), false));   
     }
     
 }

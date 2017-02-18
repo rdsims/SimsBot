@@ -52,6 +52,7 @@ public class VisionDriveAction implements Action
 	public void start() 
 	{
 		// setup code, if any
+		System.out.println("Starting VisionDriveAction");
 		avgCnt = 0;
 		prevTime = 0;
 		prevSpeed = 0;	// TODO: find way to not start from speed=0
