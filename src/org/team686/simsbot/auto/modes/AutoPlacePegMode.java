@@ -3,11 +3,9 @@ package org.team686.simsbot.auto.modes;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.team686.lib.util.Path;
 import org.team686.lib.util.Path.Waypoint;
 import org.team686.lib.util.Vector;
 import org.team686.simsbot.Constants;
-import org.team686.simsbot.DataLogger;
 import org.team686.simsbot.auto.AutoModeBase;
 import org.team686.simsbot.auto.AutoModeEndedException;
 import org.team686.simsbot.auto.actions.*;

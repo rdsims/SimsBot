@@ -33,35 +33,39 @@ public class DriveStraightAction implements Action {
     }
 
     @Override
-    public void start() {
+    public void start() 
+    {
         startingDistance = getCurrentDistance();
         mDrive.setVelocityHeadingSetpoint(mVelocity, mHeadingDeg);
     }
 
     @Override
-    public void update() {
+    public void update() 
+    {
     }
 
     @Override
-    public boolean isFinished() {
+    public boolean isFinished() 
+    {
+System.out.printf("startingDistance=%7.3f, currDist=%7.3f, mWantedDistance=%7.3f\n", startingDistance, getCurrentDistance(), mWantedDistance);    	
+    	
         boolean rv = false;
-        if (mWantedDistance > 0) {
-            rv = getCurrentDistance() - startingDistance >= mWantedDistance;
-        } else {
-            rv = getCurrentDistance() - startingDistance <= mWantedDistance;
-        }
-        if (rv) {
-            mDrive.setVelocitySetpoint(0, 0);
-        }
+        if (mWantedDistance > 0) 
+            rv = (getCurrentDistance() - startingDistance) >= mWantedDistance;
+        else
+            rv = (getCurrentDistance() - startingDistance) <= mWantedDistance;
+        
         return rv;
     }
 
     @Override
-    public void done() {
+    public void done()
+    {
         mDrive.setVelocitySetpoint(0, 0);
     }
 
-    private double getCurrentDistance() {
+    private double getCurrentDistance() 
+    {
         return (driveStatus.getLeftDistanceInches() + driveStatus.getRightDistanceInches()) / 2;
     }
     
@@ -70,6 +74,16 @@ public class DriveStraightAction implements Action {
         @Override
         public void log()
         {
+    		put("AutoAction", "DriveStraight" );
+			put("DriveCmd/talonMode", driveStatus.getTalonControlMode().toString() );
+			put("DriveCmd/left", mDrive.getCommand().getLeftMotor() );
+			put("DriveCmd/right", mDrive.getCommand().getRightMotor() );
+    		put("DriveStatus/TalonControlMode", driveStatus.getTalonControlMode().toString() );
+			put("DriveStatus/lSpeed", driveStatus.getLeftSpeedInchesPerSec() );
+			put("DriveStatus/rSpeed", driveStatus.getRightSpeedInchesPerSec() );
+    		put("DriveStatus/lDistance", driveStatus.getLeftDistanceInches() );
+    		put("DriveStatus/rDistance", driveStatus.getRightDistanceInches() );
+    		put("DriveStatus/Heading", driveStatus.getHeadingDeg() );
 	    }
     };
 	

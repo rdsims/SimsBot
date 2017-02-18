@@ -3,7 +3,6 @@ package org.team686.simsbot.auto.actions;
 import edu.wpi.first.wpilibj.networktables.NetworkTable;
 
 import org.team686.lib.util.DriveCommand;
-import org.team686.simsbot.Constants;
 import org.team686.simsbot.DataLogger;
 import org.team686.simsbot.subsystems.Drive;
 

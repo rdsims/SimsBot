@@ -4,10 +4,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 import org.team686.lib.joystick.*;
-import org.team686.simsbot.SmartDashboardInteractions.AutonOption;
-import org.team686.simsbot.SmartDashboardInteractions.JoystickOption;
 import org.team686.simsbot.auto.AutoModeBase;
-import org.team686.simsbot.auto.AutoModeEndedException;
 import org.team686.simsbot.auto.modes.*;
 
 

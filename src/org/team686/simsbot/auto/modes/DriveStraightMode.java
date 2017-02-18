@@ -7,8 +7,7 @@ import org.team686.simsbot.auto.actions.*;
 
 
 /**
- * Go over the defenses in the starting configuration, then launch one ball (in
- * the robot at start)
+ * Just drive in a straight line, using VelocityHeading mode
  */
 public class DriveStraightMode extends AutoModeBase {
 

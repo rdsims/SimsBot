@@ -1,11 +1,8 @@
 package org.team686.simsbot.loops;
 
-import edu.wpi.first.wpilibj.Timer;
-
 import org.team686.lib.util.DriveStatus;
-import org.team686.lib.util.RobotPose;
+import org.team686.lib.util.Pose;
 import org.team686.simsbot.RobotState;
-import org.team686.simsbot.subsystems.Drive;
 
 
 /**
@@ -18,7 +15,7 @@ public class RobotStateLoopNew implements Loop
     RobotState robotState = RobotState.getInstance();
     DriveStatus driveStatus = DriveStatus.getInstance();
 
-    RobotPose pose;
+    Pose pose;
     
     // store state history
     double lDistPrev = 0;
@@ -26,7 +23,7 @@ public class RobotStateLoopNew implements Loop
     double thetaPrev = 0;
 
     // small floating point number below which we will use estimate to avoid divide by zero errors
-    private final static double kEps = 1E-9;
+//    private final static double kEps = 1E-9;
 
     static RobotStateLoopNew instance = new RobotStateLoopNew(0,0,0);
 
@@ -34,15 +31,14 @@ public class RobotStateLoopNew implements Loop
     {
         return instance;
     }
-
     RobotStateLoopNew(double x, double y, double theta)
     {
-    	setPose(x,y,theta);
+    	pose = new Pose(x,y,theta);
     }
     
     public void setPose(double x, double y, double theta)
     {
-    	pose.set(x,y,theta);
+    	pose = new Pose(x,y,theta);
     }
     
     @Override
@@ -54,6 +50,7 @@ public class RobotStateLoopNew implements Loop
 
     @Override
     public void onLoop() {
+    	/*
         double lDist = driveStatus.getLeftDistanceInches();
         double rDist = driveStatus.getRightDistanceInches();
         double theta = driveStatus.getHeadingRad();
@@ -98,6 +95,7 @@ public class RobotStateLoopNew implements Loop
         //double time = Timer.getFPGATimestamp();
         //double lSpeed = drive.getLeftSpeedInchesPerSec();
         //double rSpeed = drive.getRightSpeedInchesPerSec();
+*/
     
     }
 
@@ -106,5 +104,4 @@ public class RobotStateLoopNew implements Loop
     {
 		// nothing to do
 	}
-
 }

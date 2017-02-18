@@ -26,8 +26,8 @@ import org.team686.simsbot.loops.Loop;
 
 public class Drive extends Subsystem 
 {
-	private static Drive instance_ = new Drive();
-	public static Drive getInstance() { return instance_; }
+	private static Drive instance = new Drive();
+	public static Drive getInstance() { return instance; }
 
 	// drive commands
 	private DriveCommand driveCmd = DriveCommand.NEUTRAL;
@@ -37,9 +37,7 @@ public class Drive extends Subsystem
 	public DriveStatus driveStatus;
 	
 	// velocity heading
-	private VelocityHeadingSetpoint velocityHeadingSetpoint;
-	private SynchronousPID velocityHeadingPID;
-	private double mLastHeadingErrorDegrees;
+	private VelocityHeadingSetpoint velocityHeadingSetpoint = new VelocityHeadingSetpoint();
 
 	// path following
 	private AdaptivePurePursuitController pathFollowingController;
@@ -50,11 +48,8 @@ public class Drive extends Subsystem
 	// robot powers up
 	private Drive() 
 	{
-		driveCmd = DriveCommand.BRAKE;		
+		driveCmd = DriveCommand.NEUTRAL;		
 		driveStatus = DriveStatus.getInstance();
-		
-		velocityHeadingPID = new SynchronousPID(Constants.kDriveHeadingVelocityKp, Constants.kDriveHeadingVelocityKi, Constants.kDriveHeadingVelocityKd);
-		velocityHeadingPID.setOutputRange(-30, 30);
 	}
 
 	
@@ -74,7 +69,7 @@ public class Drive extends Subsystem
         @Override
         public void onLoop() 
         {
-        	switch (driveCmd.getMode())
+        	switch (driveCmd.getDriveControlMode())
     		{
     			case OPEN_LOOP:
     			case BASE_LOCKED:
@@ -87,20 +82,18 @@ public class Drive extends Subsystem
     				
     			case VELOCITY_HEADING:
     				// Need to adjust left/right motor velocities to keep desired heading
-    				updateVelocityHeadingSetpoint();
+    				updateVelocityHeading();
     				return;
     				
     			case PATH_FOLLOWING:
     				// Need to adjust left/right motor velocities to follow path
     				updatePathFollower();
     				if(isFinishedPath())
-    				{
     					stop();
-    				}
     				break;
     				
     			default:
-    				System.out.println("Unexpected drive control state: " + driveCmd.getMode());
+    				System.out.println("Unexpected drive control state: " + driveCmd.getDriveControlMode());
     				break;
     		}
     	}
@@ -121,26 +114,27 @@ public class Drive extends Subsystem
     
 	public void setOpenLoop(DriveCommand cmd) 
 	{
-		cmd.setMode(DriveControlMode.OPEN_LOOP);
-		setCommand(cmd);
+		driveCmd.setDriveMode(DriveControlMode.OPEN_LOOP);
+		driveCmd.setMotors(cmd.getLeftMotor(), cmd.getRightMotor());
 	}
 
 	public void setBaseLockOn() 
 	{
-		driveCmd.setMode(DriveControlMode.BASE_LOCKED);
+		driveCmd.setDriveMode(DriveControlMode.BASE_LOCKED);
 	}
 
 	public void setVelocitySetpoint(double left_inches_per_sec, double right_inches_per_sec) 
 	{
-		driveCmd.setMode(DriveControlMode.VELOCITY_SETPOINT);
+		driveCmd.setDriveMode(DriveControlMode.VELOCITY_SETPOINT);
 		driveCmd.setMotors(left_inches_per_sec, right_inches_per_sec);
 	}
 
-	public void setVelocityHeadingSetpoint(double forward_inches_per_sec, double headingSetpointRad) 
+	public void setVelocityHeadingSetpoint(double forward_inches_per_sec, double headingSetpointDeg) 
 	{
-		driveCmd.setMode(DriveControlMode.VELOCITY_HEADING);
-		velocityHeadingSetpoint = new VelocityHeadingSetpoint(forward_inches_per_sec, forward_inches_per_sec, headingSetpointRad);
-		updateVelocityHeadingSetpoint();
+		driveCmd.setDriveMode(DriveControlMode.VELOCITY_HEADING);
+		velocityHeadingSetpoint = new VelocityHeadingSetpoint(forward_inches_per_sec, headingSetpointDeg);
+		velocityHeadingSetpoint.velocityHeadingPID.reset();
+		updateVelocityHeading();
 	}
     
 
@@ -166,21 +160,30 @@ public class Drive extends Subsystem
 	 */
 	public static class VelocityHeadingSetpoint 
 	{
-		private final double leftSpeed;
-		private final double rightSpeed;
+		private final double speed;
 		private final double headingSetpointDeg;
 
+		private SynchronousPID velocityHeadingPID = new SynchronousPID();
+
 		// Constructor for straight line motion
-		public VelocityHeadingSetpoint(double _leftSpeed, double _rightSpeed, double _headingSetpointDeg) 
+		public VelocityHeadingSetpoint()
 		{
-			leftSpeed = _leftSpeed;
-			rightSpeed = _rightSpeed;
-			headingSetpointDeg = _headingSetpointDeg;
+			this(0, 0);
 		}
 
-		public double getLeftSpeed() { return leftSpeed; }
-		public double getRightSpeed() {	return rightSpeed; }
-		public double getHeadingDeg() { return headingSetpointDeg; }
+		public VelocityHeadingSetpoint(double _speed, double _headingSetpointDeg) 
+		{
+			speed = _speed;
+			headingSetpointDeg = _headingSetpointDeg;
+			
+			velocityHeadingPID = new SynchronousPID(Constants.kDriveHeadingVelocityKp, Constants.kDriveHeadingVelocityKi, Constants.kDriveHeadingVelocityKd);
+			velocityHeadingPID.setOutputRange(-30, 30);
+			
+			velocityHeadingPID.setSetpoint(headingSetpointDeg);
+		}
+
+		public double getSpeed()  { return speed; }
+		public double getHeadingSetpointDeg() { return headingSetpointDeg; }
 	}
 	
 
@@ -200,7 +203,7 @@ public class Drive extends Subsystem
 	 */
 	public void followPath(Path _path, boolean	_reversed) 
 	{
-		driveCmd.setMode(DriveControlMode.PATH_FOLLOWING);
+		driveCmd.setDriveMode(DriveControlMode.PATH_FOLLOWING);
 		pathFollowingController = new AdaptivePurePursuitController(Constants.kPathFollowingLookahead,
 				Constants.kPathFollowingMaxAccel, Constants.kLoopDt, _path, _reversed, 1.0);
 		updatePathFollower();
@@ -212,7 +215,7 @@ public class Drive extends Subsystem
 	 */
 	public boolean isFinishedPath()
 	{
-		if (driveCmd.getMode() == DriveControlMode.PATH_FOLLOWING)
+		if (driveCmd.getDriveControlMode() == DriveControlMode.PATH_FOLLOWING)
 			return pathFollowingController.isDone();
 		else
 			return true;
@@ -260,21 +263,20 @@ public class Drive extends Subsystem
 	 * (updates VelocitySetpoints in order to follow a heading)
 	 *************************************************************************/
     
-	private void updateVelocityHeadingSetpoint() 
+	private void updateVelocityHeading() 
 	{
-		double actualGyroAngleDeg = driveStatus.getHeadingDeg();
-
-		mLastHeadingErrorDegrees = velocityHeadingSetpoint.getHeadingDeg() - actualGyroAngleDeg;
-
-		double deltaSpeed = velocityHeadingPID.calculate(mLastHeadingErrorDegrees);
-		updateVelocitySetpoint(velocityHeadingSetpoint.getLeftSpeed()  + deltaSpeed / 2,
-				               velocityHeadingSetpoint.getRightSpeed() - deltaSpeed / 2);
+		// get change in left/right motor speeds based on error in heading
+		double deltaSpeed = velocityHeadingSetpoint.velocityHeadingPID.calculate( driveStatus.getHeadingDeg() );
+		
+		updateVelocitySetpoint(velocityHeadingSetpoint.getSpeed() + deltaSpeed / 2,
+				               velocityHeadingSetpoint.getSpeed() - deltaSpeed / 2);
 	}
 
 	public void resetVelocityHeadingPID()
 	{
-		// called from DriveLoop, synchronous with 
-		velocityHeadingPID.reset();
+		// called from DriveLoop, synchronous with changing into VelocityHeading mode
+		velocityHeadingSetpoint.velocityHeadingPID.reset();
+		velocityHeadingSetpoint.velocityHeadingPID.setSetpoint(velocityHeadingSetpoint.getHeadingSetpointDeg());
 	}
 	
 	
@@ -285,19 +287,7 @@ public class Drive extends Subsystem
 	
 	private void updateVelocitySetpoint(double _left_inches_per_sec, double _right_inches_per_sec) 
 	{
-		DriveControlMode mode = driveCmd.getMode();
-		
-		if (mode == DriveControlMode.VELOCITY_HEADING ||
-			mode == DriveControlMode.VELOCITY_SETPOINT ||
-			mode == DriveControlMode.PATH_FOLLOWING) 
-		{
-			driveCmd.setMotors(_left_inches_per_sec, _right_inches_per_sec);
-		} 
-		else
-		{
-			System.out.println("Hit a bad velocity control state");
-			stop();
-		}
+		driveCmd.setMotors(_left_inches_per_sec, _right_inches_per_sec);
 	}
 
 
@@ -320,7 +310,10 @@ public class Drive extends Subsystem
 	 */
 	
 	@Override
-	public void stop() { setOpenLoop(DriveCommand.BRAKE); }
+	public void stop()
+	{ 
+		setOpenLoop(DriveCommand.NEUTRAL); 
+	}
 
 	@Override
 	public void zeroSensors() { setResetEncoderCmd(true); }
@@ -333,16 +326,16 @@ public class Drive extends Subsystem
         @Override
         public void log()
         {
-			put("Drive/DriveControlMode", driveCmd.getMode().toString() );
-			put("Drive/lMotorCmd", driveCmd.getLeftMotor() );
-			put("Drive/rMotorCmd", driveCmd.getRightMotor() );
-			put("Drive/BrakeMode", driveCmd.getBrake() );
-			put("VelocityHeading/HeadingError", mLastHeadingErrorDegrees );
-			put("VelocityHeading/PIDError", velocityHeadingPID.getError() );
-			put("VelocityHeading/PIDOutput", velocityHeadingPID.get() );
-
 			try // pathFollowingController doesn't exist until started
 			{
+				put("Drive/DriveControlModeCmd", driveCmd.getDriveControlMode().toString() );
+				put("Drive/TalonControlModeCmd", driveCmd.getTalonControlMode().toString() );
+				put("Drive/lMotorCmd", driveCmd.getLeftMotor() );
+				put("Drive/rMotorCmd", driveCmd.getRightMotor() );
+				put("Drive/BrakeModeCmd", driveCmd.getBrake() );
+				put("VelocityHeading/PIDError",  velocityHeadingSetpoint.velocityHeadingPID.getError() );
+				put("VelocityHeading/PIDOutput", velocityHeadingSetpoint.velocityHeadingPID.get() );
+
 //				AdaptivePurePursuitController.getLogger().log();
 			} catch (NullPointerException e) {
 				// skip logging pathFollowingController when it doesn't exist

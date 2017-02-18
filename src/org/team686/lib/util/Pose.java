@@ -1,7 +1,5 @@
 package org.team686.lib.util;
 
-import java.text.DecimalFormat;
-
 /**
  * A class that stores the pose an object
  * The pose consists of it's position: (x,y) coordinates
@@ -137,17 +135,14 @@ public class Pose implements Interpolable<Pose>
 		double L = D;							// chord-length
 		
 		double dTheta = delta.dHeading;
-		if (dTheta > 1e-9)
+		if (Math.abs(dTheta) > 1e-9)
 			L = 2*D*Math.sin(dTheta/2)/dTheta;			// chord-length given change in heading
 				
 		double avgHeading = heading + dTheta/2;			// mean of current and final headings
 
 		// update pose
-		Pose newPose = new Pose(this);									// copy current pose
 		Vector deltaPosition = Vector.magnitudeAngle(L, avgHeading);	// calculate change in position
-		newPose.add(deltaPosition);										// update position							
-		newPose.turnRad(dTheta);										// update heading
-		return newPose;													// return new pose
+		return new Pose(position.add(deltaPosition), heading+delta.dHeading);	// return new pose
     }
 
     

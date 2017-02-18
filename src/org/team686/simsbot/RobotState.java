@@ -1,17 +1,8 @@
 package org.team686.simsbot;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
-
-import org.team686.lib.util.AdaptivePurePursuitController;
 import org.team686.lib.util.InterpolatingDouble;
 import org.team686.lib.util.InterpolatingTreeMap;
 import org.team686.lib.util.Pose;
-
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 /**
  * RobotState keeps track of the poses of various coordinate frames throughout
@@ -101,10 +92,10 @@ public class RobotState
         robotSpeed = velocity;
     }
 
-    public Pose generateOdometryFromSensors(double lEncoderDeltaDistance, double rEncoderDeltaDistance, double currentGyroAngle) 
+    public Pose generateOdometryFromSensors(double lEncoderDeltaDistance, double rEncoderDeltaDistance, double gyroAngleRad) 
     {
         Pose lastPose = getLatestFieldToVehicle();
-        return Kinematics.integrateForwardKinematics(lastPose, lEncoderDeltaDistance, rEncoderDeltaDistance, currentGyroAngle);
+        return Kinematics.integrateForwardKinematics(lastPose, lEncoderDeltaDistance, rEncoderDeltaDistance, gyroAngleRad);
     }
 
     
@@ -116,9 +107,9 @@ public class RobotState
         public void log()
         {
             Pose odometry = getLatestFieldToVehicle();
-            put("RobotState/X", odometry.getX());
-            put("RobotState/Y", odometry.getY());
-            put("RobotState/H", odometry.getHeadingDeg());
+            put("RobotState/positionX",  odometry.getX());
+            put("RobotState/positionY",  odometry.getY());
+            put("RobotState/headingDeg", odometry.getHeadingDeg());
         }
     };
     

@@ -2,7 +2,6 @@ package org.team686.simsbot.auto;
 
 import org.team686.lib.util.Vector;
 import org.team686.simsbot.DataLogController;
-import org.team686.simsbot.DataLogger;
 import org.team686.simsbot.auto.actions.Action;
 
 /**
@@ -85,6 +84,7 @@ public abstract class AutoModeBase
             }
         }
         action.done();
+        autoLogger.log();	// capture one last log
     }
 
 }

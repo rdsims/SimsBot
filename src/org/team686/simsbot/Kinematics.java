@@ -57,9 +57,9 @@ public class Kinematics
         return current_pose.transformBy(RigidTransform2d.fromVelocity(with_gyro));
     }
 */
-    public static Pose integrateForwardKinematics(Pose currentPose, double lSpeed, double rSpeed, double currentHeadingRad)
+    public static Pose integrateForwardKinematics(Pose currentPose, double lSpeed, double rSpeed, double gyroAngleRad)
     {
-    	Pose.Delta delta = forwardKinematics(lSpeed, rSpeed, currentHeadingRad - currentPose.getHeadingRad());
+    	Pose.Delta delta = forwardKinematics(lSpeed, rSpeed, gyroAngleRad - currentPose.getHeadingRad());
         return currentPose.travelArc(delta);
     }
     

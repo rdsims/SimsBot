@@ -13,7 +13,6 @@ import edu.wpi.first.wpilibj.Timer;
 import org.team686.lib.util.CrashTrackingRunnable;
 
 import org.team686.simsbot.Constants;
-import org.team686.simsbot.DataLogger;
 
 
 /**
@@ -32,8 +31,8 @@ public class LoopController
     private final List<Loop> loops_;
     private final Object taskRunningLock_ = new Object();
     private double prev_time_ = 0;
-    private double dt_ = 0;
-    
+	protected double dt_;
+   
     
     private final CrashTrackingRunnable runnable_ = new CrashTrackingRunnable() 
     {
@@ -85,6 +84,7 @@ public class LoopController
                 prev_time_ = Timer.getFPGATimestamp();
                 for (Loop loop : loops_) 
                 {
+                    System.out.println("Starting " + loop);
                     loop.onStart();
                 }
                 running_ = true;

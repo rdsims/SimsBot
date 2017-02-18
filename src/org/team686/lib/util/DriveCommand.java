@@ -1,5 +1,7 @@
 package org.team686.lib.util;
 
+import com.ctre.CANTalon.TalonControlMode;
+
 /**
  * A drivetrain command consisting of the left, right motor settings and whether the brake mode is enabled.  
  * The command is set by Drive.java, and read by DriveLoop.java, which sends it to the drive motors
@@ -39,7 +41,8 @@ public class DriveCommand
 
 	// all member variables should be private to force other object to use the set/get access methods
 	// which are synchronized to allow multi-thread synchronization	
-	private DriveControlMode mode;
+	private DriveControlMode driveMode = DriveControlMode.OPEN_LOOP;
+	private TalonControlMode talonMode = TalonControlMode.Disabled;
 	private double left;
 	private double right;
 	private boolean brake;
@@ -57,19 +60,45 @@ public class DriveCommand
 
     public DriveCommand(DriveControlMode _mode, double _left, double _right, boolean _brake) 
     {
-    	setMode(_mode);
+    	setDriveMode(_mode);
     	setMotors(_left, _right);
     	setBrake(_brake);
     }
 
-    public synchronized void setMode(DriveControlMode _mode) { mode = _mode; }
-    public synchronized DriveControlMode getMode() { return mode; }
+    public synchronized void setDriveMode(DriveControlMode _driveMode) 
+    {
+    	driveMode = _driveMode;
+    	switch (driveMode)
+    	{
+    	case OPEN_LOOP:
+    		talonMode = TalonControlMode.PercentVbus;
+    		break;
+    		
+    	case BASE_LOCKED:
+    		talonMode = TalonControlMode.Position;
+    		
+    	case VELOCITY_SETPOINT:
+    	case PATH_FOLLOWING:
+    		talonMode = TalonControlMode.Speed;
+    		break;
+    		
+    	case VELOCITY_HEADING:
+    		talonMode = TalonControlMode.Speed;
+    		break;
+    		
+    	default:
+    		talonMode = TalonControlMode.Disabled;
+    		break;
+    	}
+    }
+    public synchronized DriveControlMode getDriveControlMode() { return driveMode; }
+    public synchronized TalonControlMode getTalonControlMode() { return talonMode; }
     
-    public synchronized void setMotors(double _left, double _right) { left = _left; right = _right; }
+    public synchronized void   setMotors(double _left, double _right) { left = _left; right = _right; }
     public synchronized double getLeftMotor()  { return left; }
     public synchronized double getRightMotor() { return right; }
 
-    public synchronized void setBrake(boolean _brake) { brake = _brake; }
+    public synchronized void    setBrake(boolean _brake) { brake = _brake; }
     public synchronized boolean getBrake()  { return brake; }
     
     public static DriveCommand NEUTRAL = new DriveCommand(DriveControlMode.OPEN_LOOP, 0, 0, false);

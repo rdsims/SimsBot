@@ -1,7 +1,8 @@
 package org.team686.lib.util;
 
 import org.team686.simsbot.DataLogger;
-import org.team686.simsbot.loops.DriveLoop;
+
+import com.ctre.CANTalon.TalonControlMode;
 
 /**
  * Drivetrain status structure, filled by DriveLoop.java
@@ -14,6 +15,9 @@ public class DriveStatus
 	// all member variables should be private to force other object to use the set/get access methods
 	// which are synchronized to allow multi-thread synchronization
 
+	private TalonControlMode talonControlMode = TalonControlMode.Disabled;
+	private boolean brakeMode;
+	
 	private double lDistanceInches, rDistanceInches;
 	private double lSpeedInchesPerSec, rSpeedInchesPerSec;
 	private double headingRad;
@@ -23,6 +27,12 @@ public class DriveStatus
 	private double lMotorPIDError, rMotorPIDError;
 	
 	public DriveStatus() {}
+	
+	public synchronized void setTalonControlMode(TalonControlMode val) { talonControlMode = val; }
+	public synchronized TalonControlMode getTalonControlMode() { return talonControlMode; }
+	
+	public synchronized void setBrakeMode(boolean val) { brakeMode = val; }
+	public synchronized boolean getBrakeMode() { return brakeMode; }
 	
 	public synchronized void setLeftDistanceInches(double val)  { lDistanceInches = val; }
 	public synchronized void setRightDistanceInches(double val) { rDistanceInches = val; }
@@ -63,12 +73,14 @@ public class DriveStatus
         @Override
         public void log()
         {
+    		put("DriveStatus/TalonControlMode", talonControlMode.toString() );
+    		put("DriveStatus/brakeMode", brakeMode );
     		put("DriveStatus/lMotorCurrent", lMotorCurrent );
     		put("DriveStatus/rMotorCurrent", rMotorCurrent );
     		put("DriveStatus/lMotorStatus", lMotorStatus );
     		put("DriveStatus/rMotorStatus", rMotorStatus );
-    		put("DriveStatus/lVelocity", lSpeedInchesPerSec );	// used by RaspberryPi set LED velocity display
-    		put("DriveStatus/rVelocity", rSpeedInchesPerSec );	// used by RaspberryPi set LED velocity display
+    		put("DriveStatus/lSpeed", lSpeedInchesPerSec );	// used by RaspberryPi set LED velocity display
+    		put("DriveStatus/rSpeed", rSpeedInchesPerSec );	// used by RaspberryPi set LED velocity display
     		put("DriveStatus/lDistance", lDistanceInches );
     		put("DriveStatus/rDistance", rDistanceInches );
     		put("DriveStatus/lPIDError",  lMotorPIDError );
@@ -78,6 +90,8 @@ public class DriveStatus
     };
     
     public DataLogger getLogger() { return logger; }
+
+
     
 	
 }

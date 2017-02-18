@@ -1,7 +1,6 @@
 package org.team686.lib.util;
 
 import java.util.List;
-import org.mini2Dx.gdx.math.*;
 
 /**
  * Contains basic functions that are used often.

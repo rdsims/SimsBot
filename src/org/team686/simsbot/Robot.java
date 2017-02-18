@@ -1,14 +1,11 @@
 
 package org.team686.simsbot;
 
-import java.io.File;
-import java.io.IOException;
 import java.util.TimeZone;
 
 import edu.wpi.first.wpilibj.IterativeRobot;
 import edu.wpi.first.wpilibj.PowerDistributionPanel;
 import edu.wpi.first.wpilibj.Timer;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 import org.team686.lib.joystick.*;
 import org.team686.lib.util.*;
@@ -133,7 +130,7 @@ public class Robot extends IterativeRobot
 
 			loopController.stop();
 
-			drive.setOpenLoop(DriveCommand.BRAKE);
+			drive.setOpenLoop(DriveCommand.NEUTRAL);
 
 			stopAll(); // Stop all actuators
 

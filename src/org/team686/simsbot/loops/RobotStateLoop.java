@@ -46,9 +46,9 @@ public class RobotStateLoop implements Loop
         double rightDistance = driveStatus.getRightDistanceInches();
         double leftSpeed     = driveStatus.getLeftSpeedInchesPerSec();
         double rightSpeed    = driveStatus.getRightSpeedInchesPerSec(); 
-        double gyroAngle     = driveStatus.getHeadingDeg();
+        double gyroAngleRad  = driveStatus.getHeadingRad();
 
-        Pose odometry = robotState.generateOdometryFromSensors(leftDistance-prevLeftDistance, rightDistance-prevRightDistance, gyroAngle);
+        Pose odometry = robotState.generateOdometryFromSensors(leftDistance-prevLeftDistance, rightDistance-prevRightDistance, gyroAngleRad);
         Pose.Delta velocity = Kinematics.forwardKinematics(leftSpeed, rightSpeed);
                 
         robotState.addObservations(time, odometry, velocity);

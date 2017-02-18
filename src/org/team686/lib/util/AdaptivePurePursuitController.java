@@ -3,7 +3,6 @@ package org.team686.lib.util;
 import java.util.Optional;
 import java.util.Set;
 
-import org.mini2Dx.gdx.math.Vector2;
 import org.team686.simsbot.DataLogger;
 
 /**
