@@ -16,15 +16,7 @@ public class Kinematics
      * Forward kinematics using only encoders, rotation is implicit (less
      * accurate than below, but useful for predicting motion)
      */
-/*    
-    public static RigidTransform2d.Delta forwardKinematics(double left_wheel_delta, double right_wheel_delta) 
-    {
-        double linear_velocity = (left_wheel_delta + right_wheel_delta) / 2;
-        double delta_v = (right_wheel_delta - left_wheel_delta) / 2;
-        double delta_rotation = delta_v * 2 * Constants.kTrackScrubFactor / Constants.kTrackEffectiveDiameter;
-        return new RigidTransform2d.Delta(linear_velocity, 0, delta_rotation);
-    }
-*/
+
     public static Pose.Delta forwardKinematics(double ldeltaDist, double rDeltaDist)
     {
     	double deltaDist = (ldeltaDist + rDeltaDist)/2;		// linear speed of center of robot is the average of the left and right
@@ -36,12 +28,7 @@ public class Kinematics
     /**
      * Forward kinematics using encoders and explicitly measured rotation (ie. from gyro)
      */
-/*    
-    public static RigidTransform2d.Delta forwardKinematics(double left_wheel_delta, double right_wheel_delta,
-            double delta_rotation_rads) {
-        return new RigidTransform2d.Delta((left_wheel_delta + right_wheel_delta) / 2, 0, delta_rotation_rads);
-    }
-*/
+
     public static Pose.Delta forwardKinematics(double lSpeed, double rSpeed, double deltaHeadingRad)
     {
         return new Pose.Delta((lSpeed + rSpeed)/2, deltaHeadingRad);
@@ -49,14 +36,7 @@ public class Kinematics
 
     
     /** Append the result of forward kinematics to a previous pose. */
-/*    
-    public static RigidTransform2d integrateForwardKinematics(RigidTransform2d current_pose, double left_wheel_delta,
-            double right_wheel_delta, Rotation2d current_heading) {
-        RigidTransform2d.Delta with_gyro = forwardKinematics(left_wheel_delta, right_wheel_delta,
-                current_pose.getRotation().inverse().rotateBy(current_heading).getRadians());
-        return current_pose.transformBy(RigidTransform2d.fromVelocity(with_gyro));
-    }
-*/
+
     public static Pose integrateForwardKinematics(Pose currentPose, double lSpeed, double rSpeed, double gyroAngleRad)
     {
     	Pose.Delta delta = forwardKinematics(lSpeed, rSpeed, gyroAngleRad - currentPose.getHeadingRad());
