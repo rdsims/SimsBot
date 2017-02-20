@@ -78,7 +78,8 @@ public class VisionDriveAction implements Action
 
 		currentTime = Timer.getFPGATimestamp();
 
-//DEBUG: use current time instead of image time			
+//DEBUG: use current time instead of image time
+//TODO: remove		
 imageTimestamp = currentTime;			
 		imageTimestamp -= Constants.kCameraLatencySeconds;		// remove camera latency
 		
@@ -168,7 +169,7 @@ imageTimestamp = currentTime;
 			
 		// store for next time through loop
 		prevTime = _currentTime;
-		prevSpeed = speed;			// TODO: use measured speed instead of computed speed
+		prevSpeed = robotState.getSpeed();
 	}
 
 	public double getSpeed() { return speed; }

@@ -1,9 +1,7 @@
 package org.team686.simsbot.loops;
 
-import org.team686.simsbot.Kinematics;
 import org.team686.simsbot.RobotState;
 import org.team686.lib.util.DriveStatus;
-import org.team686.lib.util.Pose;
 
 import edu.wpi.first.wpilibj.Timer;
 
@@ -37,17 +35,17 @@ public class RobotStateLoop implements Loop
     @Override
     public void onLoop() 
     {
-        double time = Timer.getFPGATimestamp();
-        double leftDistance  = driveStatus.getLeftDistanceInches();
-        double rightDistance = driveStatus.getRightDistanceInches();
-        double leftSpeed     = driveStatus.getLeftSpeedInchesPerSec();
-        double rightSpeed    = driveStatus.getRightSpeedInchesPerSec(); 
-        double gyroAngleRad  = driveStatus.getHeadingRad();
+    	// the following driveStatus elements are set during DriveLoop, called just previous to RobotStateLoop,
+    	// and in the same LoopController thread
+    	
+        double time      	= Timer.getFPGATimestamp();
+        double lDistance 	= driveStatus.getLeftDistanceInches();
+        double rDistance 	= driveStatus.getRightDistanceInches();
+        double lSpeed    	= driveStatus.getLeftSpeedInchesPerSec();
+        double rSpeed    	= driveStatus.getRightSpeedInchesPerSec(); 
+        double gyroAngleRad = driveStatus.getHeadingRad();
 
-        Pose odometry = robotState.generateOdometryFromSensors(leftDistance, rightDistance, gyroAngleRad);
-        Pose.Delta velocity = Kinematics.forwardKinematics(leftSpeed, rightSpeed);
-                
-        robotState.addObservations(time, odometry, velocity);
+        robotState.generateOdometryFromSensors(time, lDistance, rDistance, lSpeed, rSpeed, gyroAngleRad);
     }
 
     @Override

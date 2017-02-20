@@ -1,5 +1,6 @@
 package org.team686.simsbot;
 
+import org.team686.lib.util.DriveStatus;
 import org.team686.lib.util.InterpolatingDouble;
 import org.team686.lib.util.InterpolatingTreeMap;
 import org.team686.lib.util.Pose;
@@ -56,7 +57,7 @@ public class RobotState
     protected InterpolatingTreeMap<InterpolatingDouble, Pose> fieldToRobot;
     protected Pose.Delta robotSpeed;
 
-    private double initialGyroOffset;
+    private double gyroCorrection;
     
     private double prevLeftDistance = 0;
     private double prevRightDistance = 0;
@@ -65,14 +66,19 @@ public class RobotState
 
 	public synchronized void reset(double start_time, Pose initialFieldToRobot) 
 	{
+		// calibrate initial position to initial pose (set by autonomous mode)
         fieldToRobot = new InterpolatingTreeMap<>(kObservationBufferSize);
         fieldToRobot.put(new InterpolatingDouble(start_time), initialFieldToRobot);
-        robotSpeed = new Pose.Delta(0, 0);
         
-        initialGyroOffset = initialFieldToRobot.getHeadingRad();
+        // calibrate initial heading to initial pose (set by autonomous mode)
+        double desiredHeading = initialFieldToRobot.getHeadingRad();  
+        double gyroHeading  = DriveStatus.getInstance().getHeadingRad();
+        gyroCorrection = gyroHeading - desiredHeading;		// subtract gyroCorrection from actual gyro heading to get desired orientation
+        
+        robotSpeed = new Pose.Delta(0, 0);
         setPrevEncoderDistance(0, 0);
     }
-
+	
 	public void setPrevEncoderDistance(double _prevLeftDistance, double _prevRightDistance)
 	{
         prevLeftDistance  = _prevLeftDistance;
@@ -100,26 +106,28 @@ public class RobotState
         fieldToRobot.put(new InterpolatingDouble(timestamp), observation);
     }
 
-    public synchronized void addObservations(double timestamp, Pose field_to_vehicle, Pose.Delta velocity) 
-    {
-        addFieldToVehicleObservation(timestamp, field_to_vehicle);
-        robotSpeed = velocity;
-    }
-
-    public Pose generateOdometryFromSensors(double lEncoderDistance, double rEncoderDistance, double gyroAngleRad) 
+    public void generateOdometryFromSensors(double _time, double _lEncoderDistance, double _rEncoderDistance, 
+    		                                double _lEncoderSpeed, double _rEncoderSpeed, double _gyroAngleRad) 
     {
         Pose lastPose = getLatestFieldToVehicle();
         
         // get change in encoder distance from last call
-        double dLeftDistance  = lEncoderDistance - prevLeftDistance; 
-        double dRightDistance = rEncoderDistance - prevRightDistance;
+        double dLeftDistance  = _lEncoderDistance - prevLeftDistance; 
+        double dRightDistance = _rEncoderDistance - prevRightDistance;
 
-        setPrevEncoderDistance(lEncoderDistance, rEncoderDistance);
+        setPrevEncoderDistance(_lEncoderDistance, _rEncoderDistance);
                 
-        return Kinematics.integrateForwardKinematics(lastPose, dLeftDistance, dRightDistance, gyroAngleRad + initialGyroOffset);
+        Pose       odometry = Kinematics.integrateForwardKinematics(lastPose, dLeftDistance, dRightDistance, _gyroAngleRad - gyroCorrection);
+        Pose.Delta velocity = Kinematics.forwardKinematics(_lEncoderSpeed, _rEncoderSpeed);
+        
+        addFieldToVehicleObservation(_time, odometry);	// store odometry
+        robotSpeed = velocity;							// used in getPredictedFieldToVehicle()
     }
 
-    
+    public double getSpeed()
+    {
+    	return robotSpeed.dDistance;
+    }
     
     
 	private final DataLogger logger = new DataLogger()

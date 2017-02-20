@@ -8,7 +8,6 @@ import org.team686.lib.util.Pose;
 import org.team686.lib.util.Path.Waypoint;
 import org.team686.lib.util.Vector;
 import org.team686.simsbot.Constants;
-import org.team686.simsbot.RobotState;
 import org.team686.simsbot.auto.AutoModeBase;
 import org.team686.simsbot.auto.AutoModeEndedException;
 import org.team686.simsbot.auto.actions.*;
@@ -23,8 +22,7 @@ public class AutoPlacePegMode extends AutoModeBase
 {
 	List<Waypoint> path1, path2, path3, path4, path5, path6, path7;
 	int lane;
-	RobotState robotState;
-	
+	Pose initialPose = new Pose();
 	
 	Pose start1 = new Pose(120,-90,180*Pose.degreesToRadians);
 	Pose start2 = new Pose(120,  0,180*Pose.degreesToRadians);
@@ -45,8 +43,7 @@ public class AutoPlacePegMode extends AutoModeBase
 	
     public AutoPlacePegMode(int _lane, boolean isShooting) 
     {
-    	robotState = RobotState.getInstance();
-    	Pose startPose = new Pose();
+    	Pose initialPose = new Pose();
     	
     	lane = _lane;
 		double vel = 50;
@@ -54,10 +51,10 @@ public class AutoPlacePegMode extends AutoModeBase
 		switch (lane)
 		{
 		case 3:
-			startPose = start3;
+			initialPose = start3;
 			
 			path1 = new ArrayList<>();
-			path1.add(new Waypoint(startPose.getPosition(),    vel));
+			path1.add(new Waypoint(initialPose.getPosition(),    vel));
 			path1.add(new Waypoint(approach3, vel));
 			path1.add(new Waypoint(  vision3,   vel));
 			
@@ -86,16 +83,20 @@ public class AutoPlacePegMode extends AutoModeBase
 			path7 = new ArrayList<>();
 			path7.add(new Waypoint(approach1, vel));
 			path7.add(new Waypoint(approach2, vel));
-			path7.add(new Waypoint(startPose.getPosition(), vel));
+			path7.add(new Waypoint(initialPose.getPosition(), vel));
 			
 		}
 		
-		System.out.println("InitialPose: " + startPose);
-		robotState.reset(0.0, startPose);			
 				
     }
 
-     @Override
+    @Override
+    public Pose getInitialPose()
+    {
+    	return initialPose;
+    }
+    
+    @Override
     protected void routine() throws AutoModeEndedException 
     {
     	System.out.println("Starting AutoPlacePegMode, lane " + lane);
