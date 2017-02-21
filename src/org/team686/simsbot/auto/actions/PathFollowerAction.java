@@ -35,7 +35,7 @@ public class PathFollowerAction implements Action
 	
 	public double distanceFromPath;
 	public double lookaheadDist;
-	public PathSegment.Sample lookaheadPoint;
+	public Vector2d lookaheadPoint;
 	public double headingToTargetRadians;
 	public double remainingLength;
 	public double speed;
@@ -94,6 +94,10 @@ public class PathFollowerAction implements Action
 	
 	private void pathDrive(double _currentTime, Pose _currentPose)
 	{
+		// TODO: add programmable lookahead per segment
+		// TODO: address stopping when past final segment
+		// TODO: add vision
+		
 		//---------------------------------------------------
 		// Find Lookahead Point
 		//---------------------------------------------------
@@ -105,7 +109,7 @@ public class PathFollowerAction implements Action
 		//---------------------------------------------------
 		// Find arc to travel to Lookahead Point
 		//---------------------------------------------------
-		Vector2d robotToTarget = lookaheadPoint.position.sub(_currentPose.getPosition());
+		Vector2d robotToTarget = lookaheadPoint.sub(_currentPose.getPosition());
 		headingToTargetRadians = robotToTarget.angle() - _currentPose.getHeadingRad();
 		
 		curvature = 2 * Math.sin(headingToTargetRadians) / lookaheadDist;
@@ -113,7 +117,7 @@ public class PathFollowerAction implements Action
 		//---------------------------------------------------
 		// Apply speed control
 		//---------------------------------------------------
-		speed = lookaheadPoint.speed;
+		speed = path.getCurrentSegment().getSpeed();
 		if (reversed) 
 			speed = -speed;
 		
@@ -175,8 +179,8 @@ public class PathFollowerAction implements Action
 			put("VisionDrive/currentPoseHeadingRad", currentPose.getHeadingRad());
 			put("PathFollower/distanceFromPath", distanceFromPath );
 			put("PathFollower/lookaheadDist", lookaheadDist );
-			put("PathFollower/lookaheadPointX",  lookaheadPoint.position.getX() );
-			put("PathFollower/lookaheadPointY",  lookaheadPoint.position.getY());
+			put("PathFollower/lookaheadPointX",  lookaheadPoint.getX() );
+			put("PathFollower/lookaheadPointY",  lookaheadPoint.getY());
 			put("VisionDrive/headingToTargetRadians", headingToTargetRadians);
 			put("PathFollower/remainingLength",  remainingLength );
 			put("PathFollower/speed", 			 speed);

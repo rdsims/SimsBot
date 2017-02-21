@@ -116,6 +116,12 @@ public class Vector2d implements Interpolable<Vector2d>
     	return Math.hypot(x, y);
     }
     
+    // squared length of vector
+    public double lengthSqr()
+    {
+    	return (x*x + y*y);
+    }
+    
     static public Vector2d magnitudeAngle(double _mag, double _angleRad)
     {
     	return new Vector2d(_mag*Math.cos(_angleRad), _mag*Math.sin(_angleRad));

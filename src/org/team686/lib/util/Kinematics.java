@@ -1,5 +1,6 @@
 package org.team686.lib.util;
 
+import org.team686.lib.util.Pose.Delta;
 import org.team686.simsbot.Constants;
 
 /**
@@ -40,8 +41,33 @@ public class Kinematics
     public static Pose integrateForwardKinematics(Pose currentPose, double lSpeed, double rSpeed, double gyroAngleRad)
     {
     	Pose.Delta delta = forwardKinematics(lSpeed, rSpeed, gyroAngleRad - currentPose.getHeadingRad());
-        return currentPose.travelArc(delta);
+        return travelArc(currentPose, delta);
     }
+    
+    // Obtain a new Pose from travel along a constant curvature path.
+    public static Pose travelArc(Pose _initialPose, Delta delta)
+    {
+		double D = delta.dDistance;				// distance traveled = arc-length of circle
+		double L = D;							// chord-length
+		
+		double dTheta = delta.dHeading;
+		if (Math.abs(dTheta) > 1e-9)
+			L = 2*D*Math.sin(dTheta/2)/dTheta;			// chord-length given change in heading
+				
+		double avgHeading = _initialPose.getHeadingRad() + dTheta/2;	// mean of current and final headings
+
+		Vector2d translation = Vector2d.magnitudeAngle(L, avgHeading);	// calculate change in position
+		
+		// update pose
+		Pose finalPose = _initialPose.add(translation);
+		finalPose.turnRad(delta.dHeading);
+		
+		return finalPose;
+    }
+
+    
+    
+    
     
     public static class DriveVelocity 
     {

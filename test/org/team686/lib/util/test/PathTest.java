@@ -15,10 +15,17 @@ public class PathTest {
     public static final double kTestEpsilon = 1E-9;
 
     @Test
-    public void testPathSegment() {
+    public void testPathSegment() 
+    {
+    	double speed = 1;
+    	double lookaheadDist = 24;
+    	boolean visionEnable = false;
+    	
+    	PathSegment.PathSegmentOptions options = new PathSegment.PathSegmentOptions(speed, lookaheadDist, visionEnable);
+    	
         Vector2d start = new Vector2d(0, 0);
         Vector2d end = new Vector2d(1, 0);
-        PathSegment segment = new PathSegment(start, end, 1);
+        PathSegment segment = new PathSegment(start, end, options);
         assertEquals(1, segment.getLength(), kTestEpsilon);
         assertEquals(start.getX(), segment.getStart().getX(), kTestEpsilon);
         assertEquals(start.getY(), segment.getStart().getY(), kTestEpsilon);
@@ -71,13 +78,20 @@ public class PathTest {
     }
 
     @Test
-    public void testPath() {
-        List<Waypoint> waypoints = new ArrayList<>();
-        waypoints.add(new Waypoint(new Vector2d(0, 0), 1));
-        waypoints.add(new Waypoint(new Vector2d(1, 0), 1));
-        waypoints.add(new Waypoint(new Vector2d(2, 0), 1));
-        waypoints.add(new Waypoint(new Vector2d(2, 1), 1));
-        waypoints.add(new Waypoint(new Vector2d(2, 2), 1));
+    public void testPath() 
+    {
+    	double speed = 1;
+    	double lookaheadDist = 24;
+    	boolean visionEnable = false;
+    	
+    	PathSegment.PathSegmentOptions options = new PathSegment.PathSegmentOptions(speed, lookaheadDist, visionEnable);
+
+    	List<Waypoint> waypoints = new ArrayList<>();
+        waypoints.add(new Waypoint(new Vector2d(0, 0), options));
+        waypoints.add(new Waypoint(new Vector2d(1, 0), options));
+        waypoints.add(new Waypoint(new Vector2d(2, 0), options));
+        waypoints.add(new Waypoint(new Vector2d(2, 1), options));
+        waypoints.add(new Waypoint(new Vector2d(2, 2), options));
 
         Path path = new Path(waypoints);
         assertEquals(4, path.getRemainingLength(), kTestEpsilon);
@@ -124,71 +138,88 @@ public class PathTest {
     }
 
     @Test
-    public void testLookahead() {
-        List<Waypoint> waypoints = new ArrayList<>();
-        waypoints.add(new Waypoint(new Vector2d(0, 0), 1));
-        waypoints.add(new Waypoint(new Vector2d(1, 0), 1));
-        waypoints.add(new Waypoint(new Vector2d(2, 0), 1));
-        waypoints.add(new Waypoint(new Vector2d(2, 1), 1));
-        waypoints.add(new Waypoint(new Vector2d(2, 2), 1));
+    public void testLookahead() 
+    {
+    	double speed = 1;
+    	double lookaheadDist = 1;
+    	boolean visionEnable = false;
+    	
+    	PathSegment.PathSegmentOptions options = new PathSegment.PathSegmentOptions(speed, lookaheadDist, visionEnable);
+
+    	List<Waypoint> waypoints = new ArrayList<>();
+        waypoints.add(new Waypoint(new Vector2d(0, 0), options));
+        waypoints.add(new Waypoint(new Vector2d(1, 0), options));
+        waypoints.add(new Waypoint(new Vector2d(2, 0), options));
+        waypoints.add(new Waypoint(new Vector2d(2, 1), options));
+        waypoints.add(new Waypoint(new Vector2d(2, 2), options));
         Path path = new Path(waypoints);
 
         // Robot at path start, lookahead 1 unit
         Vector2d robot_position = new Vector2d(0, 0);
         path.update(robot_position);
-        PathSegment.Sample lookahead_point = path.getLookaheadPoint(robot_position, 1);
-        assertEquals(1, lookahead_point.position.getX(), kTestEpsilon);
-        assertEquals(0, lookahead_point.position.getY(), kTestEpsilon);
+        Vector2d lookahead_point = path.getLookaheadPoint(robot_position, 1);
+        assertEquals(1, lookahead_point.getX(), kTestEpsilon);
+        assertEquals(0, lookahead_point.getY(), kTestEpsilon);
 
         // Robot at path start, lookahead 2 units
         robot_position = new Vector2d(0, 0);
         path.update(robot_position);
         lookahead_point = path.getLookaheadPoint(robot_position, 2);
-        assertEquals(2, lookahead_point.position.getX(), kTestEpsilon);
-        assertEquals(0, lookahead_point.position.getY(), kTestEpsilon);
+        assertEquals(2, lookahead_point.getX(), kTestEpsilon);
+        assertEquals(0, lookahead_point.getY(), kTestEpsilon);
 
         // Robot at path start, lookahead 2.1 units
         robot_position = new Vector2d(0, 0);
         path.update(robot_position);
         lookahead_point = path.getLookaheadPoint(robot_position, 2.1);
-        assertEquals(2, lookahead_point.position.getX(), kTestEpsilon);
-        assertTrue(0 < lookahead_point.position.getY());
+        assertEquals(2, lookahead_point.getX(), kTestEpsilon);
+        assertTrue(0 < lookahead_point.getY());
 
         // Robot near path start, lookahead 1 unit
         robot_position = new Vector2d(0, 0.1);
         path.update(robot_position);
         lookahead_point = path.getLookaheadPoint(robot_position, 1);
-        assertTrue(1 > lookahead_point.position.getX());
-        assertEquals(0, lookahead_point.position.getY(), kTestEpsilon);
+        assertTrue(1 > lookahead_point.getX());
+        assertEquals(0, lookahead_point.getY(), kTestEpsilon);
 
         // Robot behind path start, lookahead 1 unit
         robot_position = new Vector2d(-.5, 0);
         path.update(robot_position);
         lookahead_point = path.getLookaheadPoint(robot_position, 1);
-        assertEquals(.5, lookahead_point.position.getX(), kTestEpsilon);
-        assertEquals(0, lookahead_point.position.getY(), kTestEpsilon);
+        assertEquals(.5, lookahead_point.getX(), kTestEpsilon);
+        assertEquals(0, lookahead_point.getY(), kTestEpsilon);
 
         // Lookahead goes past end
         robot_position = new Vector2d(0, 0);
         path.update(robot_position);
         lookahead_point = path.getLookaheadPoint(robot_position, 5);
-        assertEquals(2, lookahead_point.position.getX(), kTestEpsilon);
-        assertTrue(2 < lookahead_point.position.getY());
+        assertEquals(2, lookahead_point.getX(), kTestEpsilon);
+        assertTrue(2 < lookahead_point.getY());
     }
 
+    // TODO: add simulation test
+    
     @Test
-    public void testNumericalStability() {
+    public void testNumericalStability() 
+    {
+    	double speed = 120.0;
+    	double lookaheadDist = 1;
+    	boolean visionEnable = false;
+    	
+    	PathSegment.PathSegmentOptions options = new PathSegment.PathSegmentOptions(speed, lookaheadDist, visionEnable);
+    	
         Random rand = new Random(1);
-        for (int i = 0; i < 10000; ++i) {
+        for (int i = 0; i < 10000; ++i) 
+        {
             List<Waypoint> waypoints = new ArrayList<>();
-            waypoints.add(new Waypoint(new Vector2d( 18, 26), 120.0));
-            waypoints.add(new Waypoint(new Vector2d( 24, 18), 120.0));
-            waypoints.add(new Waypoint(new Vector2d( 90, 18), 120.0, "PopHood"));
-            waypoints.add(new Waypoint(new Vector2d(205, 18), 120.0));
+            waypoints.add(new Waypoint(new Vector2d( 18, 26), options));
+            waypoints.add(new Waypoint(new Vector2d( 24, 18), options));
+            waypoints.add(new Waypoint(new Vector2d( 90, 18), options));
+            waypoints.add(new Waypoint(new Vector2d(205, 18), options));
             Path path = new Path(waypoints);
-            for (int j = 0; j < 50; ++j) {
-                Vector2d robot_position = new Vector2d(rand.nextDouble() * 10.0 + 24,
-                                                   rand.nextDouble() * 10.0 + 18);
+            for (int j = 0; j < 50; ++j) 
+            {
+                Vector2d robot_position = new Vector2d(rand.nextDouble() * 10.0 + 24, rand.nextDouble() * 10.0 + 18);
                 path.update(robot_position);
                 assertTrue(path.getMarkersCrossed().isEmpty());
             }

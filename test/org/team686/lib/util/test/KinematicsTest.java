@@ -1,4 +1,4 @@
-package org.team686.simsbot.test;
+package org.team686.lib.util.test;
 
 
 import static org.junit.Assert.*;
@@ -40,6 +40,8 @@ public class KinematicsTest
         velocity = Kinematics.inverseKinematics(movement);
         assertEquals(velocity.left, left_diff, kEps);
         assertEquals(velocity.right, right_diff, kEps);
+        
+        // TODO: add integrateForwardKinematics test(s)
     }
 
 }

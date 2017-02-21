@@ -7,6 +7,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
+import org.team686.lib.util.PathSegment.PathSegmentOptions;
+
 /**
  * A Path is a recording of the path that the robot takes. Path objects consist
  * of a List of Waypoints that the robot passes by. Using multiple Waypoints in
@@ -18,242 +20,227 @@ public class Path
 {
     protected static final double kSegmentCompletePercentage = .99;
 
-    protected List<Waypoint> mWaypoints;
-    protected List<PathSegment> mSegments;
-    protected Set<String> mMarkersCrossed;
+    protected List<Waypoint> waypoints;
+    protected List<PathSegment> segments;
+    protected Set<String> markersCrossed;
 
     /**
      * A point along the Path, which consists of the location, the speed, and a
-     * string marker (that future code can identify). Paths consist of a List of
-     * Waypoints.
+     * string marker (that future code can identify). 
+     * Paths consist of a List of Waypoints.
      */
     public static class Waypoint 
     {
         public final Vector2d position;
-        public final double speed;
-        public final Optional<String> marker;
+        public final PathSegmentOptions options;
 
-        public Waypoint(Vector2d position, double speed) 
+        public Waypoint(Vector2d _position, PathSegmentOptions _options) 
         {
-            this.position = position;
-            this.speed = speed;
-            this.marker = Optional.empty();
-        }
-
-        public Waypoint(Vector2d position, double speed, String marker) 
-        {
-            this.position = position;
-            this.speed = speed;
-            this.marker = Optional.of(marker);
+            position = _position;
+            options  = _options;
         }
     }
 
-    public Path(List<Waypoint> waypoints) 
+    
+    // construct a path given a list of waypoints
+    public Path(List<Waypoint> _waypoints) 
     {
-        mMarkersCrossed = new HashSet<String>();
-        mWaypoints = waypoints;
-        mSegments = new ArrayList<PathSegment>();
-        for (int i = 0; i < waypoints.size() - 1; ++i) 
+    	// note to calling function: first waypoint should be near actual starting point (but doesn't have to be) 
+    	
+        waypoints = new ArrayList<Waypoint>(_waypoints);	// make a copy of waypoint list
+        
+        // construct path segments from each pair of waypoints
+        segments = new ArrayList<PathSegment>();	
+        for (int i = 0; i < _waypoints.size() - 1; ++i) 
         {
-            mSegments.add( new PathSegment(waypoints.get(i).position, waypoints.get(i + 1).position, waypoints.get(i).speed) );
+            segments.add( new PathSegment(waypoints.get(i).position, waypoints.get(i+1).position, waypoints.get(i).options ));
         }
-        // The first waypoint is already complete
-        if (mWaypoints.size() > 0) 
-        {
-            Waypoint first_waypoint = mWaypoints.get(0);
-            if (first_waypoint.marker.isPresent()) 
-            {
-                mMarkersCrossed.add(first_waypoint.marker.get());
-            }
-            mWaypoints.remove(0);
-        }
+        
+        markersCrossed = new HashSet<String>();
     }
 
-    /**
-     * @param An
-     *            initial position
-     * @return Returns the distance from the position to the first point on the
-     *         path
+
+    public PathSegment getCurrentSegment() { return new PathSegment(segments.get(0)); }
+
+    /*
+     *  update() takes the current robot position, and updates the progress along the path
+     *  removing waypoints already passed and adding markersCrossed
+     *  
+     *  update() returns the distance off of the path
      */
-    public double update(Vector2d position) 
+    public double update(Vector2d _position) 
     {
-        double rv = 0.0;
-        for (Iterator<PathSegment> it = mSegments.iterator(); it.hasNext();) 
+        double distOffPath = 0.0;
+        
+        for (Iterator<PathSegment> it = segments.iterator(); it.hasNext();) 
         {
-            PathSegment segment = it.next();
-            PathSegment.ClosestPointReport closest_point_report = segment.getClosestPoint(position);
-            if (closest_point_report.index >= kSegmentCompletePercentage) 
+        	// calculate distance from segment
+            PathSegment currSegment = it.next();
+            PathSegment.ClosestPointReport closestPointReport = currSegment.getClosestPoint(_position);
+            
+            // check if segment has been completed
+            if (closestPointReport.index >= kSegmentCompletePercentage) 
             {
+                // segment complete: mark as crossed, remove segment and waypoint from beginning of list
+            	markerCrossed(currSegment);
                 it.remove();
-                if (mWaypoints.size() > 0) 
-                {
-                    Waypoint waypoint = mWaypoints.get(0);
-                    if (waypoint.marker.isPresent()) 
-                    {
-                        mMarkersCrossed.add(waypoint.marker.get());
-                    }
-                    mWaypoints.remove(0);
-                }
+                waypoints.remove(0);
             } 
             else 
             {
-                if (closest_point_report.index > 0.0) 
+            	// segment not complete: move segment start to closest point 
+                if (closestPointReport.index > 0.0) 
                 {
                     // Can shorten this segment
-                    segment.updateStart(closest_point_report.closest_point);
+                    currSegment.updateStart(closestPointReport.closest_point);
                 }
-                // We are done
-                rv = closest_point_report.distance;
-                // ...unless the next segment is closer now
+                
+                distOffPath = closestPointReport.distance;
+                
+                
+                // check if next segment is closer than this one
                 if (it.hasNext()) 
                 {
-                    PathSegment next = it.next();
-                    PathSegment.ClosestPointReport next_closest_point_report = next.getClosestPoint(position);
-                    if (next_closest_point_report.index > 0
-                            && next_closest_point_report.index < kSegmentCompletePercentage
-                            && next_closest_point_report.distance < rv) 
+                    PathSegment nextSegment = it.next();
+                    PathSegment.ClosestPointReport nextSegClosestPointReport = nextSegment.getClosestPoint(_position);
+                    
+                    if (nextSegClosestPointReport.index > 0 &&
+                        nextSegClosestPointReport.index < kSegmentCompletePercentage &&
+                        nextSegClosestPointReport.distance < distOffPath) 
                     {
-                        next.updateStart(next_closest_point_report.closest_point);
-                        rv = next_closest_point_report.distance;
-                        mSegments.remove(0);
-                        if (mWaypoints.size() > 0) 
-                        {
-                            Waypoint waypoint = mWaypoints.get(0);
-                            if (waypoint.marker.isPresent()) 
-                            {
-                                mMarkersCrossed.add(waypoint.marker.get());
-                            }
-                            mWaypoints.remove(0);
-                        }
+                    	// next segment is closer: drop current segment and move to next
+                        nextSegment.updateStart(nextSegClosestPointReport.closest_point);
+                        distOffPath = nextSegClosestPointReport.distance;
+                        
+                    	markerCrossed(currSegment);
+                        segments.remove(0);
+                        waypoints.remove(0);
                     }
                 }
+                
+                // break out of loop once we've found a segment not yet completed 
                 break;
             }
         }
-        return rv;
+        return distOffPath;
     }
 
+    public void markerCrossed(PathSegment _segment)
+    {
+    	Optional<String> marker = _segment.getOptions().getMarker();
+    	
+    	if (marker.isPresent())
+    	{
+    		markersCrossed.add( marker.get() );
+    	}
+    }
+    
     public Set<String> getMarkersCrossed() 
     {
-        return mMarkersCrossed;
+        return markersCrossed;
     }
 
     public double getRemainingLength() 
     {
         double length = 0.0;
-        for (int i = 0; i < mSegments.size(); ++i) 
-        {
-            length += mSegments.get(i).getLength();
-        }
+        for (int i = 0; i < segments.size(); ++i) 
+            length += segments.get(i).getLength();
+
         return length;
     }
 
-    /**
-     * @param The
-     *            robot's current position
-     * @param A
-     *            specified distance to predict a future waypoint
-     * @return A segment of the robot's predicted motion with start/end points
-     *         and speed.
-     */
-    public PathSegment.Sample getLookaheadPoint(Vector2d position, double lookahead_distance) 
+    
+    // getLookaheadPoint() finds a point which is lookaheadDistance ahead along path from current position
+    //   The lookahead point will be at the intersection of that path and 
+    //   a circle centered at _position with radius _lookaheadDistance
+    public Vector2d getLookaheadPoint(Vector2d _position, double _lookaheadDistance) 
     {
-        if (mSegments.size() == 0) 
+        if (segments.size() == 0) 
         {
-            return new PathSegment.Sample(new Vector2d(), 0);
+        	// already finished path.  this shouldn't happen.
+            return new Vector2d();
         }
 
         // Check the distances to the start and end of each segment. As soon as
         // we find a point > lookahead_distance away, we know the right point
         // lies somewhere on that segment.
-        Vector2d toStart = mSegments.get(0).getStart().sub(position);
-        if (toStart.length() >= lookahead_distance) 
+        Vector2d start = segments.get(0).getStart();
+        double distanceToStart = start.distance(_position);
+        if (distanceToStart >= _lookaheadDistance) 
         {
-            // Special case: Before the first point, so just return the first
-            // point.
-            return new PathSegment.Sample(mSegments.get(0).getStart(), mSegments.get(0).getSpeed());
+        	// Special case: 
+            // not within range of start, so first attempt to to get back to start 
+            return start;
         }
-        for (int i = 0; i < mSegments.size(); ++i) 
+        
+        // find first segment whose endpoint is outside of lookahead circle
+        for (int i = 0; i < segments.size(); ++i) 
         {
-            PathSegment segment = mSegments.get(i);
-            Vector2d toSegmentEnd = segment.getEnd().sub(position);
-            double distance = toSegmentEnd.length();
-            if (distance >= lookahead_distance) 
+            PathSegment segment = segments.get(i);
+            double distance = segment.getEnd().distance(_position);
+            if (distance >= _lookaheadDistance) 
             {
                 // This segment contains the lookahead point
-                Optional<Vector2d> intersection_point = getFirstCircleSegmentIntersection(segment, position, lookahead_distance);
-                if (intersection_point.isPresent()) 
+                Optional<Vector2d> intersectionPoint = getPathLookaheadCircleIntersection(segment, _position, _lookaheadDistance);
+                if (intersectionPoint.isPresent()) 
                 {
-                    return new PathSegment.Sample(intersection_point.get(), segment.getSpeed());
+                    return new Vector2d(intersectionPoint.get());
                 } 
                 else 
                 {
+                	// shouldn't happen unless path is discontiguous
+                	// Path() constructor always makes contiguous paths
                     System.out.println("ERROR: No intersection point?");
                 }
             }
         }
-        // Special case: After the last point, so extrapolate forward.
-        PathSegment last_segment = mSegments.get(mSegments.size() - 1);
-        PathSegment new_last_segment = new PathSegment(last_segment.getStart(), last_segment.interpolate(10000), last_segment.getSpeed());
-        Optional<Vector2d> intersection_point = getFirstCircleSegmentIntersection(new_last_segment, position, lookahead_distance);
-        if (intersection_point.isPresent()) 
+        
+        // Special case:
+        // Last point has moved inside lookahead circle
+        // Extrapolate last segment forward and return intersection with extrapolated segment
+        PathSegment lastSegment = segments.get(segments.size() - 1);
+        // calculate interpolation factor to guarantee intersection
+        double interpFactor = 2*_lookaheadDistance / lastSegment.getLength();
+        PathSegment extrapolatedLastSegment = new PathSegment(lastSegment.getStart(), lastSegment.interpolate(interpFactor), lastSegment.options);
+        Optional<Vector2d> intersectionPoint = getPathLookaheadCircleIntersection(extrapolatedLastSegment, _position, _lookaheadDistance);
+        if (intersectionPoint.isPresent()) 
         {
-            return new PathSegment.Sample(intersection_point.get(), last_segment.getSpeed());
+            return new Vector2d(intersectionPoint.get());
         } 
         else 
         {
+        	// shouldn't happen.  drive towards endpoint
             System.out.println("ERROR: No intersection point anywhere on line?");
-            return new PathSegment.Sample(last_segment.getEnd(), last_segment.getSpeed());
+            return new Vector2d(lastSegment.getEnd());
         }
     }
 
-    static Optional<Vector2d> getFirstCircleSegmentIntersection(PathSegment segment, Vector2d center, double radius)
+    static Optional<Vector2d> getPathLookaheadCircleIntersection(PathSegment _segment, Vector2d _center, double _radius)
     {
-        double x1 = segment.getStart().x - center.x;
-        double y1 = segment.getStart().y - center.y;
-        double x2 = segment.getEnd().x - center.x;
-        double y2 = segment.getEnd().y - center.y;
-        double dx = x2 - x1;
-        double dy = y2 - y1;
-        double dr_squared = dx * dx + dy * dy;
-        double det = x1 * y2 - x2 * y1;
+    	Optional<Vector2d[]> intersectionPoints = Util.lineCircleIntersection(_segment.start, _segment.end, _center, _radius);
 
-        double discriminant = dr_squared * radius * radius - det * det;
-        if (discriminant < 0) 
-        {
-            // No intersection
-            return Optional.empty();
-        }
-
-        double sqrt_discriminant = Math.sqrt(discriminant);
-        Vector2d pos_solution = new Vector2d(
-                (det * dy + (dy < 0 ? -1 : 1) * dx * sqrt_discriminant) / dr_squared + center.x,
-                (-det * dx + Math.abs(dy) * sqrt_discriminant) / dr_squared + center.y);
-        Vector2d neg_solution = new Vector2d(
-        		(det * dy - (dy < 0 ? -1 : 1) * dx * sqrt_discriminant) / dr_squared + center.x,
-        		(-det * dx - Math.abs(dy) * sqrt_discriminant) / dr_squared + center.y);
-
-        // Choose the one between start and end that is closest to start
-        double pos_dot_product = segment.dotProduct(pos_solution);
-        double neg_dot_product = segment.dotProduct(neg_solution);
-        if (pos_dot_product < 0 && neg_dot_product >= 0) 
-        {
-            return Optional.of(neg_solution);
-        } 
-        else if (pos_dot_product >= 0 && neg_dot_product < 0) 
-        {
-            return Optional.of(pos_solution);
-        } 
-        else 
-        {
-            if (Math.abs(pos_dot_product) <= Math.abs(neg_dot_product)) 
-            {
-                return Optional.of(pos_solution);
-            } 
-            else 
-            {
-                return Optional.of(neg_solution);
-            }
-        }
+    	if (intersectionPoints.isPresent())
+    	{
+    		Vector2d[] soln = intersectionPoints.get();
+    		
+    		if (soln.length == 1)
+    			return Optional.of(soln[0]);
+    		else
+    		{
+    			// 2 solutions returned.  Choose the one that is closest to end (largest positive dot product)
+    			double dot0 = _segment.dotProduct(soln[0]);
+    			double dot1 = _segment.dotProduct(soln[1]);
+    			
+    			if (dot0 >= dot1)			
+    				return Optional.of(soln[0]);
+    			else
+    				return Optional.of(soln[1]);	
+    		}
+    	}
+    	else
+    	{
+    		// no intersection
+    		return Optional.empty();
+    	}
     }
 }

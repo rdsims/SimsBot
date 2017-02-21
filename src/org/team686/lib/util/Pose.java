@@ -127,27 +127,6 @@ public class Pose implements Interpolable<Pose>
     
     
     /*
-     * Obtain a new Pose from travel along a constant curvature path.
-     */
-    public Pose travelArc(Delta delta)
-    {
-		double D = delta.dDistance;				// distance traveled = arc-length of circle
-		double L = D;							// chord-length
-		
-		double dTheta = delta.dHeading;
-		if (Math.abs(dTheta) > 1e-9)
-			L = 2*D*Math.sin(dTheta/2)/dTheta;			// chord-length given change in heading
-				
-		double avgHeading = heading + dTheta/2;			// mean of current and final headings
-
-		// update pose
-		Vector2d deltaPosition = Vector2d.magnitudeAngle(L, avgHeading);	// calculate change in position
-		return new Pose(position.add(deltaPosition), heading+delta.dHeading);	// return new pose
-    }
-
-    
-    
-    /*
      * Apply rigid transform to Pose
      */
     public Pose transformBy(RigidTransform2d _T)
