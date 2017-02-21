@@ -3,7 +3,7 @@ package org.team686.simsbot.auto.actions;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.team686.simsbot.DataLogger;
+import org.team686.lib.util.DataLogger;
 
 /**
  * Composite action, running all sub-actions at the same time All actions are

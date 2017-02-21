@@ -16,8 +16,8 @@ public class PathTest {
 
     @Test
     public void testPathSegment() {
-        Vector start = new Vector(0, 0);
-        Vector end = new Vector(1, 0);
+        Vector2d start = new Vector2d(0, 0);
+        Vector2d end = new Vector2d(1, 0);
         PathSegment segment = new PathSegment(start, end, 1);
         assertEquals(1, segment.getLength(), kTestEpsilon);
         assertEquals(start.getX(), segment.getStart().getX(), kTestEpsilon);
@@ -26,14 +26,14 @@ public class PathTest {
         assertEquals(end.getY(), segment.getEnd().getY(), kTestEpsilon);
 
         // Update start
-        start = new Vector(0.5, 0);
+        start = new Vector2d(0.5, 0);
         segment.updateStart(start);
         assertEquals(0.5, segment.getLength(), kTestEpsilon);
         assertEquals(start.getX(), segment.getStart().getX(), kTestEpsilon);
         assertEquals(start.getY(), segment.getStart().getY(), kTestEpsilon);
 
         // Interpolate
-        Vector midpoint = segment.interpolate(0.5);
+        Vector2d midpoint = segment.interpolate(0.5);
         assertEquals(.75, midpoint.getX(), kTestEpsilon);
         assertEquals(0, midpoint.getY(), kTestEpsilon);
 
@@ -46,7 +46,7 @@ public class PathTest {
         assertEquals(0, report.distance, kTestEpsilon);
 
         // GetClosestPoint - point off of path
-        report = segment.getClosestPoint(new Vector(.75, 1));
+        report = segment.getClosestPoint(new Vector2d(.75, 1));
         assertEquals(.5, report.index, kTestEpsilon);
         assertEquals(.5, report.clamped_index, kTestEpsilon);
         assertEquals(midpoint.getX(), report.closest_point.getX(), kTestEpsilon);
@@ -54,7 +54,7 @@ public class PathTest {
         assertEquals(1, report.distance, kTestEpsilon);
 
         // GetClosestPoint - point behind start
-        report = segment.getClosestPoint(new Vector(0, 1));
+        report = segment.getClosestPoint(new Vector2d(0, 1));
         assertEquals(-1, report.index, kTestEpsilon);
         assertEquals(0, report.clamped_index, kTestEpsilon);
         assertEquals(start.getX(), report.closest_point.getX(), kTestEpsilon);
@@ -62,7 +62,7 @@ public class PathTest {
         assertEquals(Math.hypot(.5, 1), report.distance, kTestEpsilon);
 
         // GetClosestPoint - point after end
-        report = segment.getClosestPoint(new Vector(2, -1));
+        report = segment.getClosestPoint(new Vector2d(2, -1));
         assertEquals(3, report.index, kTestEpsilon);
         assertEquals(1, report.clamped_index, kTestEpsilon);
         assertEquals(end.getX(), report.closest_point.getX(), kTestEpsilon);
@@ -73,51 +73,51 @@ public class PathTest {
     @Test
     public void testPath() {
         List<Waypoint> waypoints = new ArrayList<>();
-        waypoints.add(new Waypoint(new Vector(0, 0), 1));
-        waypoints.add(new Waypoint(new Vector(1, 0), 1));
-        waypoints.add(new Waypoint(new Vector(2, 0), 1));
-        waypoints.add(new Waypoint(new Vector(2, 1), 1));
-        waypoints.add(new Waypoint(new Vector(2, 2), 1));
+        waypoints.add(new Waypoint(new Vector2d(0, 0), 1));
+        waypoints.add(new Waypoint(new Vector2d(1, 0), 1));
+        waypoints.add(new Waypoint(new Vector2d(2, 0), 1));
+        waypoints.add(new Waypoint(new Vector2d(2, 1), 1));
+        waypoints.add(new Waypoint(new Vector2d(2, 2), 1));
 
         Path path = new Path(waypoints);
         assertEquals(4, path.getRemainingLength(), kTestEpsilon);
 
-        Vector robot_position = new Vector(0, 0);
+        Vector2d robot_position = new Vector2d(0, 0);
         double distance = path.update(robot_position);
         assertEquals(0, distance, kTestEpsilon);
         assertEquals(4, path.getRemainingLength(), kTestEpsilon);
 
-        robot_position = new Vector(.5f, 0);
+        robot_position = new Vector2d(.5f, 0);
         distance = path.update(robot_position);
         assertEquals(0, distance, kTestEpsilon);
         assertEquals(3.5, path.getRemainingLength(), kTestEpsilon);
 
-        robot_position = new Vector(1, 0);
+        robot_position = new Vector2d(1, 0);
         distance = path.update(robot_position);
         assertEquals(0, distance, kTestEpsilon);
         assertEquals(3, path.getRemainingLength(), kTestEpsilon);
 
-        robot_position = new Vector(1, .5);
+        robot_position = new Vector2d(1, .5);
         distance = path.update(robot_position);
         assertEquals(.5, distance, kTestEpsilon);
         assertEquals(3, path.getRemainingLength(), kTestEpsilon);
 
-        robot_position = new Vector(2.5, .5);
+        robot_position = new Vector2d(2.5, .5);
         distance = path.update(robot_position);
         assertEquals(.5, distance, kTestEpsilon);
         assertEquals(1.5, path.getRemainingLength(), kTestEpsilon);
 
-        robot_position = new Vector(0, 0);
+        robot_position = new Vector2d(0, 0);
         distance = path.update(robot_position);
         assertTrue(distance > 1);
         assertEquals(1.5, path.getRemainingLength(), kTestEpsilon);
 
-        robot_position = new Vector(2.5, 2.5);
+        robot_position = new Vector2d(2.5, 2.5);
         distance = path.update(robot_position);
         assertEquals(0, distance, kTestEpsilon);
         assertEquals(0, path.getRemainingLength(), kTestEpsilon);
 
-        robot_position = new Vector(0, 0);
+        robot_position = new Vector2d(0, 0);
         distance = path.update(robot_position);
         assertEquals(0, distance, kTestEpsilon);
         assertEquals(0, path.getRemainingLength(), kTestEpsilon);
@@ -126,50 +126,50 @@ public class PathTest {
     @Test
     public void testLookahead() {
         List<Waypoint> waypoints = new ArrayList<>();
-        waypoints.add(new Waypoint(new Vector(0, 0), 1));
-        waypoints.add(new Waypoint(new Vector(1, 0), 1));
-        waypoints.add(new Waypoint(new Vector(2, 0), 1));
-        waypoints.add(new Waypoint(new Vector(2, 1), 1));
-        waypoints.add(new Waypoint(new Vector(2, 2), 1));
+        waypoints.add(new Waypoint(new Vector2d(0, 0), 1));
+        waypoints.add(new Waypoint(new Vector2d(1, 0), 1));
+        waypoints.add(new Waypoint(new Vector2d(2, 0), 1));
+        waypoints.add(new Waypoint(new Vector2d(2, 1), 1));
+        waypoints.add(new Waypoint(new Vector2d(2, 2), 1));
         Path path = new Path(waypoints);
 
         // Robot at path start, lookahead 1 unit
-        Vector robot_position = new Vector(0, 0);
+        Vector2d robot_position = new Vector2d(0, 0);
         path.update(robot_position);
         PathSegment.Sample lookahead_point = path.getLookaheadPoint(robot_position, 1);
         assertEquals(1, lookahead_point.position.getX(), kTestEpsilon);
         assertEquals(0, lookahead_point.position.getY(), kTestEpsilon);
 
         // Robot at path start, lookahead 2 units
-        robot_position = new Vector(0, 0);
+        robot_position = new Vector2d(0, 0);
         path.update(robot_position);
         lookahead_point = path.getLookaheadPoint(robot_position, 2);
         assertEquals(2, lookahead_point.position.getX(), kTestEpsilon);
         assertEquals(0, lookahead_point.position.getY(), kTestEpsilon);
 
         // Robot at path start, lookahead 2.1 units
-        robot_position = new Vector(0, 0);
+        robot_position = new Vector2d(0, 0);
         path.update(robot_position);
         lookahead_point = path.getLookaheadPoint(robot_position, 2.1);
         assertEquals(2, lookahead_point.position.getX(), kTestEpsilon);
         assertTrue(0 < lookahead_point.position.getY());
 
         // Robot near path start, lookahead 1 unit
-        robot_position = new Vector(0, 0.1);
+        robot_position = new Vector2d(0, 0.1);
         path.update(robot_position);
         lookahead_point = path.getLookaheadPoint(robot_position, 1);
         assertTrue(1 > lookahead_point.position.getX());
         assertEquals(0, lookahead_point.position.getY(), kTestEpsilon);
 
         // Robot behind path start, lookahead 1 unit
-        robot_position = new Vector(-.5, 0);
+        robot_position = new Vector2d(-.5, 0);
         path.update(robot_position);
         lookahead_point = path.getLookaheadPoint(robot_position, 1);
         assertEquals(.5, lookahead_point.position.getX(), kTestEpsilon);
         assertEquals(0, lookahead_point.position.getY(), kTestEpsilon);
 
         // Lookahead goes past end
-        robot_position = new Vector(0, 0);
+        robot_position = new Vector2d(0, 0);
         path.update(robot_position);
         lookahead_point = path.getLookaheadPoint(robot_position, 5);
         assertEquals(2, lookahead_point.position.getX(), kTestEpsilon);
@@ -181,13 +181,13 @@ public class PathTest {
         Random rand = new Random(1);
         for (int i = 0; i < 10000; ++i) {
             List<Waypoint> waypoints = new ArrayList<>();
-            waypoints.add(new Waypoint(new Vector( 18, 26), 120.0));
-            waypoints.add(new Waypoint(new Vector( 24, 18), 120.0));
-            waypoints.add(new Waypoint(new Vector( 90, 18), 120.0, "PopHood"));
-            waypoints.add(new Waypoint(new Vector(205, 18), 120.0));
+            waypoints.add(new Waypoint(new Vector2d( 18, 26), 120.0));
+            waypoints.add(new Waypoint(new Vector2d( 24, 18), 120.0));
+            waypoints.add(new Waypoint(new Vector2d( 90, 18), 120.0, "PopHood"));
+            waypoints.add(new Waypoint(new Vector2d(205, 18), 120.0));
             Path path = new Path(waypoints);
             for (int j = 0; j < 50; ++j) {
-                Vector robot_position = new Vector(rand.nextDouble() * 10.0 + 24,
+                Vector2d robot_position = new Vector2d(rand.nextDouble() * 10.0 + 24,
                                                    rand.nextDouble() * 10.0 + 18);
                 path.update(robot_position);
                 assertTrue(path.getMarkersCrossed().isEmpty());

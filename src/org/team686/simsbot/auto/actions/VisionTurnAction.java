@@ -2,8 +2,8 @@ package org.team686.simsbot.auto.actions;
 
 import edu.wpi.first.wpilibj.networktables.NetworkTable;
 
-import org.team686.lib.util.DriveCommand;
-import org.team686.simsbot.DataLogger;
+import org.team686.lib.util.DataLogger;
+import org.team686.simsbot.command_status.DriveCommand;
 import org.team686.simsbot.subsystems.Drive;
 
 public class VisionTurnAction implements Action {

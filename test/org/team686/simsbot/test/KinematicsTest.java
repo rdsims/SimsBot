@@ -4,8 +4,8 @@ package org.team686.simsbot.test;
 import static org.junit.Assert.*;
 
 import org.junit.Test;
+import org.team686.lib.util.Kinematics;
 import org.team686.lib.util.Pose;
-import org.team686.simsbot.Kinematics;
 
 public class KinematicsTest 
 {

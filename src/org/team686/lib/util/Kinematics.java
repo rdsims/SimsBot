@@ -1,6 +1,6 @@
-package org.team686.simsbot;
+package org.team686.lib.util;
 
-import org.team686.lib.util.Pose;
+import org.team686.simsbot.Constants;
 
 /**
  * Provides forward and inverse kinematics equations for the robot modeling the

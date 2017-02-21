@@ -1,4 +1,4 @@
-package org.team686.simsbot;
+package org.team686.lib.util;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -10,6 +10,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
+import org.team686.simsbot.LogTimestamp;
+
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 //Adapted from FRC Team 3620, The Average Joes
@@ -18,25 +20,19 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 public class DataLogController
 {
 	// define separate static instances for each thread
-	public static DataLogController robotInstance = new DataLogController("robot"); // log
-																					// controller
-																					// for
-																					// the
-																					// main
-																					// robot
-																					// thread
+	
+	// log controller for the main robot thread
+	public static DataLogController robotInstance = new DataLogController("robot"); 
 
 	public static DataLogController getRobotLogController()
 	{
 		return robotInstance;
 	}
 
-	public static DataLogController autoInstance = new DataLogController("auto"); // log
-																					// controller
-																					// for
-																					// the
-																					// autonomous
-																					// thread
+	
+	
+	// log controller for the main autonomous thread
+	public static DataLogController autoInstance = new DataLogController("auto");
 
 	public static DataLogController getAutoLogController()
 	{

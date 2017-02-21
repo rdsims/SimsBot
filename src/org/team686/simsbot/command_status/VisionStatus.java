@@ -1,4 +1,4 @@
-package org.team686.simsbot;
+package org.team686.simsbot.command_status;
 
 public class VisionStatus
 {

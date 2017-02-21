@@ -5,7 +5,7 @@ import java.util.List;
 
 import org.team686.lib.util.Path;
 import org.team686.lib.util.Path.Waypoint;
-import org.team686.lib.util.Vector;
+import org.team686.lib.util.Vector2d;
 import org.team686.simsbot.auto.AutoModeBase;
 import org.team686.simsbot.auto.AutoModeEndedException;
 import org.team686.simsbot.auto.actions.*;
@@ -34,16 +34,16 @@ public class SimplePathMode extends AutoModeBase {
     	double Y = 18.0;
     	
         List<Waypoint> first_path = new ArrayList<>();
-        first_path.add(new Waypoint(new Vector(  0, 0), vel));
-        first_path.add(new Waypoint(new Vector( XX, 0), vel));
-        first_path.add(new Waypoint(new Vector( XX, Y), vel));
-        first_path.add(new Waypoint(new Vector(  X, Y), vel));
+        first_path.add(new Waypoint(new Vector2d(  0, 0), vel));
+        first_path.add(new Waypoint(new Vector2d( XX, 0), vel));
+        first_path.add(new Waypoint(new Vector2d( XX, Y), vel));
+        first_path.add(new Waypoint(new Vector2d(  X, Y), vel));
 
         List<Waypoint> return_path = new ArrayList<>();
-        return_path.add(new Waypoint(new Vector(  X, Y), vel));
-        return_path.add(new Waypoint(new Vector( XX, Y), vel));
-        return_path.add(new Waypoint(new Vector( XX, 0), vel));
-        return_path.add(new Waypoint(new Vector(  0, 0), vel));
+        return_path.add(new Waypoint(new Vector2d(  X, Y), vel));
+        return_path.add(new Waypoint(new Vector2d( XX, Y), vel));
+        return_path.add(new Waypoint(new Vector2d( XX, 0), vel));
+        return_path.add(new Waypoint(new Vector2d(  0, 0), vel));
         
         
         runAction(new PathFollowerAction(new Path(first_path), false));       		         

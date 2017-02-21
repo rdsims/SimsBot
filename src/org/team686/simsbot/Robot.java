@@ -11,6 +11,9 @@ import org.team686.lib.joystick.*;
 import org.team686.lib.util.*;
 
 import org.team686.simsbot.auto.AutoModeExecuter;
+import org.team686.simsbot.command_status.DriveCommand;
+import org.team686.simsbot.command_status.DriveStatus;
+import org.team686.simsbot.command_status.RobotState;
 import org.team686.simsbot.loops.DriveLoop;
 import org.team686.simsbot.loops.LoopController;
 import org.team686.simsbot.loops.RobotStateLoop;

@@ -3,7 +3,7 @@ package org.team686.simsbot.auto.actions;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.team686.simsbot.DataLogger;
+import org.team686.lib.util.DataLogger;
 
 /**
  * Executes one action at a time. Useful as a member of {@link ParallelAction}

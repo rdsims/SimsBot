@@ -1,9 +1,9 @@
 package org.team686.lib.joystick;
 
 import org.team686.lib.joystick.JoystickControlsBase;
-import org.team686.lib.util.DriveCommand;
 import org.team686.lib.util.Util;
 import org.team686.simsbot.Constants;
+import org.team686.simsbot.command_status.DriveCommand;
 
 /**
  * Implements Team 254's Cheesy Drive. "Cheesy Drive" simply means that

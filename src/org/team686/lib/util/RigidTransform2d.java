@@ -8,35 +8,35 @@ import java.text.DecimalFormat;
 /**
  * Performs translations and rotations on Vector2 and RigidTransform objects.
  */
-public class RigidTransform implements Interpolable<RigidTransform>
+public class RigidTransform2d implements Interpolable<RigidTransform2d>
 {
-    private Vector translation;		// translation(x,y) in inches
+    private Vector2d translation;		// translation(x,y) in inches
     private double rotation;		// rotation in radians
 
     // constructors
-    public RigidTransform() 
+    public RigidTransform2d() 
     {
     	this(0, 0, 0);
     }
 
-    public RigidTransform(double _x, double _y) 
+    public RigidTransform2d(double _x, double _y) 
     {
     	this(_x, _y, 0.0);
     }
 
-    public RigidTransform(double _x, double _y, double _rotationRad) 
+    public RigidTransform2d(double _x, double _y, double _rotationRad) 
     {
-        translation = new Vector(_x,_y);
+        translation = new Vector2d(_x,_y);
         rotation  = _rotationRad;
     }
 
-    public RigidTransform(Vector _translation, double _rotationRad) 
+    public RigidTransform2d(Vector2d _translation, double _rotationRad) 
     {
-    	translation = new Vector(_translation);
+    	translation = new Vector2d(_translation);
 		rotation  = _rotationRad;
     }
 
-    public RigidTransform(RigidTransform that) 
+    public RigidTransform2d(RigidTransform2d that) 
     {
     	this(that.translation, that.rotation);
     }
@@ -51,28 +51,28 @@ public class RigidTransform implements Interpolable<RigidTransform>
     
     public double getX() { return translation.x; }
     public double getY() { return translation.y; }
-    public Vector getTranslation() { return translation; }
+    public Vector2d getTranslation() { return translation; }
     public double getRotationRad() { return rotation; }
     public double getRotationDeg() { return rotation * radiansToDegrees; }
-    public Vector getRotationUnitVector() { return new Vector(Math.cos(rotation), Math.sin(rotation)); }
+    public Vector2d getRotationUnitVector() { return new Vector2d(Math.cos(rotation), Math.sin(rotation)); }
     
     
     // add performs vector translation.  The original rotation is not changed
-    public RigidTransform add(Vector _translation)
+    public RigidTransform2d add(Vector2d _translation)
     {
-    	return new RigidTransform(translation.add(_translation), rotation);
+    	return new RigidTransform2d(translation.add(_translation), rotation);
     }
     
     // sub performs vector translation.  The original rotation is not changed
-    public RigidTransform sub(Vector _translation)
+    public RigidTransform2d sub(Vector2d _translation)
     {
-    	return new RigidTransform(translation.sub(_translation), rotation);
+    	return new RigidTransform2d(translation.sub(_translation), rotation);
     }
     
     // performs rotation.
-    public RigidTransform rotateRad(double _thetaRad)
+    public RigidTransform2d rotateRad(double _thetaRad)
     {
-    	return new RigidTransform(translation.rotate(_thetaRad), rotation+_thetaRad);
+    	return new RigidTransform2d(translation.rotate(_thetaRad), rotation+_thetaRad);
     }
 
 
@@ -82,10 +82,10 @@ public class RigidTransform implements Interpolable<RigidTransform>
      * Transforming this RigidTransform means first translating by
      * other.translation and then rotating by other.rotation
      */
-    public RigidTransform transformBy(RigidTransform _that)
+    public RigidTransform2d transformBy(RigidTransform2d _that)
     {
     	// rotate T's translation by our rotation 
-    	RigidTransform T = _that.rotateRad(this.rotation);
+    	RigidTransform2d T = _that.rotateRad(this.rotation);
 
     	// apply translation
     	T = this.add(T.translation);
@@ -93,16 +93,16 @@ public class RigidTransform implements Interpolable<RigidTransform>
     	// adjust rotation
     	double R = this.rotation + _that.rotation;
     	
-    	return new RigidTransform(T.translation, R);
+    	return new RigidTransform2d(T.translation, R);
     }
     
     
     /**
      * Vector rotation
      */
-    public RigidTransform rotateRad(float _rotationRad)
+    public RigidTransform2d rotateRad(float _rotationRad)
     {
-    	return new RigidTransform(translation.rotate(_rotationRad), rotation);	// rotate translation by _rotationRad
+    	return new RigidTransform2d(translation.rotate(_rotationRad), rotation);	// rotate translation by _rotationRad
     																			// this.rotation is not affected
     }
     
@@ -110,9 +110,9 @@ public class RigidTransform implements Interpolable<RigidTransform>
      * The inverse of this transform "undoes" the effect of translating by this
      * transform.
      */
-    public RigidTransform inverse()
+    public RigidTransform2d inverse()
     {
-    	RigidTransform T = new RigidTransform(-this.translation.x, -this.translation.y, 0);	// invert translation
+    	RigidTransform2d T = new RigidTransform2d(-this.translation.x, -this.translation.y, 0);	// invert translation
     	T = T.rotateRad(-this.rotation);													// rotate translation by inverse of rotation
     	return T;												
     }
@@ -122,7 +122,7 @@ public class RigidTransform implements Interpolable<RigidTransform>
     
      // Linear interpolation of RigidTransforms
     @Override
-    public RigidTransform interpolate(RigidTransform _that, double _u)
+    public RigidTransform2d interpolate(RigidTransform2d _that, double _u)
     {
      	double u = _u;
         if (u < 0)
@@ -130,10 +130,10 @@ public class RigidTransform implements Interpolable<RigidTransform>
         if (u > 1) 
             u = 1;
         
-    	Vector iTranslation = translation.interpolate(_that.translation, u);	// interpolate position
+    	Vector2d iTranslation = translation.interpolate(_that.translation, u);	// interpolate position
     	double  iRotation = this.rotation + u*(_that.rotation - this.rotation);	// interpolate heading
     	 
-        return new RigidTransform(iTranslation, iRotation);
+        return new RigidTransform2d(iTranslation, iRotation);
     }
 
     

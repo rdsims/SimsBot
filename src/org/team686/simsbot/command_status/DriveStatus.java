@@ -1,6 +1,6 @@
-package org.team686.lib.util;
+package org.team686.simsbot.command_status;
 
-import org.team686.simsbot.DataLogger;
+import org.team686.lib.util.DataLogger;
 
 import com.ctre.CANTalon.TalonControlMode;
 

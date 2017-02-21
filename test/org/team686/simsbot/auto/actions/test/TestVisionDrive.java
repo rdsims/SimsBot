@@ -10,10 +10,10 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.team686.lib.util.Pose;
-import org.team686.lib.util.Vector;
+import org.team686.lib.util.Vector2d;
 import org.team686.simsbot.Constants;
-import org.team686.simsbot.RobotState;
 import org.team686.simsbot.auto.actions.VisionDriveAction;
+import org.team686.simsbot.command_status.RobotState;
 
 
 public class TestVisionDrive
@@ -89,7 +89,7 @@ public class TestVisionDrive
 			if (dTheta > 1e-9)
 				L = 2*D*Math.sin(dTheta/2)/dTheta;	// adjust chord-length for curvature	
 					
-			actualRobotLocation = actualRobotLocation.add(Vector.magnitudeAngle(L, theta_m));
+			actualRobotLocation = actualRobotLocation.add(Vector2d.magnitudeAngle(L, theta_m));
 			actualRobotLocation = actualRobotLocation.turnRad(dTheta);
 			
 System.out.println("Robot: " + actualRobotLocation + ", AvgTarget: " + visionDriveAction.avgTargetLocation);
@@ -99,7 +99,7 @@ System.out.println("Robot: " + actualRobotLocation + ", AvgTarget: " + visionDri
 			robotState.addFieldToVehicleObservation(currentTime, observation);
 
 			// calculate relative position of target
-			Vector robotToTarget = actualTargetLocation.sub(actualRobotLocation);
+			Vector2d robotToTarget = actualTargetLocation.sub(actualRobotLocation);
 			double  distToTarget = robotToTarget.length(); 
 			double angleToTarget = robotToTarget.angle() - actualRobotLocation.getHeadingRad();
 			
@@ -166,7 +166,7 @@ System.out.printf("Vision X = % 7.3f, Width = % 7.3f ---- ", normalizedTargetX, 
 		 ***********************************************/
 
 		// calculate relative position of target
-		Vector robotToTarget = new Vector(actualTargetLocation.getPosition()).sub(actualRobotLocation.getPosition());
+		Vector2d robotToTarget = new Vector2d(actualTargetLocation.getPosition()).sub(actualRobotLocation.getPosition());
 		double  distToTarget = robotToTarget.length(); 
 		double angleToTarget = robotToTarget.angle();
         

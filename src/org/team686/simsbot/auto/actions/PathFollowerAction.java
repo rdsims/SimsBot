@@ -3,13 +3,13 @@ package org.team686.simsbot.auto.actions;
 import edu.wpi.first.wpilibj.Timer;
 
 import org.team686.simsbot.Constants;
-import org.team686.simsbot.DataLogger;
-import org.team686.simsbot.RobotState;
+import org.team686.simsbot.command_status.RobotState;
 import org.team686.simsbot.subsystems.Drive;
+import org.team686.lib.util.DataLogger;
 import org.team686.lib.util.Path;
 import org.team686.lib.util.PathSegment;
 import org.team686.lib.util.Pose;
-import org.team686.lib.util.Vector;
+import org.team686.lib.util.Vector2d;
 
 /**
  * Action for following a path defined by a Path object.
@@ -105,7 +105,7 @@ public class PathFollowerAction implements Action
 		//---------------------------------------------------
 		// Find arc to travel to Lookahead Point
 		//---------------------------------------------------
-		Vector robotToTarget = lookaheadPoint.position.sub(_currentPose.getPosition());
+		Vector2d robotToTarget = lookaheadPoint.position.sub(_currentPose.getPosition());
 		headingToTargetRadians = robotToTarget.angle() - _currentPose.getHeadingRad();
 		
 		curvature = 2 * Math.sin(headingToTargetRadians) / lookaheadDist;

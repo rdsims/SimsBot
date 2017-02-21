@@ -1,8 +1,8 @@
 package org.team686.lib.joystick;
 
 import org.team686.lib.joystick.JoystickControlsBase;
-import org.team686.lib.util.DriveCommand;
 import org.team686.lib.util.Util;
+import org.team686.simsbot.command_status.DriveCommand;
 
 /**
  * Implements a simple arcade drive, where single stick is used for throttle and turn.

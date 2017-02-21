@@ -6,12 +6,12 @@ import java.util.List;
 import org.team686.lib.util.Path;
 import org.team686.lib.util.Pose;
 import org.team686.lib.util.Path.Waypoint;
-import org.team686.lib.util.Vector;
+import org.team686.lib.util.Vector2d;
 import org.team686.simsbot.Constants;
-import org.team686.simsbot.RobotState;
 import org.team686.simsbot.auto.AutoModeBase;
 import org.team686.simsbot.auto.AutoModeEndedException;
 import org.team686.simsbot.auto.actions.*;
+import org.team686.simsbot.command_status.RobotState;
 
 
 
@@ -30,17 +30,17 @@ public class AutoPlacePegMode extends AutoModeBase
 	Pose start2 = new Pose(120,  0,180*Pose.degreesToRadians);
 	Pose start3 = new Pose(120,+90,180*Pose.degreesToRadians);
 	
-	Vector approach1 = new Vector( 45,-90);
-	Vector approach2 = new Vector( 90,  0);
-	Vector approach3 = new Vector( 45,+90);
+	Vector2d approach1 = new Vector2d( 45,-90);
+	Vector2d approach2 = new Vector2d( 90,  0);
+	Vector2d approach3 = new Vector2d( 45,+90);
 	
-	Vector vision1 = new Vector( 30,-64);
-	Vector vision2 = new Vector( 60,  0);
-	Vector vision3 = new Vector( 36,+64);
+	Vector2d vision1 = new Vector2d( 30,-64);
+	Vector2d vision2 = new Vector2d( 60,  0);
+	Vector2d vision3 = new Vector2d( 36,+64);
 	
-	Vector target1 = new Vector(  0,-12);
-	Vector target2 = new Vector(  0,  0);
-	Vector target3 = new Vector(  0,+12);
+	Vector2d target1 = new Vector2d(  0,-12);
+	Vector2d target2 = new Vector2d(  0,  0);
+	Vector2d target3 = new Vector2d(  0,+12);
 	
 	
     public AutoPlacePegMode(int _lane, boolean isShooting) 

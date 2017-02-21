@@ -1,6 +1,6 @@
 package org.team686.simsbot.auto.actions;
 
-import org.team686.simsbot.DataLogger;
+import org.team686.lib.util.DataLogger;
 
 /**
  * Action Interface, an interface that describes an iterative action. It is run

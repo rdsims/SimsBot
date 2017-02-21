@@ -1,8 +1,8 @@
 package org.team686.simsbot.auto.actions;
 
-import org.team686.simsbot.DataLogger;
+import org.team686.lib.util.DataLogger;
+import org.team686.simsbot.command_status.DriveStatus;
 import org.team686.simsbot.subsystems.Drive;
-import org.team686.lib.util.DriveStatus;
 
 /**
  * DriveStraightAction drives the robot straight at a settable angle, distance,

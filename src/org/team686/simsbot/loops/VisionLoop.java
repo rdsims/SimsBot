@@ -1,6 +1,7 @@
 package org.team686.simsbot.loops;
 
-import org.team686.simsbot.VisionStatus;
+import org.team686.simsbot.command_status.VisionStatus;
+
 import edu.wpi.first.wpilibj.networktables.NetworkTable;
 
 

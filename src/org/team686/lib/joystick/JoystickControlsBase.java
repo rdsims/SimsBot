@@ -1,7 +1,8 @@
 package org.team686.lib.joystick;
 
+import org.team686.simsbot.command_status.DriveCommand;
+
 import edu.wpi.first.wpilibj.Joystick;
-import org.team686.lib.util.DriveCommand;
 
 /**
  * An abstract class that forms the base of joystick controls.

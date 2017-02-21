@@ -11,10 +11,10 @@ public class PathSegment {
 
     public static class Sample
     {
-        public final Vector position;
+        public final Vector2d position;
         public final double speed;
 
-        public Sample(Vector _position, double _speed) 
+        public Sample(Vector2d _position, double _speed) 
         {
             this.position = _position;
             this.speed = _speed;
@@ -22,9 +22,9 @@ public class PathSegment {
     }
 
     protected double mSpeed;
-    protected Vector mStart;
-    protected Vector mEnd;
-    protected Vector mStartToEnd; // pre-computed for efficiency
+    protected Vector2d mStart;
+    protected Vector2d mEnd;
+    protected Vector2d mStartToEnd; // pre-computed for efficiency
     protected double mLength; // pre-computed for efficiency
 
     public static class ClosestPointReport 
@@ -32,20 +32,20 @@ public class PathSegment {
         public double index; // Index of the point on the path segment (not
                              // clamped to [0, 1])
         public double clamped_index; // As above, but clamped to [0, 1]
-        public Vector closest_point; // The result of
+        public Vector2d closest_point; // The result of
                                             // interpolate(clamped_index)
         public double distance; // The distance from closest_point to the query
                                 // point
     }
 
-    public PathSegment(Vector start, Vector end, double speed) 
+    public PathSegment(Vector2d start, Vector2d end, double speed) 
     {
         mEnd = end;
         mSpeed = speed;
         updateStart(start);
     }
 
-    public void updateStart(Vector new_start)
+    public void updateStart(Vector2d new_start)
     {
         mStart = new_start;		
         mStartToEnd = mEnd.sub(mStart);
@@ -53,23 +53,23 @@ public class PathSegment {
     }
 
     public double getSpeed()  { return mSpeed; }
-    public Vector getStart()  { return mStart; }
-    public Vector getEnd()    { return mEnd; }
+    public Vector2d getStart()  { return mStart; }
+    public Vector2d getEnd()    { return mEnd; }
     public double getLength() { return mLength; }
 
     // Index is on [0, 1]
-    public Vector interpolate(double index)
+    public Vector2d interpolate(double index)
     {
     	return mStart.interpolate(mEnd, index);
     }
 
-    public double dotProduct(Vector _other)
+    public double dotProduct(Vector2d _other)
     {
-        Vector startToOther = _other.sub(mStart);
+        Vector2d startToOther = _other.sub(mStart);
         return mStartToEnd.dot(startToOther);
     }
 
-    public ClosestPointReport getClosestPoint(Vector query_point) 
+    public ClosestPointReport getClosestPoint(Vector2d query_point) 
     {
         ClosestPointReport rv = new ClosestPointReport();
         if (mLength > kEpsilon) 
@@ -82,7 +82,7 @@ public class PathSegment {
         else 
         {
             rv.index = rv.clamped_index = 0.0;
-            rv.closest_point = new Vector(mStart);
+            rv.closest_point = new Vector2d(mStart);
         }
         rv.distance = query_point.distance(rv.closest_point);
         return rv;

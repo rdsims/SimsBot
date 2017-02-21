@@ -1,8 +1,8 @@
 package org.team686.simsbot.loops;
 
-import org.team686.simsbot.Kinematics;
-import org.team686.simsbot.RobotState;
-import org.team686.lib.util.DriveStatus;
+import org.team686.simsbot.command_status.DriveStatus;
+import org.team686.simsbot.command_status.RobotState;
+import org.team686.lib.util.Kinematics;
 import org.team686.lib.util.Pose;
 
 import edu.wpi.first.wpilibj.Timer;

@@ -8,7 +8,7 @@ package org.team686.lib.util;
  */
 public class Pose implements Interpolable<Pose>
 {
-    private Vector position;	// position (x,y) in inches
+    private Vector2d position;	// position (x,y) in inches
     private double heading;		// heading in radians
 
     // constructors
@@ -24,13 +24,13 @@ public class Pose implements Interpolable<Pose>
 
     public Pose(double _x, double _y, double _headingRad) 
     {
-        position = new Vector(_x,_y);
+        position = new Vector2d(_x,_y);
         heading  = _headingRad;
     }
 
-    public Pose(Vector _position, double _headingRad) 
+    public Pose(Vector2d _position, double _headingRad) 
     {
-    	position = new Vector(_position);
+    	position = new Vector2d(_position);
 		heading  = _headingRad;
     }
 
@@ -49,33 +49,33 @@ public class Pose implements Interpolable<Pose>
     
     public static Pose fromMagnitudeAngleRad(double _rho, double _thetaRad)
     {
-    	Vector p = new Vector(_rho, 0);
+    	Vector2d p = new Vector2d(_rho, 0);
     	p.rotate(_thetaRad);
     	return new Pose(p, _thetaRad);		// arbitrarily setting heading to thetaRad
     }
     
     public double getX() { return position.x; }
     public double getY() { return position.y; }
-    public Vector getPosition() { return position; }
+    public Vector2d getPosition() { return position; }
     public double getHeadingRad() { return heading; }
     public double getHeadingDeg() { return heading * radiansToDegrees; }
-    public Vector getHeadingUnitVector() { return new Vector(Math.cos(heading), Math.sin(heading)); }
+    public Vector2d getHeadingUnitVector() { return new Vector2d(Math.cos(heading), Math.sin(heading)); }
     
     
     // add performs vector translation.  The original heading is not changed
-    public Pose add(Vector _translation)
+    public Pose add(Vector2d _translation)
     {
     	return new Pose(position.add(_translation), heading);
     }
     
     // returns vector from that to this.position
-    public Vector sub(Vector _translation)
+    public Vector2d sub(Vector2d _translation)
     {
     	return position.sub(_translation);
     }
     
     // returns vector from that.position to this.position
-    public Vector sub(Pose _that)
+    public Vector2d sub(Pose _that)
     {
     	return this.sub(_that.position);
     }
@@ -94,19 +94,19 @@ public class Pose implements Interpolable<Pose>
     }
 
     // get distance from this pose to vector v
-    public double distance(Vector _that)
+    public double distance(Vector2d _that)
     {
     	return position.distance(_that);
     }
 
     // heading from this to that in radians
-    public double headingRad(Vector _that)
+    public double headingRad(Vector2d _that)
     {
     	return this.position.angle(_that);
     }
 
     // heading from this to that in degrees
-    public double headingDeg(Vector _that)
+    public double headingDeg(Vector2d _that)
     {
     	return headingRad(_that) * radiansToDegrees;
     }
@@ -141,7 +141,7 @@ public class Pose implements Interpolable<Pose>
 		double avgHeading = heading + dTheta/2;			// mean of current and final headings
 
 		// update pose
-		Vector deltaPosition = Vector.magnitudeAngle(L, avgHeading);	// calculate change in position
+		Vector2d deltaPosition = Vector2d.magnitudeAngle(L, avgHeading);	// calculate change in position
 		return new Pose(position.add(deltaPosition), heading+delta.dHeading);	// return new pose
     }
 
@@ -150,12 +150,12 @@ public class Pose implements Interpolable<Pose>
     /*
      * Apply rigid transform to Pose
      */
-    public Pose transformBy(RigidTransform _T)
+    public Pose transformBy(RigidTransform2d _T)
     {
     	// use identical function in RigidTransform
-    	RigidTransform pose = new RigidTransform(this.getPosition(), this.getHeadingRad());
+    	RigidTransform2d pose = new RigidTransform2d(this.getPosition(), this.getHeadingRad());
     	
-    	RigidTransform newPose = pose.transformBy(_T);
+    	RigidTransform2d newPose = pose.transformBy(_T);
     	
     	return new Pose(newPose.getTranslation(), newPose.getRotationRad());
     }
@@ -171,7 +171,7 @@ public class Pose implements Interpolable<Pose>
         if (u > 1) 
             u = 1;
         
-    	Vector iPosition = position.interpolate(_that.position, u);			// interpolate position
+    	Vector2d iPosition = position.interpolate(_that.position, u);			// interpolate position
     	double  iHeading = this.heading + u*(_that.heading - this.heading);	// interpolate heading
     	 
         return new Pose(iPosition, iHeading);

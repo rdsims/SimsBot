@@ -4,9 +4,9 @@ import com.ctre.CANTalon;
 import com.ctre.CANTalon.TalonControlMode;
 
 import org.team686.lib.sensors.BNO055;
-import org.team686.lib.util.DriveCommand;
-import org.team686.lib.util.DriveStatus;
 import org.team686.simsbot.Constants;
+import org.team686.simsbot.command_status.DriveCommand;
+import org.team686.simsbot.command_status.DriveStatus;
 import org.team686.simsbot.subsystems.Drive;
 
 /*

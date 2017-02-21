@@ -29,18 +29,18 @@ public class Path
      */
     public static class Waypoint 
     {
-        public final Vector position;
+        public final Vector2d position;
         public final double speed;
         public final Optional<String> marker;
 
-        public Waypoint(Vector position, double speed) 
+        public Waypoint(Vector2d position, double speed) 
         {
             this.position = position;
             this.speed = speed;
             this.marker = Optional.empty();
         }
 
-        public Waypoint(Vector position, double speed, String marker) 
+        public Waypoint(Vector2d position, double speed, String marker) 
         {
             this.position = position;
             this.speed = speed;
@@ -75,7 +75,7 @@ public class Path
      * @return Returns the distance from the position to the first point on the
      *         path
      */
-    public double update(Vector position) 
+    public double update(Vector2d position) 
     {
         double rv = 0.0;
         for (Iterator<PathSegment> it = mSegments.iterator(); it.hasNext();) 
@@ -156,17 +156,17 @@ public class Path
      * @return A segment of the robot's predicted motion with start/end points
      *         and speed.
      */
-    public PathSegment.Sample getLookaheadPoint(Vector position, double lookahead_distance) 
+    public PathSegment.Sample getLookaheadPoint(Vector2d position, double lookahead_distance) 
     {
         if (mSegments.size() == 0) 
         {
-            return new PathSegment.Sample(new Vector(), 0);
+            return new PathSegment.Sample(new Vector2d(), 0);
         }
 
         // Check the distances to the start and end of each segment. As soon as
         // we find a point > lookahead_distance away, we know the right point
         // lies somewhere on that segment.
-        Vector toStart = mSegments.get(0).getStart().sub(position);
+        Vector2d toStart = mSegments.get(0).getStart().sub(position);
         if (toStart.length() >= lookahead_distance) 
         {
             // Special case: Before the first point, so just return the first
@@ -176,12 +176,12 @@ public class Path
         for (int i = 0; i < mSegments.size(); ++i) 
         {
             PathSegment segment = mSegments.get(i);
-            Vector toSegmentEnd = segment.getEnd().sub(position);
+            Vector2d toSegmentEnd = segment.getEnd().sub(position);
             double distance = toSegmentEnd.length();
             if (distance >= lookahead_distance) 
             {
                 // This segment contains the lookahead point
-                Optional<Vector> intersection_point = getFirstCircleSegmentIntersection(segment, position, lookahead_distance);
+                Optional<Vector2d> intersection_point = getFirstCircleSegmentIntersection(segment, position, lookahead_distance);
                 if (intersection_point.isPresent()) 
                 {
                     return new PathSegment.Sample(intersection_point.get(), segment.getSpeed());
@@ -195,7 +195,7 @@ public class Path
         // Special case: After the last point, so extrapolate forward.
         PathSegment last_segment = mSegments.get(mSegments.size() - 1);
         PathSegment new_last_segment = new PathSegment(last_segment.getStart(), last_segment.interpolate(10000), last_segment.getSpeed());
-        Optional<Vector> intersection_point = getFirstCircleSegmentIntersection(new_last_segment, position, lookahead_distance);
+        Optional<Vector2d> intersection_point = getFirstCircleSegmentIntersection(new_last_segment, position, lookahead_distance);
         if (intersection_point.isPresent()) 
         {
             return new PathSegment.Sample(intersection_point.get(), last_segment.getSpeed());
@@ -207,7 +207,7 @@ public class Path
         }
     }
 
-    static Optional<Vector> getFirstCircleSegmentIntersection(PathSegment segment, Vector center, double radius)
+    static Optional<Vector2d> getFirstCircleSegmentIntersection(PathSegment segment, Vector2d center, double radius)
     {
         double x1 = segment.getStart().x - center.x;
         double y1 = segment.getStart().y - center.y;
@@ -226,10 +226,10 @@ public class Path
         }
 
         double sqrt_discriminant = Math.sqrt(discriminant);
-        Vector pos_solution = new Vector(
+        Vector2d pos_solution = new Vector2d(
                 (det * dy + (dy < 0 ? -1 : 1) * dx * sqrt_discriminant) / dr_squared + center.x,
                 (-det * dx + Math.abs(dy) * sqrt_discriminant) / dr_squared + center.y);
-        Vector neg_solution = new Vector(
+        Vector2d neg_solution = new Vector2d(
         		(det * dy - (dy < 0 ? -1 : 1) * dx * sqrt_discriminant) / dr_squared + center.x,
         		(-det * dx - Math.abs(dy) * sqrt_discriminant) / dr_squared + center.y);
 

@@ -2,12 +2,12 @@ package org.team686.simsbot.auto.actions;
 
 import edu.wpi.first.wpilibj.Timer;
 
+import org.team686.lib.util.DataLogger;
 import org.team686.lib.util.Pose;
-import org.team686.lib.util.Vector;
+import org.team686.lib.util.Vector2d;
 import org.team686.simsbot.Constants;
-import org.team686.simsbot.DataLogger;
-import org.team686.simsbot.RobotState;
-import org.team686.simsbot.VisionStatus;
+import org.team686.simsbot.command_status.RobotState;
+import org.team686.simsbot.command_status.VisionStatus;
 import org.team686.simsbot.subsystems.Drive;
 
 
@@ -21,7 +21,7 @@ public class VisionDriveAction implements Action
 	public double maxAccel;
 	public double prevTime;
 	public double prevSpeed;
-	public Vector avgTargetLocation = new Vector(0,0);
+	public Vector2d avgTargetLocation = new Vector2d(0,0);
 	public int  avgCnt;
 
 	// for logging only
@@ -32,7 +32,7 @@ public class VisionDriveAction implements Action
 	public Pose previousPose = new Pose();
 	public double prevDistanceToTargetInches;
 	public double prevHeadingToTargetRadians;
-	public Vector targetLocation = new Vector(0,0);
+	public Vector2d targetLocation = new Vector2d(0,0);
 	public Pose currentPose = new Pose();
 	public double distanceToTargetInches;
 	public double headingToTargetRadians;
@@ -108,7 +108,7 @@ imageTimestamp = currentTime;
 			//-----------------------------------------------------
 			prevDistanceToTargetInches = Constants.kTargetWidthInches / (2.0*_normalizedTargetWidth*Constants.kTangentCameraHalfFOV);
 			prevHeadingToTargetRadians = _previousPose.getHeadingRad() + (-_normalizedTargetX*Constants.kCameraHalfFOVRadians);
-			Vector prevToTarget = Vector.magnitudeAngle(prevDistanceToTargetInches, prevHeadingToTargetRadians);
+			Vector2d prevToTarget = Vector2d.magnitudeAngle(prevDistanceToTargetInches, prevHeadingToTargetRadians);
 			targetLocation = _previousPose.getPosition().add(prevToTarget); 	
 			
 			// filter target location with exponential averaging
@@ -123,7 +123,7 @@ imageTimestamp = currentTime;
 		// drive towards it, even if we didn't get a valid Vision co-processor message this time
 		if (avgCnt > 0)
 		{
-			Vector robotToTarget = avgTargetLocation.sub(_currentPose.getPosition());
+			Vector2d robotToTarget = avgTargetLocation.sub(_currentPose.getPosition());
 			distanceToTargetInches = robotToTarget.length();
 			headingToTargetRadians = robotToTarget.angle() - _currentPose.getHeadingRad();
 			
