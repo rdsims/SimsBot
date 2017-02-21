@@ -169,7 +169,7 @@ imageTimestamp = currentTime;
 			
 		// store for next time through loop
 		prevTime = _currentTime;
-		prevSpeed = robotState.getSpeed();
+		prevSpeed = speed;
 	}
 
 	public double getSpeed() { return speed; }

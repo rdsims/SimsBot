@@ -10,6 +10,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
+import org.team686.lib.util.Util;
+
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 //Adapted from FRC Team 3620, The Average Joes
@@ -162,10 +164,11 @@ public class DataLogController
 				if (fileOutput && (ps == null))
 				{
 					// file stream has not yet been initialized
-					String timestampString = LogTimestamp.getTimestampString();
+					String timestampString = getTimestampString();
 					if (timestampString != null)
 					{
 						String filename = timestampString + "_" + fileBase + ".csv";
+						System.out.println("Opening log file: " + filename);
 						File logFile = new File(parentDirectory, filename);
 						ps = new PrintStream(new FileOutputStream(logFile));
 						startTime = System.currentTimeMillis();
@@ -201,8 +204,24 @@ public class DataLogController
 		}
 
 		clearLogs();
-
 	}
+
+	
+	private final static long SOME_TIME_AFTER_1970 = 523980000000L;
+
+	public static String getTimestampString() 
+	{
+		long now = System.currentTimeMillis();
+		if (now > SOME_TIME_AFTER_1970) 
+		{
+			SimpleDateFormat formatName = new SimpleDateFormat("yyyyMMdd-HHmmss");
+			String timestampString = formatName.format(new Date());
+			return new String(timestampString);
+		}
+		else
+			return new String();
+	}
+	
 
 	private void writeNames()
 	{
