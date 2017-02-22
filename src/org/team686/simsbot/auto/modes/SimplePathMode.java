@@ -32,10 +32,7 @@ public class SimplePathMode extends AutoModeBase {
     	double X = 96.0;
     	double Y = 18.0;
     	
-    	double speed = 48;
-    	double lookaheadDist = Constants.kPathFollowingLookahead;
-    	boolean visionEnable = false;
-    	PathSegment.PathSegmentOptions options = new PathSegment.PathSegmentOptions(speed, lookaheadDist, visionEnable);
+    	PathSegment.PathSegmentOptions options = new PathSegment.PathSegmentOptions(Constants.kPathFollowingMaxVel, Constants.kPathFollowingMaxAccel, Constants.kPathFollowingLookahead, false);
 
     	
         List<Waypoint> path = new ArrayList<>();

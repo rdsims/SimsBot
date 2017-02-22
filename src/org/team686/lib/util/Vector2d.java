@@ -127,6 +127,15 @@ public class Vector2d implements Interpolable<Vector2d>
     	return new Vector2d(_mag*Math.cos(_angleRad), _mag*Math.sin(_angleRad));
 
     }
+
+    // normalize angle to within [-pi, pi)
+    public static double normalizeAngle(double _thetaRad)
+    {
+    	double TWO_PI = 2 * Math.PI;
+    	double angle = _thetaRad - TWO_PI * Math.floor((_thetaRad + Math.PI) / TWO_PI);
+    	return angle;
+    }
+    
     
 	// Rotates Vector by the given angle
 	public Vector2d rotate(double _angleRad)

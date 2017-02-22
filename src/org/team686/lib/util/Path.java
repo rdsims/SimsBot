@@ -83,7 +83,9 @@ public class Path
     
     public PathSegment getCurrentSegment() { return new PathSegment(segments.get(0)); }
     
-    public double getSegmentSpeed() { return getCurrentSegment().getOptions().getSpeed(); }
+    public double getSegmentMaxSpeed() { return getCurrentSegment().getOptions().getMaxSpeed(); }
+    public double getSegmentMaxAccel() { return getCurrentSegment().getOptions().getMaxAccel(); }
+    public boolean getSegmentVisionEnable() { return getCurrentSegment().getOptions().getVisionEnable(); }
     
     /*
      *  update() takes the current robot position, and updates the progress along the path

@@ -20,24 +20,27 @@ public class PathSegment
     
     static public class PathSegmentOptions
     {
-	    protected double   speed;			// speed along this segment (always positive) 
+	    protected double   maxSpeed;		// speed along this segment (always positive)
+	    protected double   maxAccel;		// maximum acceleration along this segment (always positive)
 	    protected double   lookaheadDist;	// lookahead distance along this segment (use smaller for tighter turns) 
 	    protected boolean  visionEnable;	// whether vision is enabled for this segment
 	    									// vision will take over from path following when the target is identified
         protected Optional<String> marker;
 
 	    // constructor
-	    public PathSegmentOptions(double _speed, double _lookaheadDist, boolean _visionEnable)
+	    public PathSegmentOptions(double _maxSpeed, double _maxAccel, double _lookaheadDist, boolean _visionEnable)
 	    {
-	        speed = _speed;
+	        maxSpeed = _maxSpeed;
+	        maxAccel = _maxAccel;
 	        lookaheadDist = _lookaheadDist;
 	        visionEnable = _visionEnable;
           	marker = Optional.empty();
 	    }
 
-	    public PathSegmentOptions(double _speed, double _lookaheadDist, boolean _visionEnable, String _marker)
+	    public PathSegmentOptions(double _maxSpeed, double _maxAccel, double _lookaheadDist, boolean _visionEnable, String _marker)
 	    {
-	        speed = _speed;
+	        maxSpeed = _maxSpeed;
+	        maxAccel = _maxAccel;
 	        lookaheadDist = _lookaheadDist;
 	        visionEnable = _visionEnable;
           	marker = Optional.of(_marker);
@@ -46,10 +49,11 @@ public class PathSegment
 	    // copy constructor
 	    public PathSegmentOptions(PathSegmentOptions _options)
 	    {
-	    	this(_options.speed, _options.lookaheadDist, _options.visionEnable);
+	    	this(_options.maxSpeed, _options.maxAccel, _options.lookaheadDist, _options.visionEnable);
 	    }
 	    
-	    public double   getSpeed()   		{ return speed; }		
+	    public double   getMaxSpeed()   		{ return maxSpeed; }		
+	    public double   getMaxAccel()   		{ return maxAccel; }		
 	    public double   getLookaheadDist()  { return lookaheadDist; }
 	    public boolean  getVisionEnable()   { return visionEnable; }
 	    public Optional<String> getMarker() { return marker; }

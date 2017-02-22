@@ -113,7 +113,7 @@ public class PathFollowerAction implements Action
 		//---------------------------------------------------
 		// Apply speed control
 		//---------------------------------------------------
-		speed = path.getSegmentSpeed();	
+		speed = path.getSegmentMaxSpeed();	
 		if (reversed)
 			speed = -speed;
 		

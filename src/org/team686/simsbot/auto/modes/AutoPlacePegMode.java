@@ -47,11 +47,8 @@ public class AutoPlacePegMode extends AutoModeBase
     	
     	lane = _lane;
     	
-		double speed = 50;
-    	double lookaheadDist = Constants.kPathFollowingLookahead;
-    	
-    	PathSegment.PathSegmentOptions path_options   = new PathSegment.PathSegmentOptions(speed, lookaheadDist, false);
-    	PathSegment.PathSegmentOptions vision_options = new PathSegment.PathSegmentOptions(speed, lookaheadDist, true);
+    	PathSegment.PathSegmentOptions path_options   = new PathSegment.PathSegmentOptions(Constants.kPathFollowingMaxVel, Constants.kPathFollowingMaxAccel, Constants.kPathFollowingLookahead, false);
+    	PathSegment.PathSegmentOptions vision_options = new PathSegment.PathSegmentOptions(Constants.kVisionMaxVel,        Constants.kVisionMaxAccel,        Constants.kPathFollowingLookahead, true);
     	
 		switch (lane)
 		{
