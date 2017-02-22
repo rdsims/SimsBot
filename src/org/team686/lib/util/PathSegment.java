@@ -20,7 +20,7 @@ public class PathSegment
     
     static public class PathSegmentOptions
     {
-	    protected double   speed;			// speed along this segment 
+	    protected double   speed;			// speed along this segment (always positive) 
 	    protected double   lookaheadDist;	// lookahead distance along this segment (use smaller for tighter turns) 
 	    protected boolean  visionEnable;	// whether vision is enabled for this segment
 	    									// vision will take over from path following when the target is identified
@@ -49,7 +49,7 @@ public class PathSegment
 	    	this(_options.speed, _options.lookaheadDist, _options.visionEnable);
 	    }
 	    
-	    public double   getSpeed()   		{ return speed; }
+	    public double   getSpeed()   		{ return speed; }		
 	    public double   getLookaheadDist()  { return lookaheadDist; }
 	    public boolean  getVisionEnable()   { return visionEnable; }
 	    public Optional<String> getMarker() { return marker; }

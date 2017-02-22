@@ -157,47 +157,47 @@ public class PathTest {
         // Robot at path start, lookahead 1 unit
         Vector2d robot_position = new Vector2d(0, 0);
         path.update(robot_position);
-        Vector2d lookahead_point = path.getLookaheadPoint(robot_position, 1);
+        Vector2d lookahead_point = path.getLookaheadPoint(robot_position, 0);
         assertEquals(1, lookahead_point.getX(), kTestEpsilon);
         assertEquals(0, lookahead_point.getY(), kTestEpsilon);
 
         // Robot at path start, lookahead 2 units
         robot_position = new Vector2d(0, 0);
         path.update(robot_position);
-        lookahead_point = path.getLookaheadPoint(robot_position, 2);
+        lookahead_point = path.getLookaheadPoint(robot_position, 1);
         assertEquals(2, lookahead_point.getX(), kTestEpsilon);
         assertEquals(0, lookahead_point.getY(), kTestEpsilon);
 
         // Robot at path start, lookahead 2.1 units
         robot_position = new Vector2d(0, 0);
         path.update(robot_position);
-        lookahead_point = path.getLookaheadPoint(robot_position, 2.1);
+        lookahead_point = path.getLookaheadPoint(robot_position, 1.1);
         assertEquals(2, lookahead_point.getX(), kTestEpsilon);
         assertTrue(0 < lookahead_point.getY());
 
         // Robot near path start, lookahead 1 unit
         robot_position = new Vector2d(0, 0.1);
         path.update(robot_position);
-        lookahead_point = path.getLookaheadPoint(robot_position, 1);
+        lookahead_point = path.getLookaheadPoint(robot_position, 0);
         assertTrue(1 > lookahead_point.getX());
         assertEquals(0, lookahead_point.getY(), kTestEpsilon);
 
         // Robot behind path start, lookahead 1 unit
         robot_position = new Vector2d(-.5, 0);
         path.update(robot_position);
-        lookahead_point = path.getLookaheadPoint(robot_position, 1);
+        lookahead_point = path.getLookaheadPoint(robot_position, 0);
         assertEquals(.5, lookahead_point.getX(), kTestEpsilon);
         assertEquals(0, lookahead_point.getY(), kTestEpsilon);
 
         // Lookahead goes past end
         robot_position = new Vector2d(0, 0);
         path.update(robot_position);
-        lookahead_point = path.getLookaheadPoint(robot_position, 5);
+        lookahead_point = path.getLookaheadPoint(robot_position, 4);
         assertEquals(2, lookahead_point.getX(), kTestEpsilon);
         assertTrue(2 < lookahead_point.getY());
     }
 
-    // TODO: add simulation test
+    // TODO: add simulation test, including reversed path
     
     @Test
     public void testNumericalStability() 

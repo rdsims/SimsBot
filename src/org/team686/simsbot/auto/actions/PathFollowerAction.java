@@ -7,7 +7,6 @@ import org.team686.simsbot.command_status.RobotState;
 import org.team686.simsbot.subsystems.Drive;
 import org.team686.lib.util.DataLogger;
 import org.team686.lib.util.Path;
-import org.team686.lib.util.PathSegment;
 import org.team686.lib.util.Pose;
 import org.team686.lib.util.Vector2d;
 
@@ -21,7 +20,6 @@ public class PathFollowerAction implements Action
     private Drive drive;
 
 	Path path;
-	boolean reversed;
 
     private boolean hasStarted;
 	
@@ -45,12 +43,11 @@ public class PathFollowerAction implements Action
 	private double prevTime;
 
 	
-    public PathFollowerAction(Path _path, boolean _reversed) 
+    public PathFollowerAction(Path _path) 
     {
         drive = Drive.getInstance();
 
         path = _path;
-		reversed = _reversed;
 
 		nominalLookaheadDist = Constants.kPathFollowingLookahead;
 		maxAccel = Constants.kPathFollowingMaxAccel;
@@ -74,11 +71,7 @@ public class PathFollowerAction implements Action
     	hasStarted = true;	// make sure we run update() at least once before finishing
     	
 		currentTime = Timer.getFPGATimestamp();
-		
 		currentPose = RobotState.getInstance().getLatestFieldToVehicle();
-		
-		if (reversed)
-			currentPose.turnRad(Math.PI);
 		
 		//---------------------------------------------------
 		// Process
@@ -94,31 +87,34 @@ public class PathFollowerAction implements Action
 	
 	private void pathDrive(double _currentTime, Pose _currentPose)
 	{
-		// TODO: add programmable lookahead per segment
 		// TODO: address stopping when past final segment
 		// TODO: add vision
+		
+		boolean reversed = path.getReversed();
 		
 		//---------------------------------------------------
 		// Find Lookahead Point
 		//---------------------------------------------------
 		distanceFromPath = path.update(_currentPose.getPosition());
-		lookaheadDist = nominalLookaheadDist + distanceFromPath;
-		lookaheadPoint = path.getLookaheadPoint(_currentPose.getPosition(), lookaheadDist);	// TODO: split lookaheadPoint from segment speed
+		lookaheadPoint = path.getLookaheadPoint(_currentPose.getPosition(), distanceFromPath);
 		remainingLength = path.getRemainingLength();
 		
 		//---------------------------------------------------
 		// Find arc to travel to Lookahead Point
 		//---------------------------------------------------
 		Vector2d robotToTarget = lookaheadPoint.sub(_currentPose.getPosition());
+		double lookaheadDist = robotToTarget.length();
 		headingToTargetRadians = robotToTarget.angle() - _currentPose.getHeadingRad();
+		if (reversed)
+			headingToTargetRadians -= Math.PI;
 		
 		curvature = 2 * Math.sin(headingToTargetRadians) / lookaheadDist;
 
 		//---------------------------------------------------
 		// Apply speed control
 		//---------------------------------------------------
-		speed = path.getCurrentSegment().getSpeed();
-		if (reversed) 
+		speed = path.getSegmentSpeed();	
+		if (reversed)
 			speed = -speed;
 		
 		double dt = _currentTime - prevTime;
@@ -172,7 +168,6 @@ public class PathFollowerAction implements Action
         @Override
         public void log()
         {
-			put("VisionDrive/reversed", reversed);
 			put("VisionDrive/currentTime", currentTime);
 			put("VisionDrive/currentPoseX", currentPose.getX());
 			put("VisionDrive/currentPoseY", currentPose.getY());

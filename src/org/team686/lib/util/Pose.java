@@ -123,6 +123,8 @@ public class Pose implements Interpolable<Pose>
             dDistance = _dDistance;
             dHeading = _dHeadingRad;
         }
+        
+        // TODO: Delta constructor from speed/curvature
     }
     
     

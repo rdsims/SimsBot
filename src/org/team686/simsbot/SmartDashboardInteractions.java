@@ -10,6 +10,8 @@ import org.team686.simsbot.auto.modes.*;
 
 
 
+// TODO: learn how to make custom LabView? GUI interface
+
 
 /**
  * Controls the interactive elements of SmartDashboard.
@@ -17,7 +19,8 @@ import org.team686.simsbot.auto.modes.*;
  * Keeps the network tables keys in one spot and enforces autonomous mode
  * invariants.
  */
-public class SmartDashboardInteractions {
+public class SmartDashboardInteractions 
+{
 
     SendableChooser<AutoModeOption> autoModeChooser;
     SendableChooser<AutoStartOption> startPositionChooser;

@@ -68,8 +68,8 @@ public class Util
         double sy = (dy<0 ? -1 : 1);
 
     	Vector2d[] soln = new Vector2d[2];
-    	soln[0] = new Vector2d( det * dy + sy * dx * sqrtDisc / drSqr, -det * dx + sy * sqrtDisc / drSqr);
-    	soln[1] = new Vector2d( det * dy - sy * dx * sqrtDisc / drSqr, -det * dx - sy * sqrtDisc / drSqr);
+    	soln[0] = new Vector2d( det * dy + sy * dx * sqrtDisc / drSqr, -det * dx + sy * dy * sqrtDisc / drSqr);
+    	soln[1] = new Vector2d( det * dy - sy * dx * sqrtDisc / drSqr, -det * dx - sy * dy * sqrtDisc / drSqr);
     	soln[0] = soln[0].add(_center);
     	soln[1] = soln[1].add(_center);
     	return Optional.of(soln);

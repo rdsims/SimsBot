@@ -20,10 +20,17 @@ public class Path
 {
     protected static final double kSegmentCompletePercentage = .99;
 
+    protected boolean reversed;			
     protected List<Waypoint> waypoints;
     protected List<PathSegment> segments;
     protected Set<String> markersCrossed;
+    private double lookaheadDistance;
 
+    // when path is reversed:
+    // 1. start/end of each segment are swapped for the purposes of keeping track of progress
+    // 2. robot is virtually rotated 180 degrees for the purpose of finding lookahead point
+    // 3. wheel velocities are negated (so that the robot drives backwards)
+    
     /**
      * A point along the Path, which consists of the location, the speed, and a
      * string marker (that future code can identify). 
@@ -43,25 +50,41 @@ public class Path
 
     
     // construct a path given a list of waypoints
-    public Path(List<Waypoint> _waypoints) 
+    public Path(List<Waypoint> _waypoints, boolean _reversed) 
     {
     	// note to calling function: first waypoint should be near actual starting point (but doesn't have to be) 
     	
         waypoints = new ArrayList<Waypoint>(_waypoints);	// make a copy of waypoint list
+        reversed = _reversed;
         
         // construct path segments from each pair of waypoints
-        segments = new ArrayList<PathSegment>();	
-        for (int i = 0; i < _waypoints.size() - 1; ++i) 
+        segments = new ArrayList<PathSegment>();
+        if (reversed)
         {
-            segments.add( new PathSegment(waypoints.get(i).position, waypoints.get(i+1).position, waypoints.get(i).options ));
-        }
-        
+	        for (int i = _waypoints.size(); i > 1 ; --i) 
+	        {
+	            segments.add( new PathSegment(waypoints.get(i).position, waypoints.get(i-1).position, waypoints.get(i-1).options ));
+	        }
+        }        
+        else
+        {
+	        for (int i = 0; i < _waypoints.size() - 1; ++i) 
+	        {
+	            segments.add( new PathSegment(waypoints.get(i).position, waypoints.get(i+1).position, waypoints.get(i).options ));
+	        }
+        }        
         markersCrossed = new HashSet<String>();
     }
 
 
+    public boolean getReversed() { return reversed; }
+    
+    public double getLookaheadDistance() { return lookaheadDistance; }	// return lookahead distance used by last call to getLookaheadPoint()
+    
     public PathSegment getCurrentSegment() { return new PathSegment(segments.get(0)); }
-
+    
+    public double getSegmentSpeed() { return getCurrentSegment().getOptions().getSpeed(); }
+    
     /*
      *  update() takes the current robot position, and updates the progress along the path
      *  removing waypoints already passed and adding markersCrossed
@@ -153,7 +176,7 @@ public class Path
     // getLookaheadPoint() finds a point which is lookaheadDistance ahead along path from current position
     //   The lookahead point will be at the intersection of that path and 
     //   a circle centered at _position with radius _lookaheadDistance
-    public Vector2d getLookaheadPoint(Vector2d _position, double _lookaheadDistance) 
+    public Vector2d getLookaheadPoint(Vector2d _position, double _distanceFromPath) 
     {
         if (segments.size() == 0) 
         {
@@ -164,24 +187,27 @@ public class Path
         // Check the distances to the start and end of each segment. As soon as
         // we find a point > lookahead_distance away, we know the right point
         // lies somewhere on that segment.
-        Vector2d start = segments.get(0).getStart();
+        PathSegment segment = segments.get(0);
+        Vector2d start = segment.getStart();
+        lookaheadDistance = segment.getOptions().getLookaheadDist() + _distanceFromPath;
         double distanceToStart = start.distance(_position);
-        if (distanceToStart >= _lookaheadDistance) 
+        if (distanceToStart >= lookaheadDistance) 
         {
         	// Special case: 
-            // not within range of start, so first attempt to to get back to start 
+            // not within range of start, so first attempt to to get back to start
             return start;
         }
         
         // find first segment whose endpoint is outside of lookahead circle
         for (int i = 0; i < segments.size(); ++i) 
         {
-            PathSegment segment = segments.get(i);
+            segment = segments.get(i);
             double distance = segment.getEnd().distance(_position);
-            if (distance >= _lookaheadDistance) 
+            lookaheadDistance = segment.getOptions().getLookaheadDist() + _distanceFromPath;
+            if (distance >= lookaheadDistance) 
             {
                 // This segment contains the lookahead point
-                Optional<Vector2d> intersectionPoint = getPathLookaheadCircleIntersection(segment, _position, _lookaheadDistance);
+                Optional<Vector2d> intersectionPoint = getPathLookaheadCircleIntersection(segment, _position, lookaheadDistance);
                 if (intersectionPoint.isPresent()) 
                 {
                     return new Vector2d(intersectionPoint.get());
@@ -200,9 +226,10 @@ public class Path
         // Extrapolate last segment forward and return intersection with extrapolated segment
         PathSegment lastSegment = segments.get(segments.size() - 1);
         // calculate interpolation factor to guarantee intersection
-        double interpFactor = 2*_lookaheadDistance / lastSegment.getLength();
+        lookaheadDistance = lastSegment.getOptions().getLookaheadDist() + _distanceFromPath;
+        double interpFactor = 2*lookaheadDistance / lastSegment.getLength();
         PathSegment extrapolatedLastSegment = new PathSegment(lastSegment.getStart(), lastSegment.interpolate(interpFactor), lastSegment.options);
-        Optional<Vector2d> intersectionPoint = getPathLookaheadCircleIntersection(extrapolatedLastSegment, _position, _lookaheadDistance);
+        Optional<Vector2d> intersectionPoint = getPathLookaheadCircleIntersection(extrapolatedLastSegment, _position, lookaheadDistance);
         if (intersectionPoint.isPresent()) 
         {
             return new Vector2d(intersectionPoint.get());

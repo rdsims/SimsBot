@@ -4,8 +4,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.team686.lib.util.Path;
+import org.team686.lib.util.PathSegment;
 import org.team686.lib.util.Path.Waypoint;
 import org.team686.lib.util.Vector2d;
+import org.team686.simsbot.Constants;
 import org.team686.simsbot.auto.AutoModeBase;
 import org.team686.simsbot.auto.AutoModeEndedException;
 import org.team686.simsbot.auto.actions.*;
@@ -26,26 +28,21 @@ public class SquarePatternMode extends AutoModeBase {
     {
     	System.out.println("Starting Auto Mode: Square Pattern");
 
-    	double vel = 36.0;
-    	 
     	float D = 72.0f;
     	
-        List<Waypoint> first_path = new ArrayList<>();
-        first_path.add(new Waypoint(new Vector2d( 0, 0), vel));
-        first_path.add(new Waypoint(new Vector2d( D, 0), vel));
-        first_path.add(new Waypoint(new Vector2d( D, D), vel));
-        first_path.add(new Waypoint(new Vector2d( 0, D), vel));
-        first_path.add(new Waypoint(new Vector2d( 0, 0), vel));
+    	double speed = 36;
+    	double lookaheadDist = Constants.kPathFollowingLookahead;
+    	boolean visionEnable = false;
+    	PathSegment.PathSegmentOptions options = new PathSegment.PathSegmentOptions(speed, lookaheadDist, visionEnable);
+    	
+        List<Waypoint> path = new ArrayList<>();
+        path.add(new Waypoint(new Vector2d( 0, 0), options));
+        path.add(new Waypoint(new Vector2d( D, 0), options));
+        path.add(new Waypoint(new Vector2d( D, D), options));
+        path.add(new Waypoint(new Vector2d( 0, D), options));
+        path.add(new Waypoint(new Vector2d( 0, 0), options));
         
-        List<Waypoint> return_path = new ArrayList<>();
-        return_path.add(new Waypoint(new Vector2d( 0, 0), vel));
-        return_path.add(new Waypoint(new Vector2d( 0, D), vel));
-        return_path.add(new Waypoint(new Vector2d( D, D), vel));
-        return_path.add(new Waypoint(new Vector2d( D, 0), vel));
-        return_path.add(new Waypoint(new Vector2d( 0, 0), vel));
-        
-        runAction(new PathFollowerAction(new Path(first_path), false));   
-        
-        runAction(new PathFollowerAction(new Path(return_path), true));       		         
+        runAction(new PathFollowerAction(new Path(path, false)));	// forward   
+        runAction(new PathFollowerAction(new Path(path, true)));	// reverse       		         
     }
 }

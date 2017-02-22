@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.team686.lib.util.Path;
+import org.team686.lib.util.PathSegment;
 import org.team686.lib.util.Pose;
 import org.team686.lib.util.Path.Waypoint;
 import org.team686.lib.util.Vector2d;
@@ -34,10 +35,6 @@ public class AutoPlacePegMode extends AutoModeBase
 	Vector2d approach2 = new Vector2d( 90,  0);
 	Vector2d approach3 = new Vector2d( 45,+90);
 	
-	Vector2d vision1 = new Vector2d( 30,-64);
-	Vector2d vision2 = new Vector2d( 60,  0);
-	Vector2d vision3 = new Vector2d( 36,+64);
-	
 	Vector2d target1 = new Vector2d(  0,-12);
 	Vector2d target2 = new Vector2d(  0,  0);
 	Vector2d target3 = new Vector2d(  0,+12);
@@ -49,44 +46,56 @@ public class AutoPlacePegMode extends AutoModeBase
     	Pose startPose = new Pose();
     	
     	lane = _lane;
-		double vel = 50;
-
+    	
+		double speed = 50;
+    	double lookaheadDist = Constants.kPathFollowingLookahead;
+    	
+    	PathSegment.PathSegmentOptions path_options   = new PathSegment.PathSegmentOptions(speed, lookaheadDist, false);
+    	PathSegment.PathSegmentOptions vision_options = new PathSegment.PathSegmentOptions(speed, lookaheadDist, true);
+    	
 		switch (lane)
 		{
 		case 3:
 			startPose = start3;
 			
+			// drive to target 1
 			path1 = new ArrayList<>();
-			path1.add(new Waypoint(startPose.getPosition(),    vel));
-			path1.add(new Waypoint(approach3, vel));
-			path1.add(new Waypoint(  vision3,   vel));
+			path1.add(new Waypoint(startPose.getPosition(), path_options));
+			path1.add(new Waypoint(approach3, 				path_options));
+			path2.add(new Waypoint(  target3, 				vision_options));	// enable vision
 			
+			// back up
 			path2 = new ArrayList<>();
-			path2.add(new Waypoint(  target3, vel));
-			path2.add(new Waypoint(approach3, vel));
+			path2.add(new Waypoint(  target3, path_options));
+			path2.add(new Waypoint(approach3, path_options));
 			
+			// drive to target 2
 			path3 = new ArrayList<>();
-			path3.add(new Waypoint(approach3, vel));
-			path3.add(new Waypoint(approach2, vel));
-			path3.add(new Waypoint(  vision2, vel));
-			
+			path3.add(new Waypoint(approach3, path_options));
+			path3.add(new Waypoint(approach2, path_options));
+			path3.add(new Waypoint(  target2, vision_options));	// enable vision
+
+			// back up
 			path4 = new ArrayList<>();
-			path4.add(new Waypoint(  target2, vel));
-			path4.add(new Waypoint(approach2, vel));
+			path4.add(new Waypoint(  target2, path_options));
+			path4.add(new Waypoint(approach2, path_options));
 
+			// drive to target 3
 			path5 = new ArrayList<>();
-			path5.add(new Waypoint(approach2, vel));
-			path5.add(new Waypoint(approach1, vel));
-			path5.add(new Waypoint(  vision1, vel));
+			path5.add(new Waypoint(approach2, path_options));
+			path5.add(new Waypoint(approach1, path_options));
+			path5.add(new Waypoint(  target1, vision_options));	// enable vision
 
+			// backup
 			path6 = new ArrayList<>();
-			path6.add(new Waypoint(  target1, vel));
-			path6.add(new Waypoint(approach1, vel));
+			path6.add(new Waypoint(  target1, path_options));
+			path6.add(new Waypoint(approach1, path_options));
 
+			// drive back to starting point
 			path7 = new ArrayList<>();
-			path7.add(new Waypoint(approach1, vel));
-			path7.add(new Waypoint(approach2, vel));
-			path7.add(new Waypoint(startPose.getPosition(), vel));
+			path7.add(new Waypoint(approach1, 				path_options));
+			path7.add(new Waypoint(approach2, 				path_options));
+			path7.add(new Waypoint(startPose.getPosition(), path_options));
 			
 		}
 		
@@ -101,19 +110,19 @@ public class AutoPlacePegMode extends AutoModeBase
     	System.out.println("Starting AutoPlacePegMode, lane " + lane);
 
     	// drive towards target
-        runAction(new PathFollowerAction(new Path(path1), false));   
+        runAction(new PathFollowerAction(new Path(path1, false)));   
         runAction(new VisionDriveAction(Constants.kVisionMaxVel, Constants.kVisionMaxAccel));
         
-        runAction(new PathFollowerAction(new Path(path2), true));   
-        runAction(new PathFollowerAction(new Path(path3), false));   
+        runAction(new PathFollowerAction(new Path(path2, true)));   
+        runAction(new PathFollowerAction(new Path(path3, false)));   
         runAction(new VisionDriveAction(Constants.kVisionMaxVel, Constants.kVisionMaxAccel));
         
-        runAction(new PathFollowerAction(new Path(path4), true));   
-        runAction(new PathFollowerAction(new Path(path5), false));   
+        runAction(new PathFollowerAction(new Path(path4, true)));   
+        runAction(new PathFollowerAction(new Path(path5, false)));   
         runAction(new VisionDriveAction(Constants.kVisionMaxVel, Constants.kVisionMaxAccel));
         
-        runAction(new PathFollowerAction(new Path(path6), true));   
-        runAction(new PathFollowerAction(new Path(path7), false));   
+        runAction(new PathFollowerAction(new Path(path6, true)));   
+        runAction(new PathFollowerAction(new Path(path7, false)));   
     }
     
 }

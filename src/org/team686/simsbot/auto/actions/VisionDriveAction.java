@@ -70,7 +70,7 @@ public class VisionDriveAction implements Action
 		//---------------------------------------------------
 		
 		// values from camera, normalized to camera's Field of View (-1 to +1) 
-		imageTimestamp    	  = visionStatus.getImageTimestamp();
+		imageTimestamp    	  = visionStatus.getImageTimestamp();			// TODO: modify vision code to return targets to edge of FOV
 		normalizedTargetX 	  = visionStatus.getNormalizedTargetX();
 		normalizedTargetWidth = visionStatus.getNormalizedTargetWidth();
 

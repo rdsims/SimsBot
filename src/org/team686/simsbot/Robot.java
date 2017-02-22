@@ -29,7 +29,7 @@ import org.team686.simsbot.subsystems.Drive;
  */
 public class Robot extends IterativeRobot 
 {
-	PowerDistributionPanel pdp = new PowerDistributionPanel();
+	PowerDistributionPanel pdp = new PowerDistributionPanel();	// TODO: add relay for LED light ring
 
 	JoystickControlsBase controls = ArcadeDriveJoystick.getInstance();
 	RobotState mRobotState = RobotState.getInstance();	
