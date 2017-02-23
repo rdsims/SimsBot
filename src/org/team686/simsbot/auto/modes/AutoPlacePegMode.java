@@ -43,15 +43,18 @@ public class AutoPlacePegMode extends AutoModeBase
 	
     public AutoPlacePegMode(int _lane, boolean isShooting) 
     {
-    	Pose initialPose = new Pose();
+    	initialPose = new Pose();
     	
     	lane = _lane;
 		double vel = 50;
 
 		switch (lane)
 		{
+		case 1:
+		case 2:
 		case 3:
-			initialPose = start3;
+		default:
+			initialPose = new Pose(start3);
 			
 			path1 = new ArrayList<>();
 			path1.add(new Waypoint(initialPose.getPosition(),    vel));
