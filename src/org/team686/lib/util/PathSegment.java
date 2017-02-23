@@ -102,6 +102,7 @@ public class PathSegment
     }
 
     
+    // TODO: Move to Util.FindClosestPointOnLineSegment()
     
     public static class ClosestPointReport 
     {

@@ -168,7 +168,7 @@ imageTimestamp = currentTime;
 			
 		// store for next time through loop
 		prevTime = _currentTime;
-		prevSpeed = speed;			// TODO: use measured speed instead of computed speed
+		prevSpeed = speed;
 	}
 
 	public double getSpeed() { return speed; }

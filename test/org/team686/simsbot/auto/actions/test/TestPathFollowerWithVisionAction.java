@@ -45,7 +45,7 @@ public class TestPathFollowerWithVisionAction
 	@Before
 	public void setUp() throws Exception
 	{
-		actualRobotLocation  = new Pose( 0, 0,  0);
+		actualRobotLocation  = new Pose( 0,  0,  0);
 		actualTargetLocation = new Pose( 0,120,  0);
 
     	PathSegment.PathSegmentOptions path_options   = new PathSegment.PathSegmentOptions(Constants.kPathFollowingMaxVel, Constants.kPathFollowingMaxAccel, Constants.kPathFollowingLookahead, false);
@@ -187,6 +187,10 @@ System.out.printf("Vision X = % 7.3f, Width = % 7.3f ---- ", normalizedTargetX, 
         
 		assertEquals(Constants.kPegTargetDistanceThresholdInches, distToTarget, 1);
 		assertEquals(angleToTarget, 0, 0.1);
+		
+		//TODO: assert never farther than X from path
+		
+		//TODO: test reverse path following
 	}
 
 }

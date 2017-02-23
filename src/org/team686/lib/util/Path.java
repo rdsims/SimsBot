@@ -204,9 +204,9 @@ public class Path
         for (int i = 0; i < segments.size(); ++i) 
         {
             segment = segments.get(i);
-            double distance = segment.getEnd().distance(_position);
+            double distanceToEnd = segment.getEnd().distance(_position);
             lookaheadDistance = segment.getOptions().getLookaheadDist() + _distanceFromPath;
-            if (distance >= lookaheadDistance) 
+            if (distanceToEnd <= lookaheadDistance) 
             {
                 // This segment contains the lookahead point
                 Optional<Vector2d> intersectionPoint = getPathLookaheadCircleIntersection(segment, _position, lookaheadDistance);
