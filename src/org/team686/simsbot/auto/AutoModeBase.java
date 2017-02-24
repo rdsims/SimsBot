@@ -1,8 +1,10 @@
 package org.team686.simsbot.auto;
 
+import org.team686.lib.util.Pose;
 import org.team686.lib.util.DataLogController;
-import org.team686.lib.util.Vector2d;
 import org.team686.simsbot.auto.actions.Action;
+
+import edu.wpi.first.wpilibj.Timer;
 
 /**
  * An abstract class that is the basis of the robot's autonomous routines. This
@@ -10,14 +12,14 @@ import org.team686.simsbot.auto.actions.Action;
  */
 public abstract class AutoModeBase
 {
-    protected double m_update_rate = 1.0 / 50.0;
+    protected double m_update_period = 1.0 / 50.0;
     protected boolean m_active = false;
 
     static DataLogController autoLogger = DataLogController.getAutoLogController();
     
-    public Vector2d getInitialPosition()
+    public Pose getInitialPose()
     {
-    	return new Vector2d(0, 0);
+    	return new Pose();	// default implementation
     }
     
     protected abstract void routine() throws AutoModeEndedException;
@@ -70,10 +72,15 @@ public abstract class AutoModeBase
         action.start();
         while (isActiveWithThrow() && !action.isFinished()) 
         {
+        	double currTime = Timer.getFPGATimestamp();
+        	double nextTime = Timer.getFPGATimestamp() + m_update_period;
+        	
             action.update();
             autoLogger.log();
-            
-            long waitTime = (long) (m_update_rate * 1000.0);	// TODO: use timer to get more consistent update periods
+
+        	currTime = Timer.getFPGATimestamp();
+            long waitTime = (long) ((nextTime-currTime) * 1000.0);	// attempt to run thread every m_update_period seconds
+            waitTime = Math.max(waitTime, 0);						// avoid negative waits
             try
             {
                 Thread.sleep(waitTime);

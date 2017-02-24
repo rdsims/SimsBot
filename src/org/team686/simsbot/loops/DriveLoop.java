@@ -268,7 +268,8 @@ public class DriveLoop implements Loop
 			lMotor.setEncPosition(0);
 			rMotor.setEncPosition(0);
 			
-			//TODO: add gyro
+			// cannot reset gyro heading in hardware.  
+			// calibration to desired initial pose is done in RobotState.reset() called from Robot.autonomousInit()  
 			
 			drive.setResetEncoderCmd(false);	// clear flag
 		}

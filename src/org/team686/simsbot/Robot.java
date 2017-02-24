@@ -88,8 +88,8 @@ public class Robot extends IterativeRobot
 			robotLogger.register(DriveStatus.getInstance().getLogger());
 			robotLogger.register(RobotState.getInstance().getLogger());
 			
-			// Reset all state
-			zeroAllSensors();
+			// set initial Pose (will be updated during autonomousInit())
+			setInitialPose( new Pose() );
 			
 		} 
 		catch (Throwable t) 
@@ -99,14 +99,18 @@ public class Robot extends IterativeRobot
 		}
 	}
 
+	public void setInitialPose( Pose _initialPose )
+	{
+		zeroAllSensors();											// make sure all encoders are zeroed out
+		mRobotState.reset(Timer.getFPGATimestamp(), _initialPose);	// set initial pose
+		System.out.println("InitialPose: " + _initialPose);
+	}
+	
 	public void zeroAllSensors() 
 	{
 		drive.zeroSensors();
 		// mSuperstructure.zeroSensors();
-
-		mRobotState.reset(Timer.getFPGATimestamp(), new Pose() );
 	}
-
 	
 	public void stopAll() 
 	{
@@ -186,10 +190,10 @@ public class Robot extends IterativeRobot
 			}
 			mAutoModeExecuter = null;
 
-			zeroAllSensors();		// one last reset of sensors.  Will not be reset during auto or teleop
-
 			mAutoModeExecuter = new AutoModeExecuter();
 			mAutoModeExecuter.setAutoMode(mSmartDashboardInteractions.getAutoModeSelection());
+
+			setInitialPose( mAutoModeExecuter.getAutoMode().getInitialPose() );		
 
 			loopController.start();
 			mAutoModeExecuter.start();

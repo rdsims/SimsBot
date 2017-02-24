@@ -150,8 +150,6 @@ System.out.printf("Vision X = % 7.3f, Width = % 7.3f ---- ", normalizedTargetX, 
 			//drive.driveCurve(speed, curvature, maxSpeed);
 			
 			// speed & curvature used to update robot position at top of loop
-			
-			// TODO: output to CSV file
 		}		
 		
 		
