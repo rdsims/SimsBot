@@ -33,8 +33,6 @@ public class PathFollowerWithVisionAction implements Action
 
 	// properties needed for class
 	public boolean targetAcquired; 
-	public double maxSpeed;
-	public double maxAccel;
 	public Vector2d avgTargetLocation = new Vector2d(0,0);
 	public int  avgCnt;
 
@@ -42,8 +40,8 @@ public class PathFollowerWithVisionAction implements Action
 	public double lookaheadDist;
 	public Vector2d lookaheadPoint;
 	public double headingToTargetRadians;
-	public double remainingLength;
-	
+	public double remainingDistance;
+		
 	
 	// for logging only
 	public double currentTime;
@@ -75,7 +73,7 @@ public class PathFollowerWithVisionAction implements Action
     @Override
     public void start() 
     {
-		System.out.println("Starting PathFollowerAction");
+		System.out.println("Starting PathFollowerWithVisionAction");
 		prevSpeed = 0;
 		prevTime  = 0;		
         hasStarted = false;	// make sure we run update() at least once before finishing
@@ -86,8 +84,6 @@ public class PathFollowerWithVisionAction implements Action
     @Override
     public void update() 
     {
-    	hasStarted = true;	// make sure we run update() at least once before finishing
-    	
 		//---------------------------------------------------
 		// Get inputs
 		//---------------------------------------------------
@@ -124,56 +120,37 @@ imageTimestamp = currentTime;
 	{
 		// TODO: address stopping when past final segment
 
+    	hasStarted = true;	// make sure we run update() at least once before finishing
+    	
+		remainingDistance = Double.MAX_VALUE;
+		double maxSpeed = 0;
+		double maxAccel = 0;
+		
 		boolean visionEnable = path.getSegmentVisionEnable(); 
 		if (visionEnable)
 		{
 			visionDrive(_currentTime, _currentPose, _previousPose, _imageTimestamp, _normalizedTargetX, _normalizedTargetWidth);
+			remainingDistance = distanceToTargetInches;
+			maxSpeed = Constants.kVisionMaxVel;
+			maxAccel = Constants.kVisionMaxAccel;
 		}
 		
 		if (!visionEnable || targetAcquired == false) 
 		{
 			pathDrive(_currentTime, _currentPose);
+			remainingDistance = path.getRemainingLength();
+			maxSpeed = path.getSegmentMaxSpeed();
+			maxAccel = path.getSegmentMaxAccel();
 		}
-
-		//---------------------------------------------------
-		// Apply speed control
-		//---------------------------------------------------
-		double maxSpeed = path.getSegmentMaxSpeed();	
-		double maxAccel = path.getSegmentMaxAccel();
 		
-		speed = maxSpeed;
-		if (reversed)
-			speed = -speed;
-		
-		double dt = _currentTime - prevTime;
-		
-		// apply acceleration limits
-		double accel = (speed - prevSpeed) / dt;
-		if (accel > maxAccel)
-			speed = prevSpeed + maxAccel * dt;
-		else if (accel < -maxAccel)
-			speed = prevSpeed - maxAccel * dt;
-
-		// apply braking distance limits
-		// vf^2 = v^2 + 2*a*d   Solve for v, given vf=0, configured a, and measured d
-		double stoppingDistance = remainingLength;
-		double maxBrakingSpeed = Math.sqrt(2.0 * maxAccel * stoppingDistance);
-		if (Math.abs(speed) > maxBrakingSpeed)
-			speed = Math.signum(speed) * maxBrakingSpeed;
-
-		// apply minimum velocity limit (Talons can't track low speeds well)
-		final double kMinSpeed = 4.0;
-		if (Math.abs(speed) < kMinSpeed) 
-			speed = Math.signum(speed) * kMinSpeed;
-
-		// store for next time through loop	
-		prevTime = _currentTime;
-		prevSpeed = speed;
+		speedControl(_currentTime, remainingDistance, maxSpeed, maxAccel);
 	}
 	
 	public double getSpeed() { return speed; }
 	public double getCurvature() { return curvature; }
-	
+	public Path   getPath() { return path; }	// warning: not returning a defensive copy
+	public double getDistanceFromPath() { return distanceFromPath; }
+	public boolean getTargetAcquired() { return targetAcquired; }
 	
 	private void pathDrive(double _currentTime, Pose _currentPose)
 	{
@@ -182,7 +159,6 @@ imageTimestamp = currentTime;
 		//---------------------------------------------------
 		distanceFromPath = path.update(_currentPose.getPosition());
 		lookaheadPoint = path.getLookaheadPoint(_currentPose.getPosition(), distanceFromPath);
-		remainingLength = path.getRemainingLength();
 		
 		//---------------------------------------------------
 		// Find arc to travel to Lookahead Point
@@ -201,6 +177,8 @@ imageTimestamp = currentTime;
 	// visionDrive() is written outside of update() to facilitate unit level testing
 	public void visionDrive(double _currentTime, Pose _currentPose, Pose _previousPose, double _imageTimestamp, double _normalizedTargetX, double _normalizedTargetWidth)
 	{
+		distanceToTargetInches = Double.MAX_VALUE;
+		
 		// If we get a valid message from the Vision co-processor, update our estimate of the target location
 		if (_normalizedTargetWidth > 0) 
 		{
@@ -242,6 +220,41 @@ imageTimestamp = currentTime;
 		}
 	}
 	
+	public void speedControl(double _currentTime, double _remainingDistance, double _maxSpeed, double _maxAccel)
+	{
+		//---------------------------------------------------
+		// Apply speed control
+		//---------------------------------------------------
+		speed = _maxSpeed;
+		if (reversed)
+			speed = -speed;
+		
+		double dt = _currentTime - prevTime;
+		
+		// apply acceleration limits
+		double accel = (speed - prevSpeed) / dt;
+		if (accel > _maxAccel)
+			speed = prevSpeed + _maxAccel * dt;
+		else if (accel < -_maxAccel)
+			speed = prevSpeed - _maxAccel * dt;
+
+		// apply braking distance limits
+		// vf^2 = v^2 + 2*a*d   Solve for v, given vf=0, configured a, and measured d
+		double stoppingDistance = _remainingDistance;
+		double maxBrakingSpeed = Math.sqrt(2.0 * _maxAccel * stoppingDistance);
+		if (Math.abs(speed) > maxBrakingSpeed)
+			speed = Math.signum(speed) * maxBrakingSpeed;
+
+		// apply minimum velocity limit (Talons can't track low speeds well)
+		final double kMinSpeed = 4.0;
+		if (Math.abs(speed) < kMinSpeed) 
+			speed = Math.signum(speed) * kMinSpeed;
+
+		// store for next time through loop	
+		prevTime = _currentTime;
+		prevSpeed = speed;
+	}
+	
 	
 	
     @Override
@@ -250,23 +263,17 @@ imageTimestamp = currentTime;
     	boolean done = false;
     	
     	if (targetAcquired)
-    	{
-    		done = (distanceToTargetInches <= Constants.kPegTargetDistanceThresholdInches);
-    	}
+    		done = hasStarted && (remainingDistance <= Constants.kPegTargetDistanceThresholdInches);
     	else
-    	{
-			remainingLength = path.getRemainingLength();
-	        done = hasStarted && (remainingLength <= pathCompletionTolerance);
-    	}
+	        done = hasStarted && (remainingDistance <= pathCompletionTolerance);
     	
-        if (done) 
-			System.out.println("Finished PathFollowerAction");
-        return done;
+    	return done;
     }
 
     @Override
     public void done() 
     {
+		System.out.println("Finished PathFollowerWithVisionAction");
 		// cleanup code, if any
         drive.stop();
     }
@@ -279,34 +286,35 @@ imageTimestamp = currentTime;
         @Override
         public void log()
         {
-			put("VisionDrive/currentTime", currentTime);
-			put("VisionDrive/currentPoseX", currentPose.getX());
-			put("VisionDrive/currentPoseY", currentPose.getY());
-			put("VisionDrive/currentPoseHeadingRad", currentPose.getHeadingRad());
-			put("PathFollower/distanceFromPath", distanceFromPath );
-			put("PathFollower/lookaheadDist", lookaheadDist );
-			put("PathFollower/lookaheadPointX",  lookaheadPoint.getX() );
-			put("PathFollower/lookaheadPointY",  lookaheadPoint.getY());
-			put("VisionDrive/headingToTargetRadians", headingToTargetRadians);
-			put("PathFollower/remainingLength",  remainingLength );
+			put("PathVision/currentTime", currentTime);
+			put("PathVision/currentPoseX", currentPose.getX());
+			put("PathVision/currentPoseY", currentPose.getY());
+			put("PathVision/currentPoseHeadingRad", currentPose.getHeadingRad());
+			put("PathVision/distanceFromPath", distanceFromPath );
+			put("PathVision/lookaheadDist", lookaheadDist );
+			put("PathVision/lookaheadPointX",  lookaheadPoint.getX() );
+			put("PathVision/lookaheadPointY",  lookaheadPoint.getY());
+			put("PathVision/headingToTargetRadians", headingToTargetRadians);
 
-			put("VisionDrive/imageTime", imageTimestamp);
-			put("VisionDrive/normalizedTargetX", normalizedTargetX);
-			put("VisionDrive/normalizedTargetWidth", normalizedTargetWidth);
-			put("VisionDrive/previousPoseX", previousPose.getX());
-			put("VisionDrive/previousPoseY", previousPose.getY());
-			put("VisionDrive/previousPoseHeadingRad", previousPose.getHeadingRad());
-			put("VisionDrive/prevDistanceToTargetInches", prevDistanceToTargetInches);
-			put("VisionDrive/prevHeadingToTargetRadians", prevHeadingToTargetRadians);
-			put("VisionDrive/targetLocationX", targetLocation.getX());
-			put("VisionDrive/targetLocationY", targetLocation.getY());
-			put("VisionDrive/avgTargetLocationX", avgTargetLocation.getX());
-			put("VisionDrive/avgTargetLocationY", avgTargetLocation.getY());
-			put("VisionDrive/avgCnt", avgCnt);
-			put("VisionDrive/distanceToTargetInches", distanceToTargetInches);
+			put("PathVision/imageTime", imageTimestamp);
+			put("PathVision/normalizedTargetX", normalizedTargetX);
+			put("PathVision/normalizedTargetWidth", normalizedTargetWidth);
+			put("PathVision/previousPoseX", previousPose.getX());
+			put("PathVision/previousPoseY", previousPose.getY());
+			put("PathVision/previousPoseHeadingRad", previousPose.getHeadingRad());
+			put("PathVision/prevDistanceToTargetInches", prevDistanceToTargetInches);
+			put("PathVision/prevHeadingToTargetRadians", prevHeadingToTargetRadians);
+			put("PathVision/targetLocationX", targetLocation.getX());
+			put("PathVision/targetLocationY", targetLocation.getY());
+			put("PathVision/avgTargetLocationX", avgTargetLocation.getX());
+			put("PathVision/avgTargetLocationY", avgTargetLocation.getY());
+			put("PathVision/avgCnt", avgCnt);
+			put("PathVision/distanceToTargetInches", distanceToTargetInches);
 
-			put("PathFollower/speed", 			 speed);
-			put("PathFollower/curvature", 		 curvature );
+			put("PathVision/remainingDistance",  remainingDistance );
+			
+			put("PathVision/speed", 			 speed);
+			put("PathVision/curvature", 		 curvature );
         }
     };
 	

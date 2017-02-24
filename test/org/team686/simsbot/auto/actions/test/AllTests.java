@@ -1,4 +1,4 @@
-package org.team686.lib.util.test;
+package org.team686.simsbot.auto.actions.test;
 
 import org.junit.runner.RunWith;
 import org.junit.runners.Suite;
@@ -6,7 +6,7 @@ import org.junit.runners.Suite.SuiteClasses;
 
 @RunWith(Suite.class)
 @SuiteClasses(
-{ KinematicsTest.class, PathTest.class, TestRigidTransform2d.class })
+{ TestPathFollowerWithVisionAction.class, TestVisionDrive.class })
 public class AllTests
 {
 

@@ -11,6 +11,9 @@ public class Util
     /** Prevent this class from being instantiated. */
     private Util() {}
 
+    protected static final double kEpsilon = 1E-9;
+
+    
     /**
      * Limits the given input to the given magnitude.
      */
@@ -29,6 +32,43 @@ public class Util
     	return out;
     }
 
+    
+    public static class ClosestPointOnSegment 
+    {
+        public double index; 			// Index of the point on the path segment (not clamped to [0, 1])
+        public double clampedIndex; 	// As above, but clamped to [0, 1]
+        public Vector2d point; 	// The result of interpolate(clamped_index)
+        public double distance; 		// The distance from closest_point to the query point
+    }
+    
+    // find closest point on segment AB to point P
+    public static ClosestPointOnSegment getClosestPointOnSegment(Vector2d _a, Vector2d _b, Vector2d _p) 
+    {
+    	ClosestPointOnSegment rv = new ClosestPointOnSegment();
+    	
+    	Vector2d ab = _b.sub(_a);				// line segment AB
+    	double abLengthSqr = ab.lengthSqr();	// |AB|^2
+    	
+        if (abLengthSqr < kEpsilon)
+        {
+        	// segment is very small.  return A (which is near B)
+            rv.index = rv.clampedIndex = 0.0;
+            rv.point = new Vector2d(_a);
+        }
+        else
+        {
+        	Vector2d ap = _p.sub(_a);
+        	double dot = ap.dot(ab);
+            rv.index = dot / abLengthSqr;						// index = |AP|/|AB| cos(angle between AP & AB)   
+            rv.clampedIndex = Util.limit(rv.index, 0.0, 1.0);	// clamp in case nearest point is outside segment
+            rv.point = _a.interpolate(_b, rv.index);			// point on AB closest to P
+        } 
+
+        rv.distance = _p.distance(rv.point);
+        return rv;
+    }
+
+    
     public static Optional<Vector2d[]> lineCircleIntersection(Vector2d _p1, Vector2d _p2, Vector2d _center, double _radius)
     {
     	// points of intersection are at 

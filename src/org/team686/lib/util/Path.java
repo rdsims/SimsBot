@@ -96,15 +96,16 @@ public class Path
     public double update(Vector2d _position) 
     {
         double distOffPath = 0.0;
+        Util.ClosestPointOnSegment closestPoint;
         
         for (Iterator<PathSegment> it = segments.iterator(); it.hasNext();) 
         {
         	// calculate distance from segment
             PathSegment currSegment = it.next();
-            PathSegment.ClosestPointReport closestPointReport = currSegment.getClosestPoint(_position);
+            closestPoint = currSegment.getClosestPoint(_position);
             
             // check if segment has been completed
-            if (closestPointReport.index >= kSegmentCompletePercentage) 
+            if (closestPoint.index >= kSegmentCompletePercentage) 
             {
                 // segment complete: mark as crossed, remove segment and waypoint from beginning of list
             	markerCrossed(currSegment);
@@ -114,28 +115,28 @@ public class Path
             else 
             {
             	// segment not complete: move segment start to closest point 
-                if (closestPointReport.index > 0.0) 
+                if (closestPoint.index > 0.0) 
                 {
                     // Can shorten this segment
-                    currSegment.updateStart(closestPointReport.closest_point);
+                    currSegment.updateStart(closestPoint.point);
                 }
                 
-                distOffPath = closestPointReport.distance;
+                distOffPath = closestPoint.distance;
                 
                 
                 // check if next segment is closer than this one
                 if (it.hasNext()) 
                 {
                     PathSegment nextSegment = it.next();
-                    PathSegment.ClosestPointReport nextSegClosestPointReport = nextSegment.getClosestPoint(_position);
+                    closestPoint = nextSegment.getClosestPoint(_position);
                     
-                    if (nextSegClosestPointReport.index > 0 &&
-                        nextSegClosestPointReport.index < kSegmentCompletePercentage &&
-                        nextSegClosestPointReport.distance < distOffPath) 
+                    if (closestPoint.index > 0 &&
+                    	closestPoint.index < kSegmentCompletePercentage &&
+                    	closestPoint.distance < distOffPath) 
                     {
                     	// next segment is closer: drop current segment and move to next
-                        nextSegment.updateStart(nextSegClosestPointReport.closest_point);
-                        distOffPath = nextSegClosestPointReport.distance;
+                        nextSegment.updateStart(closestPoint.point);
+                        distOffPath = closestPoint.distance;
                         
                     	markerCrossed(currSegment);
                         segments.remove(0);

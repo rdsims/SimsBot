@@ -46,35 +46,35 @@ public class PathTest {
         assertEquals(0, midpoint.getY(), kTestEpsilon);
 
         // GetClosestPoint - point on path
-        PathSegment.ClosestPointReport report = segment.getClosestPoint(midpoint);
+        Util.ClosestPointOnSegment report = segment.getClosestPoint(midpoint);
         assertEquals(.5, report.index, kTestEpsilon);
-        assertEquals(.5, report.clamped_index, kTestEpsilon);
-        assertEquals(midpoint.getX(), report.closest_point.getX(), kTestEpsilon);
-        assertEquals(midpoint.getY(), report.closest_point.getY(), kTestEpsilon);
+        assertEquals(.5, report.clampedIndex, kTestEpsilon);
+        assertEquals(midpoint.getX(), report.point.getX(), kTestEpsilon);
+        assertEquals(midpoint.getY(), report.point.getY(), kTestEpsilon);
         assertEquals(0, report.distance, kTestEpsilon);
 
         // GetClosestPoint - point off of path
         report = segment.getClosestPoint(new Vector2d(.75, 1));
         assertEquals(.5, report.index, kTestEpsilon);
-        assertEquals(.5, report.clamped_index, kTestEpsilon);
-        assertEquals(midpoint.getX(), report.closest_point.getX(), kTestEpsilon);
-        assertEquals(midpoint.getY(), report.closest_point.getY(), kTestEpsilon);
+        assertEquals(.5, report.clampedIndex, kTestEpsilon);
+        assertEquals(midpoint.getX(), report.point.getX(), kTestEpsilon);
+        assertEquals(midpoint.getY(), report.point.getY(), kTestEpsilon);
         assertEquals(1, report.distance, kTestEpsilon);
 
         // GetClosestPoint - point behind start
         report = segment.getClosestPoint(new Vector2d(0, 1));
         assertEquals(-1, report.index, kTestEpsilon);
-        assertEquals(0, report.clamped_index, kTestEpsilon);
-        assertEquals(start.getX(), report.closest_point.getX(), kTestEpsilon);
-        assertEquals(start.getY(), report.closest_point.getY(), kTestEpsilon);
+        assertEquals(0, report.clampedIndex, kTestEpsilon);
+        assertEquals(start.getX(), report.point.getX(), kTestEpsilon);
+        assertEquals(start.getY(), report.point.getY(), kTestEpsilon);
         assertEquals(Math.hypot(.5, 1), report.distance, kTestEpsilon);
 
         // GetClosestPoint - point after end
         report = segment.getClosestPoint(new Vector2d(2, -1));
         assertEquals(3, report.index, kTestEpsilon);
-        assertEquals(1, report.clamped_index, kTestEpsilon);
-        assertEquals(end.getX(), report.closest_point.getX(), kTestEpsilon);
-        assertEquals(end.getY(), report.closest_point.getY(), kTestEpsilon);
+        assertEquals(1, report.clampedIndex, kTestEpsilon);
+        assertEquals(end.getX(), report.point.getX(), kTestEpsilon);
+        assertEquals(end.getY(), report.point.getY(), kTestEpsilon);
         assertEquals(Math.hypot(1, 1), report.distance, kTestEpsilon);
     }
 

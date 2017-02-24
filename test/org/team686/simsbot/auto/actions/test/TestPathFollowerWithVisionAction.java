@@ -43,9 +43,17 @@ public class TestPathFollowerWithVisionAction
 	public static void tearDownAfterClass() throws Exception {}
 
 	@Before
-	public void setUp() throws Exception
+	public void setUp() throws Exception {}
+
+	@After
+	public void tearDown() throws Exception {} 
+
+	
+	
+	@Test 
+	public void testPathFollower()
 	{
-		actualRobotLocation  = new Pose( 0, 0,  0);
+		actualRobotLocation  = new Pose( 0,  0,  0);
 		actualTargetLocation = new Pose( 0,120,  0);
 
     	PathSegment.PathSegmentOptions path_options   = new PathSegment.PathSegmentOptions(Constants.kPathFollowingMaxVel, Constants.kPathFollowingMaxAccel, Constants.kPathFollowingLookahead, false);
@@ -53,9 +61,77 @@ public class TestPathFollowerWithVisionAction
     	
         List<Waypoint> path = new ArrayList<>();
         path.add(new Waypoint(new Vector2d( 0, 0), path_options));
-        path.add(new Waypoint(new Vector2d(96, 0), path_options));
-        path.add(new Waypoint(new Vector2d(96,96), vision_options));
-        path.add(new Waypoint(new Vector2d( 0,96), vision_options));
+        path.add(new Waypoint(new Vector2d(36, 0), path_options));
+        path.add(new Waypoint(new Vector2d(36,18), path_options));
+        path.add(new Waypoint(new Vector2d(60,48), path_options));
+        path.add(new Waypoint(new Vector2d(60,12), path_options));
+        path.add(new Waypoint(new Vector2d( 0, 0), path_options));
+		
+		cameraTimestampQueue = new ArrayList<Double>();
+		cameraTargetXQueue = new ArrayList<Double>();
+		cameraTargetWidthQueue = new ArrayList<Double>();
+				
+		// fill delay queue with initial values
+		for (double t=0; t<Constants.kCameraLatencySeconds; t+=dt)
+		{
+			cameraTimestampQueue.add(-999.0);
+			cameraTargetXQueue.add(-999.0);
+			cameraTargetWidthQueue.add(-999.0);
+		}
+		
+		pathVisionDriveAction = new PathFollowerWithVisionAction(new Path(path, false));
+		currentTime = (double)(System.currentTimeMillis())/1000.0;
+
+		simulate();		
+	}
+	
+	@Test 
+	public void testPathFollowerReverse()
+	{
+		actualRobotLocation  = new Pose( 0,  0,  0);
+		actualTargetLocation = new Pose( 0,120,  0);
+
+    	PathSegment.PathSegmentOptions path_options   = new PathSegment.PathSegmentOptions(Constants.kPathFollowingMaxVel, Constants.kPathFollowingMaxAccel, Constants.kPathFollowingLookahead, false);
+    	PathSegment.PathSegmentOptions vision_options = new PathSegment.PathSegmentOptions(Constants.kVisionMaxVel,        Constants.kVisionMaxAccel,        Constants.kPathFollowingLookahead, true);
+    	
+        List<Waypoint> path = new ArrayList<>();
+        path.add(new Waypoint(new Vector2d(  0,  0), path_options));
+        path.add(new Waypoint(new Vector2d( 36,  0), path_options));
+        path.add(new Waypoint(new Vector2d( 36, 18), path_options));
+        path.add(new Waypoint(new Vector2d( 60, 60), path_options));
+        path.add(new Waypoint(new Vector2d(100, 60), path_options));
+        path.add(new Waypoint(new Vector2d(100,  0), path_options));
+        path.add(new Waypoint(new Vector2d( 50,  0), path_options));
+		
+		cameraTimestampQueue = new ArrayList<Double>();
+		cameraTargetXQueue = new ArrayList<Double>();
+		cameraTargetWidthQueue = new ArrayList<Double>();
+				
+		// fill delay queue with initial values
+		for (double t=0; t<Constants.kCameraLatencySeconds; t+=dt)
+		{
+			cameraTimestampQueue.add(-999.0);
+			cameraTargetXQueue.add(-999.0);
+			cameraTargetWidthQueue.add(-999.0);
+		}
+		
+		currentTime = (double)(System.currentTimeMillis())/1000.0;
+		pathVisionDriveAction = new PathFollowerWithVisionAction(new Path(path, true));
+
+		simulate();		
+	}
+	
+	@Test 
+	public void testVision()
+	{
+		actualRobotLocation  = new Pose( 0,  0,  0);
+		actualTargetLocation = new Pose(96, 36,  0);
+
+    	PathSegment.PathSegmentOptions path_options   = new PathSegment.PathSegmentOptions(Constants.kPathFollowingMaxVel, Constants.kPathFollowingMaxAccel, Constants.kPathFollowingLookahead, false);
+    	PathSegment.PathSegmentOptions vision_options = new PathSegment.PathSegmentOptions(Constants.kVisionMaxVel,        Constants.kVisionMaxAccel,        Constants.kPathFollowingLookahead, true);
+    	
+        List<Waypoint> path = new ArrayList<>();
+        path.add(new Waypoint(new Vector2d( 0, 0), vision_options));
 		
 		pathVisionDriveAction = new PathFollowerWithVisionAction(new Path(path, false));
 		currentTime = (double)(System.currentTimeMillis())/1000.0;
@@ -73,64 +149,135 @@ public class TestPathFollowerWithVisionAction
 			cameraTargetWidthQueue.add(-999.0);
 		}
 		
-		pathVisionDriveAction.start(); 
+		currentTime = (double)(System.currentTimeMillis())/1000.0;
+		pathVisionDriveAction = new PathFollowerWithVisionAction(new Path(path, true));
 
+		simulate();		
 	}
-
-	@After
-	public void tearDown() throws Exception {
-	}
-
-	@Test
-	public void simulateVisionDrive() 
+	
+	@Test 
+	public void testPathVision()
 	{
+		actualRobotLocation  = new Pose( 0,  0,  0);
+		actualTargetLocation = new Pose( 0,120,  0);
+
+    	PathSegment.PathSegmentOptions path_options   = new PathSegment.PathSegmentOptions(Constants.kPathFollowingMaxVel, Constants.kPathFollowingMaxAccel, Constants.kPathFollowingLookahead, false);
+    	PathSegment.PathSegmentOptions vision_options = new PathSegment.PathSegmentOptions(Constants.kVisionMaxVel,        Constants.kVisionMaxAccel,        Constants.kPathFollowingLookahead, true);
+    	
+        List<Waypoint> path = new ArrayList<>();
+        path.add(new Waypoint(new Vector2d( 0, 0), path_options));
+        path.add(new Waypoint(new Vector2d(96, 0), path_options));
+        path.add(new Waypoint(new Vector2d(96,96), vision_options));
+        path.add(new Waypoint(new Vector2d( 0,96), vision_options));
+		
+		cameraTimestampQueue = new ArrayList<Double>();
+		cameraTargetXQueue = new ArrayList<Double>();
+		cameraTargetWidthQueue = new ArrayList<Double>();	
+		
+		// fill delay queue with initial values
+		for (double t=0; t<Constants.kCameraLatencySeconds; t+=dt)
+		{
+			cameraTimestampQueue.add(-999.0);
+			cameraTargetXQueue.add(-999.0);
+			cameraTargetWidthQueue.add(-999.0);
+		}
+		
+		currentTime = (double)(System.currentTimeMillis())/1000.0;
+		pathVisionDriveAction = new PathFollowerWithVisionAction(new Path(path, true));
+
+		simulate();		
+	}
+	
+	public void simulate()
+	{
+		pathVisionDriveAction.start(); 		
+
+		/*****************************************************
+		 * Simulation
+		 ****************************************************/
 		for (currentTime = 0; currentTime<10; currentTime+=dt)
 		{
 			if (pathVisionDriveAction.isFinished())
+			{
+				pathVisionDriveAction.done();
 				break;
+			}
 			
+			simulateTimestep();
 			
-			// update RobotPose -- assume robot has moved with speed & curvature for time dt
-			double speed     = pathVisionDriveAction.getSpeed();
-			double curvature = pathVisionDriveAction.getCurvature();
-			
-			double dTheta  = speed*dt*curvature;
-			double theta_m = actualRobotLocation.getHeadingRad() + dTheta/2;
+			 // test that did not stray from path
+			if (!pathVisionDriveAction.getTargetAcquired())
+			{
+				double distFromPath = pathVisionDriveAction.getDistanceFromPath(); 
+				assertTrue(distFromPath < 24);
+			}
+		}
+		pathVisionDriveAction.done();
+		
+		 // test that we finished in the time allotted
+        assertTrue(pathVisionDriveAction.isFinished());
+
+
+        // if final segment has vision enabled, check that we ended near the target
+        if (pathVisionDriveAction.getPath().getSegmentVisionEnable())
+        {
+			// calculate relative position of target
+			Vector2d robotToTarget = new Vector2d(actualTargetLocation.getPosition()).sub(actualRobotLocation.getPosition());
+			double  distToTarget = robotToTarget.length(); 
+			double angleToTarget = robotToTarget.angle() - actualRobotLocation.getHeadingRad();
+			angleToTarget = Vector2d.normalizeAngle(angleToTarget);	// modulo 2pi
+	        
+	        // test that visionDrive ended up close to target and pointed at target
+			assertEquals(Constants.kPegTargetDistanceThresholdInches, distToTarget, 1);
+			assertEquals(angleToTarget, 0, 0.1);
+        }
+	}
 	
-			double D = speed*dt;					// arc-length
-			double L = D;							// chord-length (= arc-length if no curvature)
-			if (dTheta > 1e-9)
-				L = 2*D*Math.sin(dTheta/2)/dTheta;	// adjust chord-length for curvature	
+	
+	
+	public void simulateTimestep() 
+	{
+		// update RobotPose -- assume robot has moved with speed & curvature for time dt
+		double speed     = pathVisionDriveAction.getSpeed();
+		double curvature = pathVisionDriveAction.getCurvature();
+		
+		double dTheta  = speed*dt*curvature;
+		double theta_m = actualRobotLocation.getHeadingRad() + dTheta/2;
+
+		double D = speed*dt;					// arc-length
+		double L = D;							// chord-length (= arc-length if no curvature)
+		if (dTheta > 1e-9)
+			L = 2*D*Math.sin(dTheta/2)/dTheta;	// adjust chord-length for curvature	
 					
 			actualRobotLocation = actualRobotLocation.add(Vector2d.magnitudeAngle(L, theta_m));
 			actualRobotLocation = actualRobotLocation.turnRad(dTheta);
 			
 System.out.println("Robot: " + actualRobotLocation + ", AvgTarget: " + pathVisionDriveAction.avgTargetLocation);
-			
-			// log RobotPose
-			Pose observation = actualRobotLocation;
-			robotState.addFieldToVehicleObservation(currentTime, observation);
+		
+		// log RobotPose
+		Pose observation = actualRobotLocation;
+		robotState.addFieldToVehicleObservation(currentTime, observation);
 
-			// calculate relative position of target
-			Vector2d robotToTarget = actualTargetLocation.sub(actualRobotLocation);
-			double  distToTarget = robotToTarget.length(); 
-			double angleToTarget = robotToTarget.angle() - actualRobotLocation.getHeadingRad();
-			angleToTarget = Vector2d.normalizeAngle(angleToTarget);	// modulo 2pi
-			
-			// calculate Vision output
-			double imageTimestamp = currentTime;
-			double normalizedTargetX = -999.0; 
-			double normalizedTargetWidth = -999.0;
-			
-			if (Math.abs(angleToTarget) < Constants.kCameraHalfFOVRadians)
-			{
-				// target is within camera's field of view
-				double fovWidth = 2*distToTarget*Constants.kTangentCameraHalfFOV;		// width of camera's field of view at distance D 
-				normalizedTargetWidth = targetWidth / fovWidth;
-				normalizedTargetX = -angleToTarget / Constants.kCameraHalfFOVRadians;
-			}
-			
-			// delay Vision output
+		// calculate relative position of target
+		Vector2d robotToTarget = actualTargetLocation.sub(actualRobotLocation);
+		double  distToTarget = robotToTarget.length(); 
+		double angleToTarget = robotToTarget.angle() - actualRobotLocation.getHeadingRad();
+		angleToTarget = Vector2d.normalizeAngle(angleToTarget);	// modulo 2pi
+		
+		// calculate Vision output
+		double imageTimestamp = currentTime;
+		double normalizedTargetX = -999.0; 
+		double normalizedTargetWidth = -999.0;
+		
+		if (Math.abs(angleToTarget) < Constants.kCameraHalfFOVRadians)
+		{
+			// target is within camera's field of view
+			double fovWidth = 2*distToTarget*Constants.kTangentCameraHalfFOV;		// width of camera's field of view at distance D 
+			normalizedTargetWidth = targetWidth / fovWidth;
+			normalizedTargetX = -angleToTarget / Constants.kCameraHalfFOVRadians;
+		}
+		
+		// delay Vision output
 			cameraTimestampQueue.add(imageTimestamp);
 			cameraTargetXQueue.add(normalizedTargetX);
 			cameraTargetWidthQueue.add(normalizedTargetWidth);
@@ -140,53 +287,31 @@ System.out.println("Robot: " + actualRobotLocation + ", AvgTarget: " + pathVisio
 			normalizedTargetWidth = cameraTargetWidthQueue.remove(0);
 			
 System.out.printf("Vision X = % 7.3f, Width = % 7.3f ---- ", normalizedTargetX, normalizedTargetWidth);
-			
-			
-			//---------------------------------------------------
-			// Run test
-			//---------------------------------------------------
-			
-			Pose currentPose = robotState.getLatestFieldToVehicle();		
-	
-			imageTimestamp -= Constants.kCameraLatencySeconds;		// remove camera latency
-			
-			// calculate target location based on *previous* robot pose
-			Pose previousPose = robotState.getFieldToVehicle(imageTimestamp);
-	
-			//---------------------------------------------------
-			// Process
-			//---------------------------------------------------
-			pathVisionDriveAction.pathVisionDrive(currentTime, currentPose, previousPose, imageTimestamp, normalizedTargetX, normalizedTargetWidth);
-	
-			//---------------------------------------------------
-			// Output: Send drive control
-			//---------------------------------------------------
-			//drive.driveCurve(speed, curvature, maxSpeed);
-			
-			// speed & curvature used to update robot position at top of loop
-			
-			// TODO: output to CSV file
-		}		
 		
 		
-		/*****************************************************
-		 * test that visionDrive finished in the time allotted
-		 ****************************************************/
-        assertTrue(pathVisionDriveAction.isFinished());
+		//---------------------------------------------------
+		// Run test
+		//---------------------------------------------------
+		
+		Pose currentPose = robotState.getLatestFieldToVehicle();		
 
-		/************************************************
-		 * test that visionDrive ended up close to target
-		 * and pointed at target
-		 ***********************************************/
+		imageTimestamp -= Constants.kCameraLatencySeconds;		// remove camera latency
+		
+		// calculate target location based on *previous* robot pose
+		Pose previousPose = robotState.getFieldToVehicle(imageTimestamp);
 
-		// calculate relative position of target
-		Vector2d robotToTarget = new Vector2d(actualTargetLocation.getPosition()).sub(actualRobotLocation.getPosition());
-		double  distToTarget = robotToTarget.length(); 
-		double angleToTarget = robotToTarget.angle() - actualRobotLocation.getHeadingRad();
-		angleToTarget = Vector2d.normalizeAngle(angleToTarget);	// modulo 2pi
-        
-		assertEquals(Constants.kPegTargetDistanceThresholdInches, distToTarget, 1);
-		assertEquals(angleToTarget, 0, 0.1);
+		//---------------------------------------------------
+		// Process
+		//---------------------------------------------------
+		pathVisionDriveAction.pathVisionDrive(currentTime, currentPose, previousPose, imageTimestamp, normalizedTargetX, normalizedTargetWidth);
+
+		//---------------------------------------------------
+		// Output: Send drive control
+		//---------------------------------------------------
+		//drive.driveCurve(speed, curvature, maxSpeed);
+		
+		// speed & curvature used to update robot position at top of loop
+		
+		// TODO: output to CSV file
 	}
-
 }

@@ -102,6 +102,7 @@ System.out.println("Robot: " + actualRobotLocation + ", AvgTarget: " + visionDri
 			Vector2d robotToTarget = actualTargetLocation.sub(actualRobotLocation);
 			double  distToTarget = robotToTarget.length(); 
 			double angleToTarget = robotToTarget.angle() - actualRobotLocation.getHeadingRad();
+			angleToTarget = Vector2d.normalizeAngle(angleToTarget);	// modulo 2pi
 			
 			// calculate Vision output
 			double imageTimestamp = currentTime;

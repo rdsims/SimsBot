@@ -9,8 +9,6 @@ import java.util.Optional;
  */
 public class PathSegment 
 {
-    protected static final double kEpsilon = 1E-9;
-
     protected Vector2d start;
     protected Vector2d end;
     protected Vector2d startToEnd; 		// pre-computed for efficiency
@@ -89,6 +87,12 @@ public class PathSegment
     public double   getLength()  { return length; }
     public PathSegmentOptions getOptions() { return new PathSegmentOptions(options); }
     
+    public Util.ClosestPointOnSegment getClosestPoint(Vector2d _position)
+    {
+    	return Util.getClosestPointOnSegment(start, end, _position);  
+    }
+    
+
     public Vector2d interpolate(double index)
     {
     	return start.interpolate(end, index);
@@ -99,35 +103,5 @@ public class PathSegment
     {
         Vector2d startToThat = _that.sub(start);
         return startToEnd.dot(startToThat);
-    }
-
-    
-    
-    public static class ClosestPointReport 
-    {
-        public double index; 			// Index of the point on the path segment (not clamped to [0, 1])
-        public double clamped_index; 	// As above, but clamped to [0, 1]
-        public Vector2d closest_point; 	// The result of interpolate(clamped_index)
-        public double distance; 		// The distance from closest_point to the query point
-    }
-    
-    public ClosestPointReport getClosestPoint(Vector2d query_point) 
-    {
-        ClosestPointReport rv = new ClosestPointReport();
-        if (length > kEpsilon) 
-        {
-            double dot_product = dotProduct(query_point);		// SQ = vector (start,query_point).  SE = vector(start, end)
-            rv.index = dot_product / (length * length);			// index = |SQ|/|SE| cos(angle beteeen SQ & SE)   
-            rv.clamped_index = Util.limit(rv.index, 0.0, 1.0);	// clamp in case |SQ| > |SE|
-            rv.closest_point = interpolate(rv.index);			// point on SE closest to Q
-        } 
-        else 
-        {
-        	// segment is very small.  return start (which is near end)
-            rv.index = rv.clamped_index = 0.0;
-            rv.closest_point = new Vector2d(start);
-        }
-        rv.distance = query_point.distance(rv.closest_point);
-        return rv;
     }
 }
