@@ -3,7 +3,6 @@ package org.team686.simsbot.auto.actions.test;
 import static org.junit.Assert.*;
 
 import java.util.ArrayList;
-import java.util.List;
 
 import org.junit.After;
 import org.junit.AfterClass;
@@ -83,7 +82,7 @@ public class TestPathFollowerWithVisionAction
 		
     	PathSegment.Options pathOptions   = new PathSegment.Options(Constants.kPathFollowingMaxVel, Constants.kPathFollowingMaxAccel, Constants.kPathFollowingLookahead, false);
     	
-        List<Waypoint> path = new ArrayList<>();
+        Path path = new Path();
         path.add(new Waypoint(new Vector2d( 0, 0), pathOptions));
         path.add(new Waypoint(new Vector2d(36, 0), pathOptions));
         path.add(new Waypoint(new Vector2d(36,18), pathOptions));
@@ -104,8 +103,7 @@ public class TestPathFollowerWithVisionAction
 			cameraTargetWidthQueue.add(-999.0);
 		}
 		
-		boolean reversed = false;
-		pathVisionDriveAction = new PathFollowerWithVisionAction(new Path(path, reversed));
+		pathVisionDriveAction = new PathFollowerWithVisionAction(path);
 		driveCtrl = pathVisionDriveAction.getDriveController();		
 		
 		testLogger.deregister();
@@ -130,7 +128,7 @@ public class TestPathFollowerWithVisionAction
 		
     	PathSegment.Options pathOptions   = new PathSegment.Options(Constants.kPathFollowingMaxVel, Constants.kPathFollowingMaxAccel, Constants.kPathFollowingLookahead, false);
     	
-        List<Waypoint> path = new ArrayList<>();
+        Path path = new Path();
         path.add(new Waypoint(new Vector2d( 0, 0), pathOptions));
         path.add(new Waypoint(new Vector2d(36, 0), pathOptions));
         path.add(new Waypoint(new Vector2d(36,18), pathOptions));
@@ -151,8 +149,9 @@ public class TestPathFollowerWithVisionAction
 			cameraTargetWidthQueue.add(-999.0);
 		}
 		
-		boolean reversed = true;
-		pathVisionDriveAction = new PathFollowerWithVisionAction(new Path(path, reversed));
+		path.setReverseOrder();
+		path.setReverseDirection();
+		pathVisionDriveAction = new PathFollowerWithVisionAction(path);
 		driveCtrl = pathVisionDriveAction.getDriveController();		
 
 		testLogger.deregister();
@@ -175,14 +174,12 @@ public class TestPathFollowerWithVisionAction
 		robotState.reset(0, robotPose);
 		drive.getCommand().setResetEncoders();
 		
-    	PathSegment.Options visionOptions = new PathSegment.Options(Constants.kVisionMaxVel,        Constants.kVisionMaxAccel,        Constants.kPathFollowingLookahead, false);
+    	PathSegment.Options visionOptions = new PathSegment.Options(Constants.kVisionMaxVel,        Constants.kVisionMaxAccel,        Constants.kPathFollowingLookahead, true);
     	
-        List<Waypoint> path = new ArrayList<>();
-        path.add(new Waypoint(new Vector2d( 0, 0), visionOptions));
+        Path path = new Path();
+        path.add(new Waypoint(robotPose.getPosition(), visionOptions));
+        path.add(new Waypoint(robotPose.interpolate(targetPose, 0.3).getPosition(), visionOptions));
 		
-		pathVisionDriveAction = new PathFollowerWithVisionAction(new Path(path, false));
-		currentTime = (double)(System.currentTimeMillis())/1000.0;
-
 		cameraTimestampQueue = new ArrayList<Double>();
 		cameraTargetXQueue = new ArrayList<Double>();
 		cameraTargetWidthQueue = new ArrayList<Double>();
@@ -196,8 +193,7 @@ public class TestPathFollowerWithVisionAction
 			cameraTargetWidthQueue.add(-999.0);
 		}
 		
-		boolean reversed = false;
-		pathVisionDriveAction = new PathFollowerWithVisionAction(new Path(path, reversed));
+		pathVisionDriveAction = new PathFollowerWithVisionAction(path);
 		driveCtrl = pathVisionDriveAction.getDriveController();		
 
 		testLogger.deregister();
@@ -223,7 +219,7 @@ public class TestPathFollowerWithVisionAction
     	PathSegment.Options pathOptions   = new PathSegment.Options(Constants.kPathFollowingMaxVel, Constants.kPathFollowingMaxAccel, Constants.kPathFollowingLookahead, false);
     	PathSegment.Options visionOptions = new PathSegment.Options(Constants.kVisionMaxVel,        Constants.kVisionMaxAccel,        Constants.kPathFollowingLookahead, true);
     	
-        List<Waypoint> path = new ArrayList<>();
+        Path path = new Path();
         path.add(new Waypoint(new Vector2d( 0, 0), pathOptions));
         path.add(new Waypoint(new Vector2d(96, 0), pathOptions));
         path.add(new Waypoint(new Vector2d(96,96), visionOptions));
@@ -241,8 +237,7 @@ public class TestPathFollowerWithVisionAction
 			cameraTargetWidthQueue.add(-999.0);
 		}
 		
-		boolean reversed = false;
-		pathVisionDriveAction = new PathFollowerWithVisionAction(new Path(path, reversed));
+		pathVisionDriveAction = new PathFollowerWithVisionAction(path);
 		driveCtrl = pathVisionDriveAction.getDriveController();		
 
 		testLogger.deregister();

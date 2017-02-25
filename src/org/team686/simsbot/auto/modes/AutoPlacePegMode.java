@@ -21,7 +21,6 @@ import org.team686.simsbot.auto.actions.*;
  */
 public class AutoPlacePegMode extends AutoModeBase 
 {
-	List<Waypoint> path1, path2, path3, path4, path5, path6, path7, path8;
 	int lane;
 	
 	Pose start1 = new Pose(120,-90,180*Pose.degreesToRadians);
@@ -38,6 +37,7 @@ public class AutoPlacePegMode extends AutoModeBase
 	Vector2d target2 = new Vector2d(  0,  0);
 	Vector2d target3 = new Vector2d(  0,+12);
 	
+	List<Path> pathList;
 	
     public AutoPlacePegMode(int _lane, boolean isShooting) 
     {
@@ -57,49 +57,63 @@ public class AutoPlacePegMode extends AutoModeBase
 			initialPose = new Pose(start3);
 System.out.println("initialPose = " + initialPose);
 			
+			pathList = new ArrayList<Path>();
+
 			// drive to target 1
-			path1 = new ArrayList<>();
+			Path path1 = new Path();
 			path1.add(new Waypoint(initialPose.getPosition(), pathOptions));
 			path1.add(new Waypoint(approach3, 				  visionOptions));	// enable vision
 			path1.add(new Waypoint(  target3, 				  visionOptions));
+			pathList.add(path1);
 			
 			// back up
-			path2 = new ArrayList<>();
-			path2.add(new Waypoint(approach3, pathOptions));
+			Path path2 = new Path();
 			path2.add(new Waypoint(  target3, pathOptions));
+			path2.add(new Waypoint(approach3, pathOptions));
+			path2.setReverseDirection();
+			pathList.add(path2);
 			
 			// drive to target 2
-			path3 = new ArrayList<>();
+			Path path3 = new Path();
 			path3.add(new Waypoint(approach3, pathOptions));
 			path3.add(new Waypoint(approach2, visionOptions));	// enable vision
 			path3.add(new Waypoint(  target2, visionOptions));
+			pathList.add(path3);
 
 			// back up
-			path4 = new ArrayList<>();
-			path4.add(new Waypoint(approach2, pathOptions));
+			Path path4 = new Path();
 			path4.add(new Waypoint(  target2, pathOptions));
+			path4.add(new Waypoint(approach2, pathOptions));
+			path4.setReverseDirection();
+			pathList.add(path4);
 
 			// drive to target 3
-			path5 = new ArrayList<>();
+			Path path5 = new Path();
 			path5.add(new Waypoint(approach2, pathOptions));
 			path5.add(new Waypoint(approach1, visionOptions));	// enable vision
 			path5.add(new Waypoint(  target1, visionOptions));	
+			pathList.add(path5);
 
 			// backup
-			path6 = new ArrayList<>();
-			path6.add(new Waypoint(approach1, pathOptions));
+			Path path6 = new Path();
 			path6.add(new Waypoint(  target1, pathOptions));
+			path6.add(new Waypoint(approach1, pathOptions));
+			path6.setReverseDirection();
+			pathList.add(path6);
 
 			// drive back to starting point
-			path7 = new ArrayList<>();
+			Path path7 = new Path();
 			path7.add(new Waypoint(approach1, 	pathOptions));
 			path7.add(new Waypoint(approach3, 	pathOptions));
 			path7.add(new Waypoint(flip3, 		pathOptions));
+			pathList.add(path7);
 
-			// backup
-			path8 = new ArrayList<>();
+			// backup to initial position
+			Path path8 = new Path();
+			path8.add(new Waypoint(flip3, 				  	  pathOptions));
 			path8.add(new Waypoint(initialPose.getPosition(), pathOptions));
-			path8.add(new Waypoint(flip3	, 				  pathOptions));
+			path8.setReverseDirection();
+			pathList.add(path8);
 
 		}
     }
@@ -109,29 +123,9 @@ System.out.println("initialPose = " + initialPose);
     {
     	System.out.println("Starting AutoPlacePegMode, lane " + lane);
 
-    	// drive to target 1
-        runAction(new PathFollowerWithVisionAction(new Path(path1, false)));   
-        
-    	// back up
-        runAction(new PathFollowerWithVisionAction(new Path(path2, true)));
-        
-        // drive to target 2
-        runAction(new PathFollowerWithVisionAction(new Path(path3, false)));   
-
-        // back up
-        runAction(new PathFollowerWithVisionAction(new Path(path4, true)));
-        
-        // drive to target 3
-        runAction(new PathFollowerWithVisionAction(new Path(path5, false)));   
-
-        // backup
-        runAction(new PathFollowerWithVisionAction(new Path(path6, true)));
-        
-        // drive back to approach3
-        runAction(new PathFollowerWithVisionAction(new Path(path7, false)));   
-        
-        // and backup to starting point
-        runAction(new PathFollowerWithVisionAction(new Path(path8, true)));   
+    	for (int k=0; k<pathList.size(); k++)
+            runAction( new PathFollowerWithVisionAction( pathList.get(k) ) );   
+    		
     }
     
 }

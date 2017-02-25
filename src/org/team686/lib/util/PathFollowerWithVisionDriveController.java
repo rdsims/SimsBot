@@ -121,7 +121,7 @@ imageTimestamp = currentTime - Constants.kCameraLatencySeconds;		// remove camer
 		double maxSpeed = 0;
 		double maxAccel = 0;
 		
-		reversed = path.getReversed();
+		reversed = path.getReverseDirection();
 		boolean visionEnabledSegment = path.getSegmentVisionEnable(); 
 		if (visionEnabledSegment)
 			visionDrive(_currentTime, _currentPose, _previousPose, _imageTimestamp, _normalizedTargetX, _normalizedTargetWidth);

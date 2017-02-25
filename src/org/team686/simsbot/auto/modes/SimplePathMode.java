@@ -1,8 +1,5 @@
 package org.team686.simsbot.auto.modes;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.team686.lib.util.Path;
 import org.team686.lib.util.PathSegment;
 import org.team686.lib.util.Path.Waypoint;
@@ -35,13 +32,17 @@ public class SimplePathMode extends AutoModeBase {
     	PathSegment.Options options = new PathSegment.Options(Constants.kPathFollowingMaxVel, Constants.kPathFollowingMaxAccel, Constants.kPathFollowingLookahead, false);
 
     	
-        List<Waypoint> path = new ArrayList<>();
+        Path path = new Path();
         path.add(new Waypoint(new Vector2d(  0, 0), options));
         path.add(new Waypoint(new Vector2d( XX, 0), options));
         path.add(new Waypoint(new Vector2d( XX, Y), options));
         path.add(new Waypoint(new Vector2d(  X, Y), options));
 
-        runAction(new PathFollowerWithVisionAction(new Path(path, false)));	// drive forward       		         
-        runAction(new PathFollowerWithVisionAction(new Path(path, true)));    // drive reversed 
+        Path revPath = new Path(path);
+        revPath.setReverseOrder();
+        revPath.setReverseDirection();
+        
+        runAction(new PathFollowerWithVisionAction(path));			// drive forward
+        runAction(new PathFollowerWithVisionAction(revPath));    	// drive reversed 
     }
 }

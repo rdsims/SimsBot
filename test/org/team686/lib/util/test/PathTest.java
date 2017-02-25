@@ -81,8 +81,6 @@ public class PathTest {
     @Test
     public void testPath() 
     {
-    	boolean reversed = false;
-    	
     	double maxSpeed = 1;
     	double maxAccel = 1;
     	double lookaheadDist = 1;
@@ -90,14 +88,13 @@ public class PathTest {
     	
     	PathSegment.Options options = new PathSegment.Options(maxSpeed, maxAccel, lookaheadDist, visionEnable);
 
-    	List<Waypoint> waypoints = new ArrayList<>();
-        waypoints.add(new Waypoint(new Vector2d(0, 0), options));
-        waypoints.add(new Waypoint(new Vector2d(1, 0), options));
-        waypoints.add(new Waypoint(new Vector2d(2, 0), options));
-        waypoints.add(new Waypoint(new Vector2d(2, 1), options));
-        waypoints.add(new Waypoint(new Vector2d(2, 2), options));
+    	Path path = new Path();
+        path.add(new Waypoint(new Vector2d(0, 0), options));
+        path.add(new Waypoint(new Vector2d(1, 0), options));
+        path.add(new Waypoint(new Vector2d(2, 0), options));
+        path.add(new Waypoint(new Vector2d(2, 1), options));
+        path.add(new Waypoint(new Vector2d(2, 2), options));
 
-        Path path = new Path(waypoints, reversed);
         assertEquals(4, path.getRemainingLength(), kTestEpsilon);
 
         Vector2d robot_position = new Vector2d(0, 0);
@@ -144,8 +141,6 @@ public class PathTest {
     @Test
     public void testLookahead() 
     {
-    	boolean reversed = false;
-    	
     	double maxSpeed = 1;
     	double maxAccel = 1;
     	double lookaheadDist = 1;
@@ -153,13 +148,12 @@ public class PathTest {
     	
     	PathSegment.Options options = new PathSegment.Options(maxSpeed, maxAccel, lookaheadDist, visionEnable);
 
-    	List<Waypoint> waypoints = new ArrayList<>();
-        waypoints.add(new Waypoint(new Vector2d(0, 0), options));
-        waypoints.add(new Waypoint(new Vector2d(1, 0), options));
-        waypoints.add(new Waypoint(new Vector2d(2, 0), options));
-        waypoints.add(new Waypoint(new Vector2d(2, 1), options));
-        waypoints.add(new Waypoint(new Vector2d(2, 2), options));
-        Path path = new Path(waypoints, reversed);
+    	Path path = new Path();
+        path.add(new Waypoint(new Vector2d(0, 0), options));
+        path.add(new Waypoint(new Vector2d(1, 0), options));
+        path.add(new Waypoint(new Vector2d(2, 0), options));
+        path.add(new Waypoint(new Vector2d(2, 1), options));
+        path.add(new Waypoint(new Vector2d(2, 2), options));
 
         // Robot at path start, lookahead 1 unit
         Vector2d robot_position = new Vector2d(0, 0);
@@ -209,8 +203,6 @@ public class PathTest {
     @Test
     public void testNumericalStability() 
     {
-    	boolean reversed = false;
-    	
     	double maxSpeed = 120.0;
     	double maxAccel = 90.0;
     	double lookaheadDist = 1;
@@ -221,12 +213,12 @@ public class PathTest {
         Random rand = new Random(1);
         for (int i = 0; i < 10000; ++i) 
         {
-            List<Waypoint> waypoints = new ArrayList<>();
-            waypoints.add(new Waypoint(new Vector2d( 18, 26), options));
-            waypoints.add(new Waypoint(new Vector2d( 24, 18), options));
-            waypoints.add(new Waypoint(new Vector2d( 90, 18), options));
-            waypoints.add(new Waypoint(new Vector2d(205, 18), options));
-            Path path = new Path(waypoints, reversed);
+            Path path = new Path();
+            path.add(new Waypoint(new Vector2d( 18, 26), options));
+            path.add(new Waypoint(new Vector2d( 24, 18), options));
+            path.add(new Waypoint(new Vector2d( 90, 18), options));
+            path.add(new Waypoint(new Vector2d(205, 18), options));
+
             for (int j = 0; j < 50; ++j) 
             {
                 Vector2d robot_position = new Vector2d(rand.nextDouble() * 10.0 + 24, rand.nextDouble() * 10.0 + 18);

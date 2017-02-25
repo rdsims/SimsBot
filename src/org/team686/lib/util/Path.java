@@ -20,7 +20,7 @@ public class Path
 {
     protected static final double kSegmentCompletePercentage = .99;
 
-    protected boolean reversed;			
+    protected boolean reverseDirection;
     protected List<Waypoint> waypoints;
     protected List<PathSegment> segments;
     protected Set<String> markersCrossed;
@@ -49,44 +49,48 @@ public class Path
     }
 
     // constructor for empty path
-    public Path()
+    public Path() 
     {
-    	this(new ArrayList<Waypoint>(), false);
-    }
-    
-    // TODO: construct Path with reversed only
-    // TODO: add an add() function to add waypoints.  Add a segment when >=2 waypoints
-    
-    
-    // construct a path given a list of waypoints
-    public Path(List<Waypoint> _waypoints, boolean _reversed) 
-    {
-    	// note to calling function: first waypoint should be near actual starting point (but doesn't have to be) 
-    	
-        waypoints = new ArrayList<Waypoint>(_waypoints);	// make a copy of waypoint list
-        reversed = _reversed;
-        
-        // construct path segments from each pair of waypoints
-        segments = new ArrayList<PathSegment>();
-        if (reversed)
-        {
-	        for (int i = _waypoints.size() - 1; i > 0 ; --i) 
-	        {
-	            segments.add( new PathSegment(waypoints.get(i).position, waypoints.get(i-1).position, waypoints.get(i-1).options ));
-	        }
-        }        
-        else
-        {
-	        for (int i = 0; i < _waypoints.size() - 1; ++i) 
-	        {
-	            segments.add( new PathSegment(waypoints.get(i).position, waypoints.get(i+1).position, waypoints.get(i).options ));
-	        }
-        }        
+    	reverseDirection = false;		// call setReverseDirection() to drive backwards
+        waypoints = new ArrayList<Waypoint>();
+        segments  = new ArrayList<PathSegment>();
         markersCrossed = new HashSet<String>();
     }
 
-
-    public boolean getReversed() { return reversed; }
+    public Path(Path _path) 
+    {
+    	reverseDirection = _path.reverseDirection;		// call setReverseDirection() to drive backwards
+        waypoints = new ArrayList<Waypoint>(_path.waypoints);
+        segments  = new ArrayList<PathSegment>(_path.segments);
+        markersCrossed = new HashSet<String>();
+    }
+    
+    public void add(Waypoint _waypoint)
+    {
+    	waypoints.add(_waypoint);
+    	int k = waypoints.size() - 1;
+    	if (k >= 1)
+    	{
+    		PathSegment seg = new PathSegment( waypoints.get(k-1).position, waypoints.get(k).position, waypoints.get(k-1).options );
+    		segments.add(seg);
+    	}
+    }
+    
+    public void setReverseDirection() { reverseDirection = true; }
+    public boolean getReverseDirection() { return reverseDirection; }
+    
+    public void setReverseOrder() 
+    { 
+    	// reverse order of segments
+    	segments.clear();
+    	
+    	for (int k=waypoints.size() - 1; k > 0; k--)
+    	{
+    		// swap start/end.  segment options still tied to original start
+    		PathSegment seg = new PathSegment( waypoints.get(k).position, waypoints.get(k-1).position, waypoints.get(k-1).options );
+    		segments.add(seg);
+    	}
+    }
     
     public double getLookaheadDistance() { return lookaheadDistance; }	// return lookahead distance used by last call to getLookaheadPoint()
 
