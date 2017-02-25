@@ -73,19 +73,22 @@ public class DriveStatus
         @Override
         public void log()
         {
-    		put("DriveStatus/TalonControlMode", talonControlMode.toString() );
-    		put("DriveStatus/brakeMode", brakeMode );
-    		put("DriveStatus/lMotorCurrent", lMotorCurrent );
-    		put("DriveStatus/rMotorCurrent", rMotorCurrent );
-    		put("DriveStatus/lMotorStatus", lMotorStatus );
-    		put("DriveStatus/rMotorStatus", rMotorStatus );
-    		put("DriveStatus/lSpeed", lSpeedInchesPerSec );	// used by RaspberryPi set LED velocity display
-    		put("DriveStatus/rSpeed", rSpeedInchesPerSec );	// used by RaspberryPi set LED velocity display
-    		put("DriveStatus/lDistance", lDistanceInches );
-    		put("DriveStatus/rDistance", rDistanceInches );
-    		put("DriveStatus/lPIDError",  lMotorPIDError );
-    		put("DriveStatus/rPIDError", rMotorPIDError );
-    		put("DriveStatus/Heading", getHeadingDeg() );
+        	synchronized (DriveStatus.this)
+        	{
+	    		put("DriveStatus/TalonControlMode", talonControlMode.toString() );
+	    		put("DriveStatus/brakeMode", brakeMode );
+	    		put("DriveStatus/lMotorCurrent", lMotorCurrent );
+	    		put("DriveStatus/rMotorCurrent", rMotorCurrent );
+	    		put("DriveStatus/lMotorStatus", lMotorStatus );
+	    		put("DriveStatus/rMotorStatus", rMotorStatus );
+	    		put("DriveStatus/lSpeed", lSpeedInchesPerSec );	// used by RaspberryPi set LED velocity display
+	    		put("DriveStatus/rSpeed", rSpeedInchesPerSec );	// used by RaspberryPi set LED velocity display
+	    		put("DriveStatus/lDistance", lDistanceInches );
+	    		put("DriveStatus/rDistance", rDistanceInches );
+	    		put("DriveStatus/lPIDError",  lMotorPIDError );
+	    		put("DriveStatus/rPIDError", rMotorPIDError );
+	    		put("DriveStatus/Heading", getHeadingDeg() );
+        	}
         }
     };
     

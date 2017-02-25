@@ -61,15 +61,14 @@ public class DriveLoop implements Loop
 
 		// Set up the encoders
 		lMotor.setFeedbackDevice(CANTalon.FeedbackDevice.QuadEncoder);
-		lMotor.configEncoderCodesPerRev(Constants.kQuadEncoderCodesPerRev);
-		lMotor.setInverted(false);
-		lMotor.reverseSensor(false);
-		lMotor.reverseOutput(false);
-
 		rMotor.setFeedbackDevice(CANTalon.FeedbackDevice.QuadEncoder);
-		rMotor.configEncoderCodesPerRev(Constants.kQuadEncoderCodesPerRev);
+		lMotor.configEncoderCodesPerRev(Constants.kQuadEncoderCodesPerRev);	// using this API lets us program velocity in RPM in closed-loop modes
+		rMotor.configEncoderCodesPerRev(Constants.kQuadEncoderCodesPerRev);	// Talon SRX Software Reference Manual Section 17.2 API Unit Scaling
+		lMotor.setInverted(false);
 		rMotor.setInverted(false);
+		lMotor.reverseSensor(false);
 		rMotor.reverseSensor(true); // inverts feedback in closed loop modes
+		lMotor.reverseOutput(false);
 		rMotor.reverseOutput(false);
 
 		// Load velocity control gains
@@ -226,7 +225,7 @@ public class DriveLoop implements Loop
         switch (newCmd.getTalonControlMode())	// assuming new mode is already configured
         {
         	case PercentVbus:
-        		// l/r motor controls given as % Vbus
+        		// DriveCommand given in range +/-1, with 1 representing full throttle
         		lMotor.set(lMotorCtrl);
         		rMotor.set(rMotorCtrl);
         		break;
@@ -236,9 +235,10 @@ public class DriveLoop implements Loop
         		break;
         		
         	case Speed:
-        		// l/r motor controls given in inches/sec
-        		// need to convert to RPM
-           		lMotor.set(inchesPerSecondToRpm(lMotorCtrl));
+        		// DriveCommand given in inches/sec
+        		// Talon SRX needs RPM in closed-loop mode.
+        		// convert inches/sec to RPM
+           		lMotor.set(inchesPerSecondToRpm(lMotorCtrl)); 
         		rMotor.set(inchesPerSecondToRpm(rMotorCtrl));
         		break;
         		
@@ -250,9 +250,11 @@ public class DriveLoop implements Loop
         }
 	}
 
+	// Talon SRX reports position in rotations while in closed-loop Position mode
 	private static double rotationsToInches(double _rotations) {	return _rotations * Constants.kDriveWheelCircumInches; }
 	private static double inchesToRotations(double _inches) { return _inches / Constants.kDriveWheelCircumInches; }
 
+	// Talon SRX reports speed in RPM while in closed-loop Speed mode
 	private static double rpmToInchesPerSecond(double _rpm) { return rotationsToInches(_rpm) / 60.0; }
 	private static double inchesPerSecondToRpm(double _inches_per_second) { return inchesToRotations(_inches_per_second) * 60.0; }
 

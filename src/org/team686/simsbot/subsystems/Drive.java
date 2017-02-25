@@ -47,6 +47,7 @@ public class Drive extends Subsystem
 	/*
 	 * Loop to tend to velocity control loops, where Talon SRXs are monitoring the wheel velocities
 	 */
+	// TODO: move into VelocityHeading class
     private final Loop velocityControlLoop = new Loop() 
     {
         @Override
@@ -105,10 +106,10 @@ public class Drive extends Subsystem
 		driveCmd.setDriveMode(DriveControlMode.BASE_LOCKED);
 	}
 
-	public void setVelocitySetpoint(WheelSpeed _vWheel) 
+	public void setVelocitySetpoint(WheelSpeed _wheelSpeed) 
 	{
 		driveCmd.setDriveMode(DriveControlMode.VELOCITY_SETPOINT);
-		driveCmd.setMotors(_vWheel);
+		driveCmd.setMotors(_wheelSpeed);
 	}
 
 	public void setVelocitySetpoint(double left_inches_per_sec, double right_inches_per_sec) 

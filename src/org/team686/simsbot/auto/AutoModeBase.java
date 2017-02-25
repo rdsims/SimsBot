@@ -12,21 +12,17 @@ import edu.wpi.first.wpilibj.Timer;
  */
 public abstract class AutoModeBase
 {
-    protected double m_update_period = 1.0 / 50.0;
-    protected boolean m_active = false;
-
-    static DataLogController autoLogger = DataLogController.getAutoLogController();
+    protected double updatePeriod = 1.0 / 50.0;
+    protected boolean active = false;
+    protected Pose initialPose = new Pose();
     
-    public Pose getInitialPose()
-    {
-    	return new Pose();	// default implementation
-    }
+    static DataLogController autoLogger = DataLogController.getAutoLogController();
     
     protected abstract void routine() throws AutoModeEndedException;
 
     public void run() 
     {
-        m_active = true;
+        active = true;
         try 
         {
             routine();
@@ -46,12 +42,12 @@ public abstract class AutoModeBase
 
     public void stop() 
     {
-        m_active = false;
+        active = false;
     }
 
     public boolean isActive() 
     {
-        return m_active;
+        return active;
     }
 
     public boolean isActiveWithThrow() throws AutoModeEndedException 
@@ -66,14 +62,14 @@ public abstract class AutoModeBase
     public void runAction(Action action) throws AutoModeEndedException 
     {
         autoLogger.deregister();						// remove previous action loggers from registry
-        autoLogger.register(action.getLogger());		// register logger for new action        isActiveWithThrow();
+        autoLogger.register(action.getLogger());
         autoLogger.setOutputMode(true, true);
         
         action.start();
         while (isActiveWithThrow() && !action.isFinished()) 
         {
         	double currTime = Timer.getFPGATimestamp();
-        	double nextTime = Timer.getFPGATimestamp() + m_update_period;
+        	double nextTime = Timer.getFPGATimestamp() + updatePeriod;
         	
             action.update();
             autoLogger.log();
@@ -94,4 +90,10 @@ public abstract class AutoModeBase
         autoLogger.log();	// capture one last log
     }
 
+    public Pose getInitialPose()
+    {
+    	return initialPose;	// default implementation
+    }
+    
+    
 }

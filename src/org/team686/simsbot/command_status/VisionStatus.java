@@ -26,9 +26,12 @@ public class VisionStatus
         @Override
         public void log()
         {
-    		put("VisionStatus/imageTimestamp", imageTimestamp );
-    		put("VisionStatus/normalizedTargetX", normalizedTargetX );
-    		put("VisionStatus/normalizedTargetWidth", normalizedTargetWidth );
+        	synchronized (this)
+        	{
+ 	    		put("VisionStatus/imageTimestamp", imageTimestamp );
+	    		put("VisionStatus/normalizedTargetX", normalizedTargetX );
+	    		put("VisionStatus/normalizedTargetWidth", normalizedTargetWidth );
+        	}
         }
     };
     

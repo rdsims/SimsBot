@@ -54,6 +54,9 @@ public class Path
     	this(new ArrayList<Waypoint>(), false);
     }
     
+    // TODO: construct Path with reversed only
+    // TODO: add an add() function to add waypoints.  Add a segment when >=2 waypoints
+    
     
     // construct a path given a list of waypoints
     public Path(List<Waypoint> _waypoints, boolean _reversed) 
@@ -86,40 +89,46 @@ public class Path
     public boolean getReversed() { return reversed; }
     
     public double getLookaheadDistance() { return lookaheadDistance; }	// return lookahead distance used by last call to getLookaheadPoint()
-    
-    public Optional<PathSegment> getCurrentSegment()
-    { 
+
+    public Vector2d getSegmentStart() 
+    {
     	if (segments.isEmpty())
-    		return Optional.empty();
-		else
-    		return Optional.of(new PathSegment(segments.get(0))); 
+    		return new Vector2d();
+    	else
+    		return new Vector2d(segments.get(0).getStart());
+    }
+    
+    public Vector2d getSegmentEnd() 
+    {
+    	if (segments.isEmpty())
+    		return new Vector2d();
+    	else
+    		return new Vector2d(segments.get(0).getEnd());
     }
     
     public double getSegmentMaxSpeed() 
     {
-    	Optional<PathSegment> segment = getCurrentSegment();
-    	if (segment.isPresent())
-    		return segment.get().getOptions().getMaxSpeed();
-    	else
+    	if (segments.isEmpty())
     		return 0;
+    	else
+    		return segments.get(0).getOptions().getMaxSpeed();
     }
-
+    
+    	
     public double getSegmentMaxAccel()
     {
-    	Optional<PathSegment> segment = getCurrentSegment();
-    	if (segment.isPresent())
-    		return segment.get().getOptions().getMaxAccel();
-    	else
+    	if (segments.isEmpty())
     		return 0;
+    	else
+    		return segments.get(0).getOptions().getMaxAccel();
     }
 
     public boolean getSegmentVisionEnable()
     {
-    	Optional<PathSegment> segment = getCurrentSegment();
-    	if (segment.isPresent())
-    		return segment.get().getOptions().getVisionEnable();
+    	if (segments.isEmpty())
+    		return true;	// vision-only more doesn't require a path
     	else
-    		return true;	// assume no segments defined when vision only
+    		return segments.get(0).getOptions().getVisionEnable();
     }
     
     /*
@@ -133,7 +142,7 @@ public class Path
         double distOffPath = 0.0;
         Util.ClosestPointOnSegment closestPoint;
         
-        for (Iterator<PathSegment> it = segments.iterator(); it.hasNext();) 
+        for (Iterator<PathSegment> it = segments.iterator(); it.hasNext();) 	// use Iterator, as we'll be removing segments in this loop
         {
         	// calculate distance from segment
             PathSegment currSegment = it.next();

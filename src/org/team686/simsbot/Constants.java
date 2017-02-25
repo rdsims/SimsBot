@@ -30,22 +30,15 @@ public class Constants extends ConstantsBase
     public static double kQuadEncoderStatusFramePeriod = 0.100;	// 100ms
     
     // CONTROL LOOP GAINS
-
-    // Path following constants
-    public static double kPathFollowingLookahead = 24.0; // inches
-    public static double kPathFollowingMaxVel    = 90.0; // inches/sec  		// RS measured ~100 inches/sec on carpet
-//    public static double kPathFollowingMaxAccel  = 90.0; // inches/sec^2		// RS measured 800-1000 inches/sec^2 on carpet
-//slow down for testing
-    public static double kPathFollowingMaxAccel  = 24.0; // inches/sec^2		// RS measured 800-1000 inches/sec^2 on carpet
-    public static double kPathFollowingMaxVelPulsePer100ms = kPathFollowingMaxVel / kDriveWheelCircumInches * kQuadEncoderStatusFramePeriod * kQuadEncoderPulsesPerRev; 
-    public static double kPathFollowingCompletionTolerance = 1.0; 
+    public static double kFullThrottleRPM = 520;	// measured max RPM using NI web interface
+    public static double kFullThrottleEncoderPulsePer100ms = kFullThrottleRPM / 60.0 * kQuadEncoderStatusFramePeriod * kQuadEncoderPulsesPerRev; 
     
     // PID gains for drive velocity loop (sent to Talon)
     // Units: error is 4*256 counts/rev. Max output is +/- 1023 units.
     public static double kDriveVelocityKp = 1.0;
     public static double kDriveVelocityKi = 0.0;
     public static double kDriveVelocityKd = 6.0;
-    public static double kDriveVelocityKf = 1023.0 / kPathFollowingMaxVelPulsePer100ms;
+    public static double kDriveVelocityKf = 1023.0 / kFullThrottleEncoderPulsePer100ms;
     public static int kDriveVelocityIZone = 0;
     public static double kDriveVelocityRampRate = 0.0;
     public static int kDriveVelocityAllowableError = 0;
@@ -67,16 +60,24 @@ public class Constants extends ConstantsBase
     public static double kDriveHeadingVelocityKi = 0.0;
     public static double kDriveHeadingVelocityKd = 0.0;
 
+    // Path following constants
+    public static double kPathFollowingMaxVel    = 60.0; // inches/sec  		
+    public static double kPathFollowingMaxAccel  = 48.0; // inches/sec^2	
+    public static double kPathFollowingLookahead = 24.0; // inches
+    public static double kPathFollowingCompletionTolerance = 1.0; 
     
-    // BNO055 accelerometer calibration constants
-    // ( -7, -34,  33, -24) - taken 10/14/2016
-    // (-13, -53,  18, -24) - taken 10/14/2016
-    // (  0, -59,  25, -24) - taken 10/14/2016
-    // using average of the above
-    public static short kAccelOffsetX =  -7;
-    public static short kAccelOffsetY = -53;
-    public static short kAccelOffsetZ =  25;
-    public static short kAccelRadius  = -24;
+    // Vision constants
+    public static double kVisionMaxVel    = 60.0; // inches/sec  		// RS measured ~100 inches/sec on carpet
+    public static double kVisionMaxAccel  = 48.0; // inches/sec^2		// RS measured 800-1000 inches/sec^2 on carpet
+    public static double kTargetWidthInches = 10.25;
+    public static double kTargetLocationFilterConstant = (30.0 * kLoopDt);		// 30 time constants in 1 second
+    public static double kCameraFOVDegrees = 42.5;			// Camera Field of View (degrees)
+    public static double kCameraHalfFOVRadians = kCameraFOVDegrees/2.0 * Math.PI/180.0;			// Half of Camera Field of View (radians)
+    public static double kTangentCameraHalfFOV = Math.tan(kCameraHalfFOVRadians);
+    public static double kCameraLatencySeconds = 0.200;			// Camera image capturing latency
+    public static double kPegTargetDistanceThresholdInches = 24;		// inches to stop from target (15" from camera = 4.5" from bumpers
+    public static double kVisionMaxDistanceInches = 240;		// ignore targets greater than this distance
+    public static double kVisionLookaheadDist = 24.0;	// inches
     
     // Do not change anything after this line!
     // Port assignments should match up with the spreadsheet here:
@@ -87,9 +88,6 @@ public class Constants extends ConstantsBase
     // TALONS
     public static final int kLeftMotorTalonId  = 1;
     public static final int kRightMotorTalonId = 2;
-    
-	// The I2C port the BNO055 is connected to
-    public static final I2C.Port BNO055_PORT = I2C.Port.kOnboard;
     
     public static int kXboxButtonA  = 1;
     public static int kXboxButtonB  = 2;
@@ -104,16 +102,19 @@ public class Constants extends ConstantsBase
     public static int kXboxRTriggerAxis = 3;
     public static int kXboxRStickXAxis  = 4;
     public static int kXboxRStickYAxis  = 5;
+
+	// The I2C port the BNO055 is connected to
+    public static final I2C.Port BNO055_PORT = I2C.Port.kOnboard;
     
-    public static double kTargetWidthInches = 10.25;
-    public static double kTargetLocationFilterConstant = (3.0 * kLoopDt);		// 3 time constants in 1 second
-    public static double kCameraFOVDegrees = 42.5;			// Camera Field of View (degrees)
-    public static double kCameraHalfFOVRadians = kCameraFOVDegrees/2.0 * Math.PI/180.0;			// Half of Camera Field of View (radians)
-    public static double kTangentCameraHalfFOV = Math.tan(kCameraHalfFOVRadians);
-//    public static double kCameraLatencySeconds = 0.500;			// Camera image capturing latency
-    public static double kCameraLatencySeconds = 0;			// Camera image capturing latency
-    public static double kPegTargetDistanceThresholdInches = 20;		// inches to stop from target (15" from camera = 4.5" from bumpers
-    public static double kVisionMaxVel    = 36.0; // inches/sec  		// RS measured ~100 inches/sec on carpet
-    public static double kVisionMaxAccel  = 24.0; // inches/sec^2		// RS measured 800-1000 inches/sec^2 on carpet
-    public static double kVisionLookaheadDist = 24.0;	// inches
+    // BNO055 accelerometer calibration constants
+    // ( -7, -34,  33, -24) - taken 10/14/2016
+    // (-13, -53,  18, -24) - taken 10/14/2016
+    // (  0, -59,  25, -24) - taken 10/14/2016
+    // using average of the above
+    public static short kAccelOffsetX =  -7;
+    public static short kAccelOffsetY = -53;
+    public static short kAccelOffsetZ =  25;
+    public static short kAccelRadius  = -24;
+    
+    
 }

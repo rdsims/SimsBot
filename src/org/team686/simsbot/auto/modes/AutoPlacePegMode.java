@@ -12,7 +12,6 @@ import org.team686.simsbot.Constants;
 import org.team686.simsbot.auto.AutoModeBase;
 import org.team686.simsbot.auto.AutoModeEndedException;
 import org.team686.simsbot.auto.actions.*;
-import org.team686.simsbot.command_status.RobotState;
 
 
 
@@ -24,8 +23,6 @@ public class AutoPlacePegMode extends AutoModeBase
 {
 	List<Waypoint> path1, path2, path3, path4, path5, path6, path7;
 	int lane;
-	RobotState robotState;
-	
 	
 	Pose start1 = new Pose(120,-90,180*Pose.degreesToRadians);
 	Pose start2 = new Pose(120,  0,180*Pose.degreesToRadians);
@@ -42,9 +39,8 @@ public class AutoPlacePegMode extends AutoModeBase
 	
     public AutoPlacePegMode(int _lane, boolean isShooting) 
     {
-    	robotState = RobotState.getInstance();
-    	Pose startPose = new Pose();
-    	
+    	initialPose = new Pose();
+   	
     	lane = _lane;
     	
     	PathSegment.Options pathOptions   = new PathSegment.Options(Constants.kPathFollowingMaxVel, Constants.kPathFollowingMaxAccel, Constants.kPathFollowingLookahead, false);
@@ -52,56 +48,56 @@ public class AutoPlacePegMode extends AutoModeBase
     	
 		switch (lane)
 		{
+		case 1:
+		case 2:
 		case 3:
-			startPose = start3;
+		default:
+			initialPose = new Pose(start3);
+System.out.println("initialPose = " + initialPose);
 			
 			// drive to target 1
 			path1 = new ArrayList<>();
-			path1.add(new Waypoint(startPose.getPosition(), pathOptions));
-			path1.add(new Waypoint(approach3, 				pathOptions));
-			path2.add(new Waypoint(  target3, 				visionOptions));	// enable vision
+			path1.add(new Waypoint(initialPose.getPosition(), pathOptions));
+			path1.add(new Waypoint(approach3, 				  visionOptions));	// enable vision
+			path1.add(new Waypoint(  target3, 				  visionOptions));
 			
 			// back up
 			path2 = new ArrayList<>();
-			path2.add(new Waypoint(  target3, pathOptions));
 			path2.add(new Waypoint(approach3, pathOptions));
+			path2.add(new Waypoint(  target3, pathOptions));
 			
 			// drive to target 2
 			path3 = new ArrayList<>();
 			path3.add(new Waypoint(approach3, pathOptions));
-			path3.add(new Waypoint(approach2, pathOptions));
-			path3.add(new Waypoint(  target2, visionOptions));	// enable vision
+			path3.add(new Waypoint(approach2, visionOptions));	// enable vision
+			path3.add(new Waypoint(  target2, visionOptions));
 
 			// back up
 			path4 = new ArrayList<>();
-			path4.add(new Waypoint(  target2, pathOptions));
 			path4.add(new Waypoint(approach2, pathOptions));
+			path4.add(new Waypoint(  target2, pathOptions));
 
 			// drive to target 3
 			path5 = new ArrayList<>();
 			path5.add(new Waypoint(approach2, pathOptions));
-			path5.add(new Waypoint(approach1, pathOptions));
-			path5.add(new Waypoint(  target1, visionOptions));	// enable vision
+			path5.add(new Waypoint(approach1, visionOptions));	// enable vision
+			path5.add(new Waypoint(  target1, visionOptions));	
 
 			// backup
 			path6 = new ArrayList<>();
-			path6.add(new Waypoint(  target1, pathOptions));
 			path6.add(new Waypoint(approach1, pathOptions));
+			path6.add(new Waypoint(  target1, pathOptions));
 
 			// drive back to starting point
 			path7 = new ArrayList<>();
 			path7.add(new Waypoint(approach1, 				pathOptions));
 			path7.add(new Waypoint(approach2, 				pathOptions));
-			path7.add(new Waypoint(startPose.getPosition(), pathOptions));
+			path7.add(new Waypoint(initialPose.getPosition(), pathOptions));
 			
 		}
-		
-		System.out.println("InitialPose: " + startPose);
-		robotState.reset(0.0, startPose);			
-				
     }
 
-     @Override
+    @Override
     protected void routine() throws AutoModeEndedException 
     {
     	System.out.println("Starting AutoPlacePegMode, lane " + lane);

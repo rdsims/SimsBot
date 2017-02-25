@@ -39,7 +39,7 @@ public class DriveCommand
 	// which are synchronized to allow multi-thread synchronization	
 	private DriveControlMode driveMode = DriveControlMode.OPEN_LOOP;
 	private TalonControlMode talonMode = TalonControlMode.PercentVbus;
-	private WheelSpeed vWheel = new WheelSpeed();
+	private WheelSpeed wheelSpeed = new WheelSpeed();
 	private boolean brake;
 	private boolean resetEncoders;
     
@@ -82,11 +82,8 @@ public class DriveCommand
     		talonMode = TalonControlMode.Position;
     		
     	case VELOCITY_SETPOINT:
-     		talonMode = TalonControlMode.Speed;
-    		break;
-    		
     	case VELOCITY_HEADING:
-    		talonMode = TalonControlMode.Speed;
+     		talonMode = TalonControlMode.Speed;
     		break;
     		
     	default:
@@ -97,10 +94,10 @@ public class DriveCommand
     public synchronized DriveControlMode getDriveControlMode() { return driveMode; }
     public synchronized TalonControlMode getTalonControlMode() { return talonMode; }
     
-    public synchronized void   setMotors(WheelSpeed _vWheel) { vWheel.left = _vWheel.left; vWheel.right = _vWheel.right; }
-    public synchronized void   setMotors(double _left, double _right) { vWheel.left = _left; vWheel.right = _right; }
-    public synchronized double getLeftMotor()  { return vWheel.left; }
-    public synchronized double getRightMotor() { return vWheel.right; }
+    public synchronized void   setMotors(WheelSpeed _wheelSpeed) { wheelSpeed.left = _wheelSpeed.left; wheelSpeed.right = _wheelSpeed.right; }
+    public synchronized void   setMotors(double _left, double _right) { wheelSpeed.left = _left; wheelSpeed.right = _right; }
+    public synchronized double getLeftMotor()  { return wheelSpeed.left; }
+    public synchronized double getRightMotor() { return wheelSpeed.right; }
 
     public synchronized void    setBrake(boolean _brake) { brake = _brake; }
     public synchronized boolean getBrake()  { return brake; }
@@ -122,7 +119,7 @@ public class DriveCommand
     @Override
     public synchronized String toString() 
     {
-    	return String.format("%s, %s, %s, L/R: (%+7.3f, % 7.3f)", driveMode, talonMode, brake, vWheel.left, vWheel.right);
+    	return String.format("%s, %s, %s, L/R: (%+7.3f, % 7.3f)", driveMode, talonMode, brake, wheelSpeed.left, wheelSpeed.right);
     }
     
     
@@ -132,11 +129,14 @@ public class DriveCommand
         @Override
         public void log()
         {
-    		put("DriveCommand/driveMode", driveMode.toString() );
-    		put("DriveCommand/talonMode", talonMode.toString() );
-    		put("DriveCommand/left",  vWheel.left );
-       		put("DriveCommand/right", vWheel.right );
-       		put("DriveCommand/brake", brake );
+        	synchronized (DriveCommand.this)
+        	{
+	    		put("DriveCommand/driveMode", driveMode.toString() );
+	    		put("DriveCommand/talonMode", talonMode.toString() );
+	    		put("DriveCommand/left",  wheelSpeed.left );
+	       		put("DriveCommand/right", wheelSpeed.right );
+	       		put("DriveCommand/brake", brake );
+        	}
         }
     };
     

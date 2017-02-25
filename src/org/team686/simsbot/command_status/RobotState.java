@@ -137,10 +137,13 @@ public class RobotState
         @Override
         public void log()
         {
-            Pose odometry = getLatestFieldToVehicle();
-            put("RobotState/positionX",  odometry.getX());
-            put("RobotState/positionY",  odometry.getY());
-            put("RobotState/headingDeg", odometry.getHeadingDeg());
+        	synchronized (RobotState.this)
+        	{
+	            Pose odometry = getLatestFieldToVehicle();
+	            put("RobotState/positionX",  odometry.getX());
+	            put("RobotState/positionY",  odometry.getY());
+	            put("RobotState/headingDeg", odometry.getHeadingDeg());
+        	}
         }
     };
     

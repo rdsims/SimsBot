@@ -14,6 +14,7 @@ import org.team686.simsbot.auto.AutoModeExecuter;
 import org.team686.simsbot.command_status.DriveCommand;
 import org.team686.simsbot.command_status.DriveStatus;
 import org.team686.simsbot.command_status.RobotState;
+import org.team686.simsbot.command_status.VisionStatus;
 import org.team686.simsbot.loops.DriveLoop;
 import org.team686.simsbot.loops.LoopController;
 import org.team686.simsbot.loops.RobotStateLoop;
@@ -85,8 +86,10 @@ public class Robot extends IterativeRobot
 			robotLogger = DataLogController.getRobotLogController();
 			robotLogger.register(this.getLogger());
 			robotLogger.register(Drive.getInstance().getLogger());
+			robotLogger.register(drive.getCommand().getLogger());
 			robotLogger.register(DriveStatus.getInstance().getLogger());
 			robotLogger.register(RobotState.getInstance().getLogger());
+			robotLogger.register(VisionStatus.getInstance().getLogger());
 			
 			// set initial Pose (will be updated during autonomousInit())
 			setInitialPose( new Pose() );
@@ -268,6 +271,21 @@ public class Robot extends IterativeRobot
 		}
 
 	}
+	
+	
+	
+	@Override
+	public void testInit() 
+	{
+		loopController.start();
+	}
+
+	@Override
+	public void testPeriodic()
+	{
+		drive.testDriveSpeedControl();
+	}
+	
 	
 	// called after disabledPeriodic, autoPeriodic, and teleopPeriodic 
 	@Override

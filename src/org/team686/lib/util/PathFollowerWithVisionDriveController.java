@@ -4,6 +4,7 @@ import edu.wpi.first.wpilibj.Timer;
 
 import org.team686.lib.util.Kinematics.WheelSpeed;
 import org.team686.simsbot.Constants;
+import org.team686.simsbot.command_status.DriveCommand;
 import org.team686.simsbot.command_status.RobotState;
 import org.team686.simsbot.command_status.VisionStatus;
 import org.team686.simsbot.subsystems.Drive;
@@ -31,7 +32,6 @@ public class PathFollowerWithVisionDriveController
 	public VisionStatus visionStatus = VisionStatus.getInstance();
 
 	Path path;
-	private boolean hasStarted;
 	
 	public Vector2d avgTargetLocation = new Vector2d(0,0);
 
@@ -72,8 +72,8 @@ public class PathFollowerWithVisionDriveController
     public void start() 
     {
 		prevSpeed = 0;
-		prevTime  = 0;		
-        hasStarted = false;	// make sure we run update() at least once before finishing
+		prevTime  = -1;		
+        remainingDistance = Double.MAX_VALUE;	// make sure we run update() at least once before finishing
     }
 
 
@@ -84,19 +84,18 @@ public class PathFollowerWithVisionDriveController
 		//---------------------------------------------------
 		
 		// values from camera, normalized to camera's Field of View (-1 to +1) 
-		double imageTimestamp    	  = visionStatus.getImageTimestamp();			// TODO: modify vision code to return targets to edge of FOV
-		double normalizedTargetX 	  = visionStatus.getNormalizedTargetX();
+		double imageTimestamp    	 = visionStatus.getImageTimestamp();			// TODO: modify vision code to return targets to edge of FOV
+		double normalizedTargetX 	 = visionStatus.getNormalizedTargetX();
 		double normalizedTargetWidth = visionStatus.getNormalizedTargetWidth();
 
 		currentPose = robotState.getLatestFieldToVehicle();		
 		currentTime = Timer.getFPGATimestamp();
 
+//FIXME: add timestamp synchronization to timestamps.  Using adjusted current timestamp for now			
+imageTimestamp = currentTime - Constants.kCameraLatencySeconds;		// remove camera latency
 		
 		// calculate target location based on *previous* robot pose
 		previousPose = robotState.getFieldToVehicle(imageTimestamp);
-//FIXME: use current time instead of image time			
-imageTimestamp = currentTime;			
-//imageTimestamp += Constants.kCameraLatencySeconds;		// remove camera latency
 
 		//---------------------------------------------------
 		// Process
@@ -113,9 +112,11 @@ imageTimestamp = currentTime;
 	public WheelSpeed pathVisionDrive(double _currentTime, Pose _currentPose, Pose _previousPose, double _imageTimestamp, double _normalizedTargetX, double _normalizedTargetWidth)
 	{
 		// TODO: address stopping when past final segment
-
-    	hasStarted = true;	// make sure we run update() at least once before finishing
-    	
+		
+		if (prevTime < 0)				// initial setting of prevTime is important to limit initial acceleration
+			prevTime = _currentTime;	// avoid calling Timer.getFPGATimestamp() in this function to allow off-robot testing
+		
+		
 		remainingDistance = Double.MAX_VALUE;
 		double maxSpeed = 0;
 		double maxAccel = 0;
@@ -201,16 +202,18 @@ imageTimestamp = currentTime;
 			
 			// filter target location with exponential averaging
 
-			if (state == PathVisionState.PATH_FOLLOWING)
+			if (prevDistanceToTargetInches < Constants.kVisionMaxDistanceInches)	// ignore bogus targets
 			{
-				avgTargetLocation = targetLocation;
-				state = PathVisionState.VISION;			
+				if (state == PathVisionState.PATH_FOLLOWING)
+				{
+					avgTargetLocation = targetLocation;
+					state = PathVisionState.VISION;			
+				}
+				else
+				{
+					avgTargetLocation = avgTargetLocation.expAverage(targetLocation, Constants.kTargetLocationFilterConstant);
+				}
 			}
-			else
-			{
-				avgTargetLocation = avgTargetLocation.expAverage(targetLocation, Constants.kTargetLocationFilterConstant);
-			}
-
 		}
 		
 		// Drive towards target, even if we didn't get a valid Vision co-processor message this time
@@ -273,9 +276,9 @@ imageTimestamp = currentTime;
     	boolean done = false;
     	
     	if (state == PathVisionState.PATH_FOLLOWING)
-	        done = hasStarted && (remainingDistance <= Constants.kPathFollowingCompletionTolerance);
+	        done = (remainingDistance <= Constants.kPathFollowingCompletionTolerance);
     	else
-    		done = hasStarted && (remainingDistance <= Constants.kPegTargetDistanceThresholdInches);
+    		done = (remainingDistance <= Constants.kPegTargetDistanceThresholdInches);
     	
     	return done;
     }
@@ -293,15 +296,41 @@ imageTimestamp = currentTime;
     {
         @Override
         public void log()
-        {
+        {            
+			DriveCommand cmd = drive.getCommand();
+    		put("PathVision/driveMode", cmd.getDriveControlMode().toString() );
+    		put("PathVision/talonMode", cmd.getTalonControlMode().toString() );
+    		put("PathVision/left",  cmd.getLeftMotor() );
+       		put("PathVision/right", cmd.getRightMotor() );
+       		put("PathVision/brake", cmd.getBrake() );
+       		
+       		Pose odometry = robotState.getLatestFieldToVehicle();
+            put("PathVision/positionX",  odometry.getX());
+            put("PathVision/positionY",  odometry.getY());
+            put("PathVision/headingDeg", odometry.getHeadingDeg());
+        	
+    		put("PathVision/imageTimestamp", visionStatus.getImageTimestamp() );
+    		put("PathVision/normalizedTargetX", visionStatus.getNormalizedTargetX() );
+    		put("PathVision/normalizedTargetWidth", visionStatus.getNormalizedTargetWidth() );
+            
 			put("PathVision/reversed", reversed);
 			put("PathVision/state", state.toString());
+
+			put("PathVision/segmentStartX", path.getSegmentStart().getX());
+			put("PathVision/segmentStartY", path.getSegmentStart().getY());
+			put("PathVision/segmentEndX", path.getSegmentEnd().getX());
+			put("PathVision/segmentEndY", path.getSegmentEnd().getY());
+			put("PathVision/segmentMaxSpeed", path.getSegmentMaxSpeed());
+			put("PathVision/segmentVisionEnable", path.getSegmentVisionEnable());
 			
 			put("PathVision/distanceFromPath", distanceFromPath );
 			put("PathVision/lookaheadDist", lookaheadDist );
 			put("PathVision/lookaheadPointX",  lookaheadPoint.getX() );
 			put("PathVision/lookaheadPointY",  lookaheadPoint.getY());
 
+			put("PathVision/prevPoseX", previousPose.getX());
+			put("PathVision/prevPoseY", previousPose.getY());
+			
 			put("PathVision/targetLocationX", targetLocation.getX());
 			put("PathVision/targetLocationY", targetLocation.getY());
 			put("PathVision/avgTargetLocationX", avgTargetLocation.getX());

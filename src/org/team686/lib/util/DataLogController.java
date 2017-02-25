@@ -105,12 +105,12 @@ public class DataLogController
 
 	private final List<DataLogger> loggers = new ArrayList<>();
 
-	public synchronized void register(DataLogger logger)
+	public void register(DataLogger logger)
 	{
 		loggers.add(logger);
 	}
 
-	public synchronized void deregister()
+	public void deregister()
 	{
 		clearLogs();
 		loggers.clear();
@@ -147,7 +147,7 @@ public class DataLogController
 		return retVal;
 	}
 
-	synchronized private void saveDataItems()
+	private void saveDataItems()
 	{
 		if (shouldLogData())
 		{
@@ -219,14 +219,17 @@ public class DataLogController
 	{
 		for (DataLogger logger : loggers)
 		{
-			for (String name : logger.logMap.keySet())
+			synchronized (logger)
 			{
-				// remove SmartDashboard folder hierarchy
-			    int index = name.lastIndexOf('/');
-		    	name = name.substring(index+1);				
-				
-				ps.print(',');
-				ps.print(name);
+				for (String name : logger.logMap.keySet())
+				{
+					// remove SmartDashboard folder hierarchy
+				    int index = name.lastIndexOf('/');
+			    	name = name.substring(index+1);				
+					
+					ps.print(',');
+					ps.print(name);
+				}
 			}
 		}
 		ps.println();
@@ -236,10 +239,13 @@ public class DataLogController
 	{
 		for (DataLogger logger : loggers)
 		{
-			for (Object value : logger.logMap.values())
+			synchronized (logger)
 			{
-				ps.print(',');
-				ps.print(value.toString());
+				for (Object value : logger.logMap.values())
+				{
+					ps.print(',');
+					ps.print(value.toString());
+				}
 			}
 		}
 		ps.println();
@@ -249,23 +255,26 @@ public class DataLogController
 	{
 		for (DataLogger logger : loggers)
 		{
-			for (Map.Entry<String, Object> entry : logger.logMap.entrySet())
+			synchronized (logger)
 			{
-				String key = entry.getKey();
-				Object value = entry.getValue();
+				for (Map.Entry<String, Object> entry : logger.logMap.entrySet())
+				{
+					String key = entry.getKey();
+					Object value = entry.getValue();
 
-				if (value.getClass().equals(Boolean.class))
-					putValue(key, (Boolean) value);
-				else if (value.getClass().equals(Integer.class))
-					putValue(key, (Integer) value);
-				else if (value.getClass().equals(Double.class))
-					putValue(key, (Double) value);
-				else if (value.getClass().equals(Float.class))
-					putValue(key, (Double) value);
-				else if (value.getClass().equals(String.class))
-					putValue(key, (String) value);
-				else
-					putValue(key, "ERROR");
+					if (value.getClass().equals(Boolean.class))
+						putValue(key, (Boolean) value);
+					else if (value.getClass().equals(Integer.class))
+						putValue(key, (Integer) value);
+					else if (value.getClass().equals(Double.class))
+						putValue(key, (Double) value);
+					else if (value.getClass().equals(Float.class))
+						putValue(key, (Double) value);
+					else if (value.getClass().equals(String.class))
+						putValue(key, (String) value);
+					else
+						putValue(key, "ERROR");
+				}
 			}
 		}
 	}
