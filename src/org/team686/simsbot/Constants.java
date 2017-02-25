@@ -25,8 +25,8 @@ public class Constants extends ConstantsBase
     public static double kTrackScrubFactor = 0.5;
 
     // Wheel Encoder
-    public static int kQuadEncoderCodesPerRev = 256;
-    public static int kQuadEncoderPulsesPerRev = 4*kQuadEncoderCodesPerRev;
+    public static int    kQuadEncoderCodesPerRev = 256;
+    public static int    kQuadEncoderPulsesPerRev = 4*kQuadEncoderCodesPerRev;
     public static double kQuadEncoderStatusFramePeriod = 0.100;	// 100ms
     
     // CONTROL LOOP GAINS
@@ -39,9 +39,9 @@ public class Constants extends ConstantsBase
     public static double kDriveVelocityKi = 0.0;
     public static double kDriveVelocityKd = 6.0;
     public static double kDriveVelocityKf = 1023.0 / kFullThrottleEncoderPulsePer100ms;
-    public static int kDriveVelocityIZone = 0;
+    public static int    kDriveVelocityIZone = 0;
     public static double kDriveVelocityRampRate = 0.0;
-    public static int kDriveVelocityAllowableError = 0;
+    public static int    kDriveVelocityAllowableError = 0;
 
     // PID gains for drive base lock loop
     // Units: error is 4*256 counts/rev. Max output is +/- 1023 units.
@@ -49,9 +49,9 @@ public class Constants extends ConstantsBase
     public static double kDriveBaseLockKi = 0;
     public static double kDriveBaseLockKd = 0;
     public static double kDriveBaseLockKf = 0;
-    public static int kDriveBaseLockIZone = 0;
+    public static int    kDriveBaseLockIZone = 0;
     public static double kDriveBaseLockRampRate = 0;
-    public static int kDriveBaseLockAllowableError = 10;
+    public static int    kDriveBaseLockAllowableError = 10;
 
     // PID gains for constant heading velocity control
     // Units: Error is degrees. Output is inches/second difference to
@@ -70,14 +70,14 @@ public class Constants extends ConstantsBase
     public static double kVisionMaxVel    = 60.0; // inches/sec  		// RS measured ~100 inches/sec on carpet
     public static double kVisionMaxAccel  = 48.0; // inches/sec^2		// RS measured 800-1000 inches/sec^2 on carpet
     public static double kTargetWidthInches = 10.25;
-    public static double kTargetLocationFilterConstant = (30.0 * kLoopDt);		// 30 time constants in 1 second
+    public static double kPegTargetDistanceThresholdInches = 30;		// inches to stop from target (15" from camera = 4.5" from bumpers
+    public static double kVisionMaxDistanceInches = 240;		// ignore targets greater than this distance
+    public static double kVisionLookaheadDist = 24.0;	// inches
     public static double kCameraFOVDegrees = 42.5;			// Camera Field of View (degrees)
     public static double kCameraHalfFOVRadians = kCameraFOVDegrees/2.0 * Math.PI/180.0;			// Half of Camera Field of View (radians)
     public static double kTangentCameraHalfFOV = Math.tan(kCameraHalfFOVRadians);
     public static double kCameraLatencySeconds = 0.200;			// Camera image capturing latency
-    public static double kPegTargetDistanceThresholdInches = 24;		// inches to stop from target (15" from camera = 4.5" from bumpers
-    public static double kVisionMaxDistanceInches = 240;		// ignore targets greater than this distance
-    public static double kVisionLookaheadDist = 24.0;	// inches
+    public static double kTargetLocationFilterConstant = (30.0 * kLoopDt);		// 30 time constants in 1 second
     
     // Do not change anything after this line!
     // Port assignments should match up with the spreadsheet here:

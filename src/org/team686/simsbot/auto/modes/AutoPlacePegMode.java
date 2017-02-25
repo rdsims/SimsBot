@@ -21,7 +21,7 @@ import org.team686.simsbot.auto.actions.*;
  */
 public class AutoPlacePegMode extends AutoModeBase 
 {
-	List<Waypoint> path1, path2, path3, path4, path5, path6, path7;
+	List<Waypoint> path1, path2, path3, path4, path5, path6, path7, path8;
 	int lane;
 	
 	Pose start1 = new Pose(120,-90,180*Pose.degreesToRadians);
@@ -32,6 +32,8 @@ public class AutoPlacePegMode extends AutoModeBase
 	Vector2d approach2 = new Vector2d( 90,  0);
 	Vector2d approach3 = new Vector2d( 45,+90);
 	
+	Vector2d flip3 = new Vector2d( 20,+90);
+
 	Vector2d target1 = new Vector2d(  0,-12);
 	Vector2d target2 = new Vector2d(  0,  0);
 	Vector2d target3 = new Vector2d(  0,+12);
@@ -90,10 +92,15 @@ System.out.println("initialPose = " + initialPose);
 
 			// drive back to starting point
 			path7 = new ArrayList<>();
-			path7.add(new Waypoint(approach1, 				pathOptions));
-			path7.add(new Waypoint(approach2, 				pathOptions));
-			path7.add(new Waypoint(initialPose.getPosition(), pathOptions));
-			
+			path7.add(new Waypoint(approach1, 	pathOptions));
+			path7.add(new Waypoint(approach3, 	pathOptions));
+			path7.add(new Waypoint(flip3, 		pathOptions));
+
+			// backup
+			path8 = new ArrayList<>();
+			path8.add(new Waypoint(initialPose.getPosition(), pathOptions));
+			path8.add(new Waypoint(flip3	, 				  pathOptions));
+
 		}
     }
 
@@ -120,8 +127,11 @@ System.out.println("initialPose = " + initialPose);
         // backup
         runAction(new PathFollowerWithVisionAction(new Path(path6, true)));
         
-        // drive back to starting point
+        // drive back to approach3
         runAction(new PathFollowerWithVisionAction(new Path(path7, false)));   
+        
+        // and backup to starting point
+        runAction(new PathFollowerWithVisionAction(new Path(path8, true)));   
     }
     
 }
