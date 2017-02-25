@@ -38,7 +38,7 @@ public class Constants extends ConstantsBase
 //slow down for testing
     public static double kPathFollowingMaxAccel  = 24.0; // inches/sec^2		// RS measured 800-1000 inches/sec^2 on carpet
     public static double kPathFollowingMaxVelPulsePer100ms = kPathFollowingMaxVel / kDriveWheelCircumInches * kQuadEncoderStatusFramePeriod * kQuadEncoderPulsesPerRev; 
-
+    public static double kPathFollowingCompletionTolerance = 1.0; 
     
     // PID gains for drive velocity loop (sent to Talon)
     // Units: error is 4*256 counts/rev. Max output is +/- 1023 units.

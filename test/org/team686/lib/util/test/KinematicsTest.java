@@ -5,7 +5,7 @@ import static org.junit.Assert.*;
 
 import org.junit.Test;
 import org.team686.lib.util.Kinematics;
-import org.team686.lib.util.Pose;
+import org.team686.lib.util.Kinematics.*;
 
 public class KinematicsTest 
 {
@@ -15,8 +15,8 @@ public class KinematicsTest
     public void test() {
         double left_diff = 10.0;
         double right_diff = 13.0;
-        Pose.Delta movement = Kinematics.forwardKinematics(left_diff, right_diff);
-        Kinematics.DriveVelocity velocity = Kinematics.inverseKinematics(movement);
+        LinearAngularSpeed movement = Kinematics.forwardKinematics(left_diff, right_diff);
+        WheelSpeed velocity = Kinematics.inverseKinematics(movement);
         assertEquals(velocity.left, left_diff, kEps);
         assertEquals(velocity.right, right_diff, kEps);
 

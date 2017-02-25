@@ -30,7 +30,7 @@ public class SquarePatternMode extends AutoModeBase {
 
     	float D = 72.0f;
     	
-    	PathSegment.PathSegmentOptions options = new PathSegment.PathSegmentOptions(Constants.kPathFollowingMaxVel, Constants.kPathFollowingMaxAccel, Constants.kPathFollowingLookahead, false);
+    	PathSegment.Options options = new PathSegment.Options(Constants.kPathFollowingMaxVel, Constants.kPathFollowingMaxAccel, Constants.kPathFollowingLookahead, false);
     	
         List<Waypoint> path = new ArrayList<>();
         path.add(new Waypoint(new Vector2d( 0, 0), options));
@@ -39,7 +39,7 @@ public class SquarePatternMode extends AutoModeBase {
         path.add(new Waypoint(new Vector2d( 0, D), options));
         path.add(new Waypoint(new Vector2d( 0, 0), options));
         
-        runAction(new PathFollowerAction(new Path(path, false)));	// forward   
-        runAction(new PathFollowerAction(new Path(path, true)));	// reverse       		         
+        runAction(new PathFollowerWithVisionAction(new Path(path, false)));	// forward   
+        runAction(new PathFollowerWithVisionAction(new Path(path, true)));	// reverse       		         
     }
 }

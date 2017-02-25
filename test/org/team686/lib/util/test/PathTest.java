@@ -22,7 +22,7 @@ public class PathTest {
     	double lookaheadDist = 1;
     	boolean visionEnable = false;
     	
-    	PathSegment.PathSegmentOptions options = new PathSegment.PathSegmentOptions(maxSpeed, maxAccel, lookaheadDist, visionEnable);
+    	PathSegment.Options options = new PathSegment.Options(maxSpeed, maxAccel, lookaheadDist, visionEnable);
     	
         Vector2d start = new Vector2d(0, 0);
         Vector2d end = new Vector2d(1, 0);
@@ -88,7 +88,7 @@ public class PathTest {
     	double lookaheadDist = 1;
     	boolean visionEnable = false;
     	
-    	PathSegment.PathSegmentOptions options = new PathSegment.PathSegmentOptions(maxSpeed, maxAccel, lookaheadDist, visionEnable);
+    	PathSegment.Options options = new PathSegment.Options(maxSpeed, maxAccel, lookaheadDist, visionEnable);
 
     	List<Waypoint> waypoints = new ArrayList<>();
         waypoints.add(new Waypoint(new Vector2d(0, 0), options));
@@ -151,7 +151,7 @@ public class PathTest {
     	double lookaheadDist = 1;
     	boolean visionEnable = false;
     	
-    	PathSegment.PathSegmentOptions options = new PathSegment.PathSegmentOptions(maxSpeed, maxAccel, lookaheadDist, visionEnable);
+    	PathSegment.Options options = new PathSegment.Options(maxSpeed, maxAccel, lookaheadDist, visionEnable);
 
     	List<Waypoint> waypoints = new ArrayList<>();
         waypoints.add(new Waypoint(new Vector2d(0, 0), options));
@@ -216,7 +216,7 @@ public class PathTest {
     	double lookaheadDist = 1;
     	boolean visionEnable = false;
     	
-    	PathSegment.PathSegmentOptions options = new PathSegment.PathSegmentOptions(maxSpeed, maxAccel, lookaheadDist, visionEnable);
+    	PathSegment.Options options = new PathSegment.Options(maxSpeed, maxAccel, lookaheadDist, visionEnable);
     	
         Random rand = new Random(1);
         for (int i = 0; i < 10000; ++i) 

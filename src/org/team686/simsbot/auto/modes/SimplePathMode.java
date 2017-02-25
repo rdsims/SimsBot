@@ -32,7 +32,7 @@ public class SimplePathMode extends AutoModeBase {
     	double X = 96.0;
     	double Y = 18.0;
     	
-    	PathSegment.PathSegmentOptions options = new PathSegment.PathSegmentOptions(Constants.kPathFollowingMaxVel, Constants.kPathFollowingMaxAccel, Constants.kPathFollowingLookahead, false);
+    	PathSegment.Options options = new PathSegment.Options(Constants.kPathFollowingMaxVel, Constants.kPathFollowingMaxAccel, Constants.kPathFollowingLookahead, false);
 
     	
         List<Waypoint> path = new ArrayList<>();
@@ -41,7 +41,7 @@ public class SimplePathMode extends AutoModeBase {
         path.add(new Waypoint(new Vector2d( XX, Y), options));
         path.add(new Waypoint(new Vector2d(  X, Y), options));
 
-        runAction(new PathFollowerAction(new Path(path, false)));	// drive forward       		         
-        runAction(new PathFollowerAction(new Path(path, true)));    // drive reversed 
+        runAction(new PathFollowerWithVisionAction(new Path(path, false)));	// drive forward       		         
+        runAction(new PathFollowerWithVisionAction(new Path(path, true)));    // drive reversed 
     }
 }

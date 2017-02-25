@@ -57,7 +57,7 @@ public class RobotState
     public static final double kMaxTargetAge = 0.4;
 
     protected InterpolatingTreeMap<InterpolatingDouble, Pose> fieldToRobot;
-    protected Pose.Delta robotSpeed;
+    protected Kinematics.LinearAngularSpeed robotSpeed;
 
     private double gyroCorrection;
     
@@ -66,18 +66,18 @@ public class RobotState
     
     protected RobotState() { reset(0, new Pose()); }
 
-	public synchronized void reset(double start_time, Pose initialFieldToRobot) 
+	public synchronized void reset(double _startTime, Pose _initialFieldToRobot) 
 	{
 		// calibrate initial position to initial pose (set by autonomous mode)
         fieldToRobot = new InterpolatingTreeMap<>(kObservationBufferSize);
-        fieldToRobot.put(new InterpolatingDouble(start_time), initialFieldToRobot);
+        fieldToRobot.put(new InterpolatingDouble(_startTime), _initialFieldToRobot);
         
         // calibrate initial heading to initial pose (set by autonomous mode)
-        double desiredHeading = initialFieldToRobot.getHeadingRad();  
+        double desiredHeading = _initialFieldToRobot.getHeadingRad();  
         double gyroHeading  = DriveStatus.getInstance().getHeadingRad();
         gyroCorrection = gyroHeading - desiredHeading;		// subtract gyroCorrection from actual gyro heading to get desired orientation
         
-        robotSpeed = new Pose.Delta(0, 0);
+        robotSpeed = new Kinematics.LinearAngularSpeed(0, 0);
         setPrevEncoderDistance(0, 0);
     }
 	
@@ -87,9 +87,9 @@ public class RobotState
         prevRightDistance = _prevRightDistance;     
 	}
 	 	
-	public synchronized Pose getFieldToVehicle(double timestamp) 
+	public synchronized Pose getFieldToVehicle(double _timestamp) 
 	{
-        return fieldToRobot.getInterpolated(new InterpolatingDouble(timestamp));
+        return fieldToRobot.getInterpolated(new InterpolatingDouble(_timestamp));
     }
 
     public synchronized Pose getLatestFieldToVehicle() 
@@ -97,15 +97,15 @@ public class RobotState
         return fieldToRobot.lastEntry().getValue();
     }
 
-    public synchronized Pose getPredictedFieldToVehicle(double lookahead_time) 
+    public synchronized Pose getPredictedFieldToVehicle(double lookaheadTime) 
     {
-    	Pose.Delta delta = new Pose.Delta(robotSpeed.dDistance * lookahead_time, robotSpeed.dHeading * lookahead_time);
-        return Kinematics.travelArc(getLatestFieldToVehicle(), delta);
+    	Kinematics.LinearAngularSpeed speed = new Kinematics.LinearAngularSpeed(robotSpeed.linearSpeed * lookaheadTime, robotSpeed.angularSpeed * lookaheadTime);
+        return Kinematics.travelArc(getLatestFieldToVehicle(), speed);
     }
 
-    public synchronized void addFieldToVehicleObservation(double timestamp, Pose observation)
+    public synchronized void addFieldToVehicleObservation(double _timestamp, Pose _observation)
     {
-        fieldToRobot.put(new InterpolatingDouble(timestamp), observation);
+        fieldToRobot.put(new InterpolatingDouble(_timestamp), _observation);
     }
 
     public void generateOdometryFromSensors(double _time, double _lEncoderDistance, double _rEncoderDistance, 
@@ -119,16 +119,16 @@ public class RobotState
 
         setPrevEncoderDistance(_lEncoderDistance, _rEncoderDistance);
                 
-        Pose       odometry = Kinematics.integrateForwardKinematics(lastPose, dLeftDistance, dRightDistance, _gyroAngleRad - gyroCorrection);
-        Pose.Delta velocity = Kinematics.forwardKinematics(_lEncoderSpeed, _rEncoderSpeed);
+        Pose odometry = Kinematics.integrateForwardKinematics(lastPose, dLeftDistance, dRightDistance, _gyroAngleRad - gyroCorrection);
+        Kinematics.LinearAngularSpeed speed = Kinematics.forwardKinematics(_lEncoderSpeed, _rEncoderSpeed);
         
         addFieldToVehicleObservation(_time, odometry);	// store odometry
-        robotSpeed = velocity;							// used in getPredictedFieldToVehicle()
+        robotSpeed = speed;								// used in getPredictedFieldToVehicle()
     }
 
     public double getSpeed()
     {
-    	return robotSpeed.dDistance;
+    	return robotSpeed.linearSpeed;
     }
     
     

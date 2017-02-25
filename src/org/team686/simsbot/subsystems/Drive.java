@@ -1,8 +1,7 @@
 package org.team686.simsbot.subsystems;
 
 import org.team686.lib.util.DataLogger;
-import org.team686.lib.util.Kinematics;
-import org.team686.lib.util.Pose;
+import org.team686.lib.util.Kinematics.WheelSpeed;
 import org.team686.lib.util.SynchronousPID;
 
 import org.team686.simsbot.Constants;
@@ -26,7 +25,6 @@ public class Drive extends Subsystem
 
 	// drive commands
 	private DriveCommand driveCmd;
-	private boolean resetEncoderCmd;
 
 	// drive status
 	public DriveStatus driveStatus;
@@ -41,7 +39,6 @@ public class Drive extends Subsystem
 	private Drive() 
 	{
 		driveCmd = DriveCommand.NEUTRAL();	
-		resetEncoderCmd = false;
 		driveStatus = DriveStatus.getInstance();
 	}
 
@@ -108,6 +105,12 @@ public class Drive extends Subsystem
 		driveCmd.setDriveMode(DriveControlMode.BASE_LOCKED);
 	}
 
+	public void setVelocitySetpoint(WheelSpeed _vWheel) 
+	{
+		driveCmd.setDriveMode(DriveControlMode.VELOCITY_SETPOINT);
+		driveCmd.setMotors(_vWheel);
+	}
+
 	public void setVelocitySetpoint(double left_inches_per_sec, double right_inches_per_sec) 
 	{
 		driveCmd.setDriveMode(DriveControlMode.VELOCITY_SETPOINT);
@@ -128,11 +131,7 @@ public class Drive extends Subsystem
 	 */
     
 	public void setCommand(DriveCommand cmd) { driveCmd = cmd; }
-	public DriveCommand getCommand() { return driveCmd; }
-
-    public void setResetEncoderCmd(boolean flag) { resetEncoderCmd = flag; }		// will be picked up by DriveLoop on next iteration
-    public boolean getResetEncoderCmd() { return resetEncoderCmd; }
-	
+	public DriveCommand getCommand() { return driveCmd; }	
 
     
 	/**
@@ -172,30 +171,6 @@ public class Drive extends Subsystem
 
 	
 	/**************************************************************************
-	 * driveCurve()
-	 * 
-	 * Updates VelocitySetpoints in order to follow a path
-	 * Used by PathFollowerAction, VisionDriveAction
-	 *************************************************************************/
-	
-	public void driveCurve(double _robotSpeed, double _curvature, double _wheelSpeedLimit)
-    {
-        // robotSpeed: desired forward speed of robot
-        // curvature: curvature of circle to follow.  Curvature = 1/radius.  positive-->turn right, negative-->turn left
-        // maxWheelSpeed: the desired velocity will be scaled so that neither wheel exceeds this speed
-        
-    	Pose.Delta cmd = new Pose.Delta(_robotSpeed, _robotSpeed*_curvature); 
-        Kinematics.DriveVelocity setpoint = Kinematics.inverseKinematics(cmd);
-
-        // Scale the command to respect the max wheel velocity limits
-        double maxSpeed = Math.max(Math.abs(setpoint.left), Math.abs(setpoint.right));
-        if (maxSpeed > _wheelSpeedLimit)
-            setpoint.scale(_wheelSpeedLimit/maxSpeed);
-        setVelocitySetpoint(setpoint.left, setpoint.right);
-    }
-
-    
-	/**************************************************************************
 	 * VelocityHeading code
 	 * (updates VelocitySetpoints in order to follow a heading)
 	 *************************************************************************/
@@ -203,10 +178,10 @@ public class Drive extends Subsystem
 	private void updateVelocityHeading() 
 	{
 		// get change in left/right motor speeds based on error in heading
-		double deltaSpeed = velocityHeadingSetpoint.velocityHeadingPID.calculate( driveStatus.getHeadingDeg() );
+		double LinearAngularSpeedSpeed = velocityHeadingSetpoint.velocityHeadingPID.calculate( driveStatus.getHeadingDeg() );
 		
-		updateVelocitySetpoint(velocityHeadingSetpoint.getSpeed() + deltaSpeed / 2,
-				               velocityHeadingSetpoint.getSpeed() - deltaSpeed / 2);
+		updateVelocitySetpoint(velocityHeadingSetpoint.getSpeed() + LinearAngularSpeedSpeed / 2,
+				               velocityHeadingSetpoint.getSpeed() - LinearAngularSpeedSpeed / 2);
 	}
 
 	public void resetVelocityHeadingPID()
@@ -253,7 +228,7 @@ public class Drive extends Subsystem
 	}
 
 	@Override
-	public void zeroSensors() { setResetEncoderCmd(true); }
+	public void zeroSensors() { driveCmd.setResetEncoders(); }
 
 
 	

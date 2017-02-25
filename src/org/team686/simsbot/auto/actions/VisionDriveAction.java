@@ -1,239 +1,58 @@
 package org.team686.simsbot.auto.actions;
 
-import edu.wpi.first.wpilibj.Timer;
-
 import org.team686.lib.util.DataLogger;
-import org.team686.lib.util.Pose;
-import org.team686.lib.util.Vector2d;
-import org.team686.simsbot.Constants;
-import org.team686.simsbot.command_status.RobotState;
-import org.team686.simsbot.command_status.VisionStatus;
-import org.team686.simsbot.subsystems.Drive;
+import org.team686.lib.util.Path;
+import org.team686.lib.util.PathFollowerWithVisionDriveController;
+import org.team686.lib.util.PathFollowerWithVisionDriveController.PathVisionState;
 
-
+/**
+ * Action for following a path defined by a Path object.
+ * 
+ * Serially configures a PathFollower object to follow each path 
+ */
 public class VisionDriveAction implements Action 
 {
-	// properties needed for class
-	public VisionStatus visionStatus = VisionStatus.getInstance();
-	public RobotState robotState = RobotState.getInstance();
-	public Drive drive = Drive.getInstance();
-	public double maxSpeed;
-	public double maxAccel;
-	public double prevTime;
-	public double prevSpeed;
-	public Vector2d avgTargetLocation = new Vector2d(0,0);
-	public boolean targetAcquired;
+	PathFollowerWithVisionDriveController driveCtrl;
 
-	// for logging only
-	public double currentTime;
-	public double imageTimestamp;
-	public double normalizedTargetX;
-	public double normalizedTargetWidth;
-	public Pose previousPose = new Pose();
-	public double prevDistanceToTargetInches;
-	public double prevHeadingToTargetRadians;
-	public Vector2d targetLocation = new Vector2d(0,0);
-	public Pose currentPose = new Pose();
-	public double distanceToTargetInches;
-	public double headingToTargetRadians;
-	public double lookaheadDist;
-	public double curvature;
-	public double speed;
-	
-	public final boolean reversed = false;
-	public double remainingDistance;
-	
-	public VisionDriveAction(double _maxSpeed, double _maxAccel) 
-	{
+    public VisionDriveAction() 
+    {
+    	// no defined path
+    	driveCtrl = new PathFollowerWithVisionDriveController(new Path(), PathVisionState.VISION);	// start in vision state
+    }
+
+    public PathFollowerWithVisionDriveController getDriveController() { return driveCtrl; }
+    
+    @Override
+    public void start() 
+    {
 		System.out.println("Starting VisionDriveAction");
-		maxSpeed = _maxSpeed;
-		maxAccel = _maxAccel;
-	}
+		driveCtrl.start();
+    }
 
-	
-	public double getSpeed() { return speed; }
-	public double getCurvature() { return curvature; }
-	
-	
-	@Override
-	public void start() 
-	{
-		// setup code, if any
-		System.out.println("Starting VisionDriveAction");
-		targetAcquired = false;
-		prevTime = 0;
-		prevSpeed = 0;	// TODO: find way to not start from speed=0
-		remainingDistance = Double.MAX_VALUE;	// make sure we don't trigger isFinished() without running update() at least once
-	}
 
-// TODO: combine followPath and visionDrive -- smoothly switch over to vision when 1) enabled for that segment and 2) a target was found
-// Goal is not to stop when switching from path following to vision
-	
-	@Override
-	public void update() 
-	{
-		//---------------------------------------------------
-		// Get inputs
-		//---------------------------------------------------
-		
-		// values from camera, normalized to camera's Field of View (-1 to +1) 
-		imageTimestamp    	  = visionStatus.getImageTimestamp();			// TODO: modify vision code to return targets to edge of FOV
-		normalizedTargetX 	  = visionStatus.getNormalizedTargetX();
-		normalizedTargetWidth = visionStatus.getNormalizedTargetWidth();
-
-		currentPose = robotState.getLatestFieldToVehicle();		
-
-		currentTime = Timer.getFPGATimestamp();
-
-//DEBUG: use current time instead of image time
-//TODO: remove		
-imageTimestamp = currentTime;			
-		imageTimestamp -= Constants.kCameraLatencySeconds;		// remove camera latency
-		
-		// calculate target location based on *previous* robot pose
-		previousPose = robotState.getFieldToVehicle(imageTimestamp);
-
-		//---------------------------------------------------
-		// Process
-		//---------------------------------------------------
-		visionDrive(currentTime, currentPose, previousPose, imageTimestamp, normalizedTargetX, normalizedTargetWidth);
-		remainingDistance = distanceToTargetInches;
-		speedControl(currentTime, remainingDistance, Constants.kVisionMaxVel, Constants.kVisionMaxAccel);
-		
-		//---------------------------------------------------
-		// Output: Send drive control
-		//---------------------------------------------------
-		drive.driveCurve(speed, curvature, maxSpeed);
-	}
-	
-	// visionDrive() is written outside of update() to facilitate unit level testing
-	public void visionDrive(double _currentTime, Pose _currentPose, Pose _previousPose, double _imageTimestamp, double _normalizedTargetX, double _normalizedTargetWidth)
-	{
-		distanceToTargetInches = Double.MAX_VALUE;
-		
-		// If we get a valid message from the Vision co-processor, update our estimate of the target location
-		if (_normalizedTargetWidth > 0) 
-		{
-			//-----------------------------------------------------
-			// Estimate target location based on previous location,
-			// to compensate for latency in processing image
-			//-----------------------------------------------------
-			prevDistanceToTargetInches = Constants.kTargetWidthInches / (2.0*_normalizedTargetWidth*Constants.kTangentCameraHalfFOV);
-			prevHeadingToTargetRadians = _previousPose.getHeadingRad() + (-_normalizedTargetX*Constants.kCameraHalfFOVRadians);
-			Vector2d prevToTarget = Vector2d.magnitudeAngle(prevDistanceToTargetInches, prevHeadingToTargetRadians);
-			targetLocation = _previousPose.getPosition().add(prevToTarget); 	
-			
-			// filter target location with exponential averaging
-			if (!targetAcquired)
-				avgTargetLocation = targetLocation;
-			else
-				avgTargetLocation = avgTargetLocation.expAverage(targetLocation, Constants.kTargetLocationFilterConstant);
-
-			targetAcquired = true;
-		}
-		
-		// if avgCnt > 0, then we have at least one estimate of the target location.
-		// drive towards it, even if we didn't get a valid Vision co-processor message this time
-		if (targetAcquired)
-		{
-			Vector2d robotToTarget = avgTargetLocation.sub(_currentPose.getPosition());
-			distanceToTargetInches = robotToTarget.length();
-			headingToTargetRadians = robotToTarget.angle() - _currentPose.getHeadingRad();
-			
-			//---------------------------------------------------
-			// Calculate motor settings to turn towards target   
-			//---------------------------------------------------
-			lookaheadDist = Math.min(Constants.kVisionLookaheadDist, distanceToTargetInches);	// length of chord <= kVisionLookaheadDist
-			curvature     = 2 * Math.sin(headingToTargetRadians) / lookaheadDist;				// curvature = 1/radius of circle (positive: turn left, negative: turn right)
-		}
-		else
-		{
-			// target not acquired -- speed/curvature will be controlled by path follower
-		}
-	}
-
-	public void speedControl(double _currentTime, double _remainingDistance, double _maxSpeed, double _maxAccel)
-	{
-		//---------------------------------------------------
-		// Apply speed control
-		//---------------------------------------------------
-		speed = _maxSpeed;
-		if (reversed)
-			speed = -speed;
-		
-		double dt = _currentTime - prevTime;
-		
-		// apply acceleration limits
-		double accel = (speed - prevSpeed) / dt;
-		if (accel > _maxAccel)
-			speed = prevSpeed + _maxAccel * dt;
-		else if (accel < -_maxAccel)
-			speed = prevSpeed - _maxAccel * dt;
-
-		// apply braking distance limits
-		// vf^2 = v^2 + 2*a*d   Solve for v, given vf=0, configured a, and measured d
-		double stoppingDistance = _remainingDistance;
-		double maxBrakingSpeed = Math.sqrt(2.0 * _maxAccel * stoppingDistance);
-		if (Math.abs(speed) > maxBrakingSpeed)
-			speed = Math.signum(speed) * maxBrakingSpeed;
-
-		// apply minimum velocity limit (Talons can't track low speeds well)
-		final double kMinSpeed = 4.0;
-		if (Math.abs(speed) < kMinSpeed) 
-			speed = Math.signum(speed) * kMinSpeed;
-
-		// store for next time through loop	
-		prevTime = _currentTime;
-		prevSpeed = speed;
-	}
+    @Override
+    public void update() 
+    {
+    	driveCtrl.update();
+	}	
 	
 	
-	@Override
-	public boolean isFinished() 
-	{
-		return (distanceToTargetInches <= Constants.kPegTargetDistanceThresholdInches);
-	}
+    @Override
+    public boolean isFinished() 
+    {
+    	return driveCtrl.isFinished();
+    }
 
-	@Override
-	public void done() 
-	{
+    @Override
+    public void done() 
+    {
 		System.out.println("Finished VisionDriveAction");
 		// cleanup code, if any
-		drive.stop();
-	}
-	
+		driveCtrl.done();
+    }
 
-	private final DataLogger logger = new DataLogger()
-    {
-        @Override
-        public void log()
-        {
-			put("VisionDrive/currentTime", currentTime);
-			put("VisionDrive/imageTime", imageTimestamp);
-			put("VisionDrive/normalizedTargetX", normalizedTargetX);
-			put("VisionDrive/normalizedTargetWidth", normalizedTargetWidth);
-			put("VisionDrive/previousPoseX", previousPose.getX());
-			put("VisionDrive/previousPoseY", previousPose.getY());
-			put("VisionDrive/previousPoseHeadingRad", previousPose.getHeadingRad());
-			put("VisionDrive/prevDistanceToTargetInches", prevDistanceToTargetInches);
-			put("VisionDrive/prevHeadingToTargetRadians", prevHeadingToTargetRadians);
-			put("VisionDrive/targetLocationX", targetLocation.getX());
-			put("VisionDrive/targetLocationY", targetLocation.getY());
-			put("VisionDrive/avgTargetLocationX", avgTargetLocation.getX());
-			put("VisionDrive/avgTargetLocationY", avgTargetLocation.getY());
-			put("VisionDrive/targetAcquired", targetAcquired);
-			put("VisionDrive/currentPoseX", currentPose.getX());
-			put("VisionDrive/currentPoseY", currentPose.getY());
-			put("VisionDrive/currentPoseHeadingRad", currentPose.getHeadingRad());
-			put("VisionDrive/distanceToTargetInches", distanceToTargetInches);
-			put("VisionDrive/headingToTargetRadians", headingToTargetRadians);
-			put("VisionDrive/lookaheadDist", lookaheadDist);
-			put("VisionDrive/curvature", curvature);
-			put("VisionDrive/speed", speed);
-	    }
-    };
-	
-    public DataLogger getLogger() { return logger; }
-
-
+ 
+    
+    
+    public DataLogger getLogger() { return driveCtrl.getLogger(); }
 }

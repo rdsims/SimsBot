@@ -6,7 +6,7 @@ import org.junit.runners.Suite.SuiteClasses;
 
 @RunWith(Suite.class)
 @SuiteClasses(
-{ TestPathFollowerWithVisionAction.class, TestVisionDrive.class })
+{ TestPathFollowerWithVisionAction.class })
 public class AllTests
 {
 

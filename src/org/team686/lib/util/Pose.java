@@ -113,21 +113,6 @@ public class Pose implements Interpolable<Pose>
     
     
     
-    public static class Delta
-    {
-        public final double dDistance;		// change in position in inches
-        public final double dHeading;		// change in heading in radians
-
-        public Delta(double _dDistance, double _dHeadingRad)
-        {
-            dDistance = _dDistance;
-            dHeading = _dHeadingRad;
-        }
-        
-        // TODO: Delta constructor from speed/curvature
-    }
-    
-    
     /*
      * Apply rigid transform to Pose
      */

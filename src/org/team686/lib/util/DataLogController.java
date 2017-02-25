@@ -206,6 +206,10 @@ public class DataLogController
 		{
 			for (String name : logger.logMap.keySet())
 			{
+				// remove SmartDashboard folder hierarchy
+			    int index = name.lastIndexOf('/');
+		    	name = name.substring(index+1);				
+				
 				ps.print(',');
 				ps.print(name);
 			}

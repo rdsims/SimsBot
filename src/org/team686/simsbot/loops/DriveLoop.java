@@ -50,6 +50,7 @@ public class DriveLoop implements Loop
 		setControlMode(neutralCmd);
 		setMotors(neutralCmd);
 		setBrakeMode(neutralCmd);
+		resetEncoders(neutralCmd);
 		
         lMotor.changeControlMode(CANTalon.TalonControlMode.PercentVbus);
         rMotor.changeControlMode(CANTalon.TalonControlMode.PercentVbus);
@@ -145,14 +146,14 @@ public class DriveLoop implements Loop
 		
 	private void sendCommands()
 	{
-		resetEncoders();
-		
 		DriveCommand newCmd = drive.getCommand();
+		
 		synchronized(newCmd)	// lock DriveCommand so no one changes it under us while we are sending the commands
 		{
 			setControlMode(newCmd);
 			setMotors(newCmd);
 			setBrakeMode(newCmd);
+			resetEncoders(newCmd);
 		}
 	}
 	
@@ -258,9 +259,9 @@ public class DriveLoop implements Loop
 	
 	
 
-	private void resetEncoders()
+	private void resetEncoders(DriveCommand newCmd)
 	{
-		if (drive.getResetEncoderCmd())
+		if (newCmd.getResetEncoders())
 		{
 			lMotor.setPosition(0);
 			rMotor.setPosition(0);
@@ -270,8 +271,6 @@ public class DriveLoop implements Loop
 			
 			// cannot reset gyro heading in hardware.  
 			// calibration to desired initial pose is done in RobotState.reset() called from Robot.autonomousInit()  
-			
-			drive.setResetEncoderCmd(false);	// clear flag
 		}
 	}	
 

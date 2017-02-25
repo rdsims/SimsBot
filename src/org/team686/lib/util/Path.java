@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
-import org.team686.lib.util.PathSegment.PathSegmentOptions;
+import org.team686.lib.util.PathSegment.Options;
 
 /**
  * A Path is a recording of the path that the robot takes. Path objects consist
@@ -39,15 +39,21 @@ public class Path
     public static class Waypoint 
     {
         public final Vector2d position;
-        public final PathSegmentOptions options;
+        public final Options options;
 
-        public Waypoint(Vector2d _position, PathSegmentOptions _options) 
+        public Waypoint(Vector2d _position, Options _options) 
         {
             position = _position;
             options  = _options;
         }
     }
 
+    // constructor for empty path
+    public Path()
+    {
+    	this(new ArrayList<Waypoint>(), false);
+    }
+    
     
     // construct a path given a list of waypoints
     public Path(List<Waypoint> _waypoints, boolean _reversed) 
@@ -61,7 +67,7 @@ public class Path
         segments = new ArrayList<PathSegment>();
         if (reversed)
         {
-	        for (int i = _waypoints.size(); i > 1 ; --i) 
+	        for (int i = _waypoints.size() - 1; i > 0 ; --i) 
 	        {
 	            segments.add( new PathSegment(waypoints.get(i).position, waypoints.get(i-1).position, waypoints.get(i-1).options ));
 	        }
@@ -81,11 +87,40 @@ public class Path
     
     public double getLookaheadDistance() { return lookaheadDistance; }	// return lookahead distance used by last call to getLookaheadPoint()
     
-    public PathSegment getCurrentSegment() { return new PathSegment(segments.get(0)); }
+    public Optional<PathSegment> getCurrentSegment()
+    { 
+    	if (segments.isEmpty())
+    		return Optional.empty();
+		else
+    		return Optional.of(new PathSegment(segments.get(0))); 
+    }
     
-    public double getSegmentMaxSpeed() { return getCurrentSegment().getOptions().getMaxSpeed(); }
-    public double getSegmentMaxAccel() { return getCurrentSegment().getOptions().getMaxAccel(); }
-    public boolean getSegmentVisionEnable() { return getCurrentSegment().getOptions().getVisionEnable(); }
+    public double getSegmentMaxSpeed() 
+    {
+    	Optional<PathSegment> segment = getCurrentSegment();
+    	if (segment.isPresent())
+    		return segment.get().getOptions().getMaxSpeed();
+    	else
+    		return 0;
+    }
+
+    public double getSegmentMaxAccel()
+    {
+    	Optional<PathSegment> segment = getCurrentSegment();
+    	if (segment.isPresent())
+    		return segment.get().getOptions().getMaxAccel();
+    	else
+    		return 0;
+    }
+
+    public boolean getSegmentVisionEnable()
+    {
+    	Optional<PathSegment> segment = getCurrentSegment();
+    	if (segment.isPresent())
+    		return segment.get().getOptions().getVisionEnable();
+    	else
+    		return true;	// assume no segments defined when vision only
+    }
     
     /*
      *  update() takes the current robot position, and updates the progress along the path

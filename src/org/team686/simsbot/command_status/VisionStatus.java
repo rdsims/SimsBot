@@ -1,5 +1,7 @@
 package org.team686.simsbot.command_status;
 
+import org.team686.lib.util.DataLogger;
+
 public class VisionStatus
 {
 	private static VisionStatus instance = new VisionStatus();
@@ -18,4 +20,18 @@ public class VisionStatus
 
 	public synchronized void   setNormalizedTargetWidth( double _val ) { normalizedTargetWidth = _val; }
 	public synchronized double getNormalizedTargetWidth() { return normalizedTargetWidth; }
+	
+	private final DataLogger logger = new DataLogger()
+    {
+        @Override
+        public void log()
+        {
+    		put("VisionStatus/imageTimestamp", imageTimestamp );
+    		put("VisionStatus/normalizedTargetX", normalizedTargetX );
+    		put("VisionStatus/normalizedTargetWidth", normalizedTargetWidth );
+        }
+    };
+    
+    public DataLogger getLogger() { return logger; }
+	
 }

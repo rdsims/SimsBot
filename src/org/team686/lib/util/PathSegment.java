@@ -14,9 +14,9 @@ public class PathSegment
     protected Vector2d startToEnd; 		// pre-computed for efficiency
     protected double   length; 			// pre-computed for efficiency
 
-    protected PathSegmentOptions options;
+    protected Options options;
     
-    static public class PathSegmentOptions
+    static public class Options
     {
 	    protected double   maxSpeed;		// speed along this segment (always positive)
 	    protected double   maxAccel;		// maximum acceleration along this segment (always positive)
@@ -26,7 +26,7 @@ public class PathSegment
         protected Optional<String> marker;
 
 	    // constructor
-	    public PathSegmentOptions(double _maxSpeed, double _maxAccel, double _lookaheadDist, boolean _visionEnable)
+	    public Options(double _maxSpeed, double _maxAccel, double _lookaheadDist, boolean _visionEnable)
 	    {
 	        maxSpeed = _maxSpeed;
 	        maxAccel = _maxAccel;
@@ -35,7 +35,7 @@ public class PathSegment
           	marker = Optional.empty();
 	    }
 
-	    public PathSegmentOptions(double _maxSpeed, double _maxAccel, double _lookaheadDist, boolean _visionEnable, String _marker)
+	    public Options(double _maxSpeed, double _maxAccel, double _lookaheadDist, boolean _visionEnable, String _marker)
 	    {
 	        maxSpeed = _maxSpeed;
 	        maxAccel = _maxAccel;
@@ -45,7 +45,7 @@ public class PathSegment
 	    }
 
 	    // copy constructor
-	    public PathSegmentOptions(PathSegmentOptions _options)
+	    public Options(Options _options)
 	    {
 	    	this(_options.maxSpeed, _options.maxAccel, _options.lookaheadDist, _options.visionEnable);
 	    }
@@ -58,11 +58,11 @@ public class PathSegment
     };
 	    
 	    
-    public PathSegment(Vector2d _start, Vector2d _end, PathSegmentOptions _options) 
+    public PathSegment(Vector2d _start, Vector2d _end, Options _options) 
     {
         end = _end;
         updateStart(_start);
-        options = new PathSegmentOptions(_options);
+        options = new Options(_options);
     }
 
     public void updateStart(Vector2d newStart)
@@ -79,13 +79,13 @@ public class PathSegment
     	end   	   	= new Vector2d(_seg.end);
     	startToEnd 	= new Vector2d(_seg.startToEnd);
     	length		= _seg.length;
-    	options		= new PathSegmentOptions(_seg.options);
+    	options		= new Options(_seg.options);
     }
     
     public Vector2d getStart()   { return new Vector2d(start); }
     public Vector2d getEnd()     { return new Vector2d(end); }
     public double   getLength()  { return length; }
-    public PathSegmentOptions getOptions() { return new PathSegmentOptions(options); }
+    public Options getOptions() { return new Options(options); }
     
     public Util.ClosestPointOnSegment getClosestPoint(Vector2d _position)
     {

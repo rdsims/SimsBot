@@ -1,5 +1,8 @@
 package org.team686.simsbot.command_status;
 
+import org.team686.lib.util.DataLogger;
+import org.team686.lib.util.Kinematics.WheelSpeed;
+
 import com.ctre.CANTalon.TalonControlMode;
 
 /**
@@ -25,28 +28,20 @@ import com.ctre.CANTalon.TalonControlMode;
  *                      Motor controllers use velocity PID to maintain velocity setpoints, RoboRIO uses heading PID
  *                      to adjust velocity setpoints to maintain heading. 
  *                                
- * PATH_FOLLOWING:		Like VELOCITY_SETPOINT, with the addition that the RoboRIO is constantly adjusting the left/right 
- * 						motor setpoints to follow a pre-determined path.  The adjustments are not made with a PID,
- * 						but with an adaptive pure pursuit algorithm.
- *                                 
  */
 
 public class DriveCommand
 {    
 	// The robot drivetrain's various states
-	public enum DriveControlMode
-	{
-		OPEN_LOOP, BASE_LOCKED, VELOCITY_SETPOINT, VELOCITY_HEADING, PATH_FOLLOWING
-	}
+	public enum DriveControlMode { OPEN_LOOP, BASE_LOCKED, VELOCITY_SETPOINT, VELOCITY_HEADING }
 
 	// all member variables should be private to force other object to use the set/get access methods
 	// which are synchronized to allow multi-thread synchronization	
 	private DriveControlMode driveMode = DriveControlMode.OPEN_LOOP;
 	private TalonControlMode talonMode = TalonControlMode.PercentVbus;
-	private double left;
-	private double right;
+	private WheelSpeed vWheel = new WheelSpeed();
 	private boolean brake;
-
+	private boolean resetEncoders;
     
     public DriveCommand(double _left, double _right)
     {
@@ -63,8 +58,17 @@ public class DriveCommand
     	setDriveMode(_mode);
     	setMotors(_left, _right);
     	setBrake(_brake);
+    	resetEncoders = false;
     }
 
+    public DriveCommand(DriveControlMode _mode, WheelSpeed _vWheel, boolean _brake) 
+    {
+    	setDriveMode(_mode);
+    	setMotors(_vWheel);
+    	setBrake(_brake);
+    	resetEncoders = false;
+    }
+    
     public synchronized void setDriveMode(DriveControlMode _driveMode) 
     {
     	driveMode = _driveMode;
@@ -78,8 +82,7 @@ public class DriveCommand
     		talonMode = TalonControlMode.Position;
     		
     	case VELOCITY_SETPOINT:
-    	case PATH_FOLLOWING:
-    		talonMode = TalonControlMode.Speed;
+     		talonMode = TalonControlMode.Speed;
     		break;
     		
     	case VELOCITY_HEADING:
@@ -94,12 +97,22 @@ public class DriveCommand
     public synchronized DriveControlMode getDriveControlMode() { return driveMode; }
     public synchronized TalonControlMode getTalonControlMode() { return talonMode; }
     
-    public synchronized void   setMotors(double _left, double _right) { left = _left; right = _right; }
-    public synchronized double getLeftMotor()  { return left; }
-    public synchronized double getRightMotor() { return right; }
+    public synchronized void   setMotors(WheelSpeed _vWheel) { vWheel.left = _vWheel.left; vWheel.right = _vWheel.right; }
+    public synchronized void   setMotors(double _left, double _right) { vWheel.left = _left; vWheel.right = _right; }
+    public synchronized double getLeftMotor()  { return vWheel.left; }
+    public synchronized double getRightMotor() { return vWheel.right; }
 
     public synchronized void    setBrake(boolean _brake) { brake = _brake; }
     public synchronized boolean getBrake()  { return brake; }
+    
+    public synchronized void    setResetEncoders() { resetEncoders = true; }
+    public synchronized boolean getResetEncoders() 
+    {	
+    	// self-clearing reset on read
+    	boolean rv = resetEncoders; 
+    	resetEncoders = false; 
+    	return rv; 
+    }	
     
     // special constant commands
     public static DriveCommand NEUTRAL() { return new DriveCommand(DriveControlMode.OPEN_LOOP, 0, 0, false); }
@@ -109,6 +122,25 @@ public class DriveCommand
     @Override
     public synchronized String toString() 
     {
-    	return String.format("%s, %s, %s, L/R: (%+7.3f, % 7.3f)", driveMode, talonMode, brake, left, right);
+    	return String.format("%s, %s, %s, L/R: (%+7.3f, % 7.3f)", driveMode, talonMode, brake, vWheel.left, vWheel.right);
     }
+    
+    
+    
+	private final DataLogger logger = new DataLogger()
+    {
+        @Override
+        public void log()
+        {
+    		put("DriveCommand/driveMode", driveMode.toString() );
+    		put("DriveCommand/talonMode", talonMode.toString() );
+    		put("DriveCommand/left",  vWheel.left );
+       		put("DriveCommand/right", vWheel.right );
+       		put("DriveCommand/brake", brake );
+        }
+    };
+    
+    public DataLogger getLogger() { return logger; }
+    
+    
 }
