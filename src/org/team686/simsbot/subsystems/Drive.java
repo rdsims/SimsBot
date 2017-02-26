@@ -179,10 +179,10 @@ public class Drive extends Subsystem
 	private void updateVelocityHeading() 
 	{
 		// get change in left/right motor speeds based on error in heading
-		double LinearAngularSpeedSpeed = velocityHeadingSetpoint.velocityHeadingPID.calculate( driveStatus.getHeadingDeg() );
+		double diffSpeed = velocityHeadingSetpoint.velocityHeadingPID.calculate( driveStatus.getHeadingDeg() );
 		
-		updateVelocitySetpoint(velocityHeadingSetpoint.getSpeed() + LinearAngularSpeedSpeed / 2,
-				               velocityHeadingSetpoint.getSpeed() - LinearAngularSpeedSpeed / 2);
+		updateVelocitySetpoint(velocityHeadingSetpoint.getSpeed() + diffSpeed / 2,
+				               velocityHeadingSetpoint.getSpeed() - diffSpeed / 2);
 	}
 
 	public void resetVelocityHeadingPID()
