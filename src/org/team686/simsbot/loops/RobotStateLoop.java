@@ -38,11 +38,11 @@ public class RobotStateLoop implements Loop
     	// the following driveStatus elements are set during DriveLoop, called just previous to RobotStateLoop,
     	// and in the same LoopController thread
     	
-        double time      	= Timer.getFPGATimestamp();
-        double lDistance 	= driveStatus.getLeftDistanceInches();
-        double rDistance 	= driveStatus.getRightDistanceInches();
-        double lSpeed    	= driveStatus.getLeftSpeedInchesPerSec();
-        double rSpeed    	= driveStatus.getRightSpeedInchesPerSec(); 
+        double time      = Timer.getFPGATimestamp();
+        double lDistance = driveStatus.getLeftDistanceInches();
+        double rDistance = driveStatus.getRightDistanceInches();
+        double lSpeed    = driveStatus.getLeftSpeedInchesPerSec();
+        double rSpeed    = driveStatus.getRightSpeedInchesPerSec(); 
         double gyroAngle = driveStatus.getHeading();
 
         robotState.generateOdometryFromSensors(time, lDistance, rDistance, lSpeed, rSpeed, gyroAngle);

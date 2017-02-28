@@ -267,7 +267,7 @@ public class DriveLoop implements Loop
 		{
 			lMotor.setPosition(0);
 			rMotor.setPosition(0);
-	
+				
 			lMotor.setEncPosition(0);
 			rMotor.setEncPosition(0);
 			

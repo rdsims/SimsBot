@@ -33,14 +33,14 @@ public class Robot extends IterativeRobot
 	PowerDistributionPanel pdp = new PowerDistributionPanel();	// TODO: add relay for LED light ring
 
 	JoystickControlsBase controls = ArcadeDriveJoystick.getInstance();
-	RobotState mRobotState = RobotState.getInstance();	
+	RobotState robotState = RobotState.getInstance();	
 	Drive drive = Drive.getInstance();					
 	
-	AutoModeExecuter mAutoModeExecuter = null;
+	AutoModeExecuter autoModeExecuter = null;
 
 	LoopController loopController;
 	
-	SmartDashboardInteractions mSmartDashboardInteractions;
+	SmartDashboardInteractions smartDashboardInteractions;
 	DataLogController robotLogger;	// logger for Robot thread (autonomous thread has it's own logger)
 
 	enum OperationalMode 
@@ -77,8 +77,8 @@ public class Robot extends IterativeRobot
 			loopController.register(RobotStateLoop.getInstance());
 			loopController.register(VisionLoop.getInstance());
 
-			mSmartDashboardInteractions = new SmartDashboardInteractions();
-			mSmartDashboardInteractions.initWithDefaults();
+			smartDashboardInteractions = new SmartDashboardInteractions();
+			smartDashboardInteractions.initWithDefaults();
 
 			// Set dataLogger and Time information
 			TimeZone.setDefault(TimeZone.getTimeZone("America/New_York"));
@@ -105,7 +105,7 @@ public class Robot extends IterativeRobot
 	public void setInitialPose( Pose _initialPose )
 	{
 		zeroAllSensors();											// make sure all encoders are zeroed out
-		mRobotState.reset(Timer.getFPGATimestamp(), _initialPose);	// set initial pose
+		robotState.reset(Timer.getFPGATimestamp(), DriveStatus.getInstance().getLeftDistanceInches(), DriveStatus.getInstance().getRightDistanceInches(), _initialPose);	// set initial pose
 		System.out.println("InitialPose: " + _initialPose);
 	}
 	
@@ -136,11 +136,11 @@ public class Robot extends IterativeRobot
 		try 
 		{
 			CrashTracker.logDisabledInit();
-			if (mAutoModeExecuter != null) 
+			if (autoModeExecuter != null) 
 			{
-				mAutoModeExecuter.stop();
+				autoModeExecuter.stop();
 			}
-			mAutoModeExecuter = null;
+			autoModeExecuter = null;
 
 			loopController.stop();	
 
@@ -187,19 +187,19 @@ public class Robot extends IterativeRobot
 		try 
 		{
 			CrashTracker.logAutoInit();
-			if (mAutoModeExecuter != null) 
+			if (autoModeExecuter != null) 
 			{
-				mAutoModeExecuter.stop();
+				autoModeExecuter.stop();
 			}
-			mAutoModeExecuter = null;
+			autoModeExecuter = null;
 
-			mAutoModeExecuter = new AutoModeExecuter();
-			mAutoModeExecuter.setAutoMode(mSmartDashboardInteractions.getAutoModeSelection());
+			autoModeExecuter = new AutoModeExecuter();
+			autoModeExecuter.setAutoMode(smartDashboardInteractions.getAutoModeSelection());
 
-			setInitialPose( mAutoModeExecuter.getAutoMode().getInitialPose() );		
+			setInitialPose( autoModeExecuter.getAutoMode().getInitialPose() );		
 
 			loopController.start();
-			mAutoModeExecuter.start();
+			autoModeExecuter.start();
 
 		} 
 		catch (Throwable t) 
@@ -241,7 +241,7 @@ public class Robot extends IterativeRobot
 			CrashTracker.logTeleopInit();
 
 			// Select joystick control method
-			controls = mSmartDashboardInteractions.getJoystickControlsMode();
+			controls = smartDashboardInteractions.getJoystickControlsMode();
 
 			// Configure looper
 			loopController.start();

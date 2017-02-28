@@ -64,9 +64,9 @@ public class RobotState
     private double prevLeftDistance = 0;
     private double prevRightDistance = 0;
     
-    protected RobotState() { reset(0, new Pose()); }
+    protected RobotState() { reset(0, 0, 0, new Pose()); }
 
-	public synchronized void reset(double _startTime, Pose _initialFieldToRobot) 
+	public synchronized void reset(double _startTime, double _lEncoderDistance, double _rEncoderDistance, Pose _initialFieldToRobot) 
 	{
 		// calibrate initial position to initial pose (set by autonomous mode)
         fieldToRobot = new InterpolatingTreeMap<>(kObservationBufferSize);
@@ -78,7 +78,8 @@ public class RobotState
         gyroCorrection = gyroHeading - desiredHeading;		// subtract gyroCorrection from actual gyro heading to get desired orientation
         
         robotSpeed = new Kinematics.LinearAngularSpeed(0, 0);
-        setPrevEncoderDistance(0, 0);
+        
+        setPrevEncoderDistance(_lEncoderDistance, _rEncoderDistance);
     }
 	
 	public void setPrevEncoderDistance(double _prevLeftDistance, double _prevRightDistance)
@@ -108,17 +109,18 @@ public class RobotState
         fieldToRobot.put(new InterpolatingDouble(_timestamp), _observation);
     }
 
+
     public void generateOdometryFromSensors(double _time, double _lEncoderDistance, double _rEncoderDistance, 
     		                                double _lEncoderSpeed, double _rEncoderSpeed, double _gyroAngle) 
     {
         Pose lastPose = getLatestFieldToVehicle();
-        
+
         // get change in encoder distance from last call
         double dLeftDistance  = _lEncoderDistance - prevLeftDistance; 
         double dRightDistance = _rEncoderDistance - prevRightDistance;
 
         setPrevEncoderDistance(_lEncoderDistance, _rEncoderDistance);
-                
+
         Pose odometry = Kinematics.integrateForwardKinematics(lastPose, dLeftDistance, dRightDistance, _gyroAngle - gyroCorrection);
         Kinematics.LinearAngularSpeed speed = Kinematics.forwardKinematics(_lEncoderSpeed, _rEncoderSpeed);
         

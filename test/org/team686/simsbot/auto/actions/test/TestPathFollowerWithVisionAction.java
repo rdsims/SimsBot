@@ -77,7 +77,7 @@ public class TestPathFollowerWithVisionAction
 		robotPose  = new Pose( 0,  0,  0);
 		targetPose = new Pose( 0,120,  0);
 
-		robotState.reset(0, robotPose);
+		robotState.reset(0, 0, 0, robotPose);
 		drive.getCommand().setResetEncoders();
 		
     	PathSegment.Options pathOptions   = new PathSegment.Options(Constants.kPathFollowingMaxVel, Constants.kPathFollowingMaxAccel, Constants.kPathFollowingLookahead, false);
@@ -123,7 +123,7 @@ public class TestPathFollowerWithVisionAction
 		robotPose  = new Pose( 0,  0,180*Vector2d.degreesToRadians);
 		targetPose = new Pose( 0,120,  0);
 
-		robotState.reset(0, robotPose);
+		robotState.reset(0, 0, 0, robotPose);
 		drive.getCommand().setResetEncoders();
 		
     	PathSegment.Options pathOptions   = new PathSegment.Options(Constants.kPathFollowingMaxVel, Constants.kPathFollowingMaxAccel, Constants.kPathFollowingLookahead, false);
@@ -171,7 +171,7 @@ public class TestPathFollowerWithVisionAction
 		robotPose  = new Pose( 0,  0,  0);
 		targetPose = new Pose(96, 36,  0);
 
-		robotState.reset(0, robotPose);
+		robotState.reset(0, 0, 0, robotPose);
 		drive.getCommand().setResetEncoders();
 		
     	PathSegment.Options visionOptions = new PathSegment.Options(Constants.kVisionMaxVel,        Constants.kVisionMaxAccel,        Constants.kPathFollowingLookahead, true);
@@ -213,7 +213,7 @@ public class TestPathFollowerWithVisionAction
 		robotPose  = new Pose( 0,  0,  0);
 		targetPose = new Pose( 0,120,  0);
 
-		robotState.reset(0, robotPose);
+		robotState.reset(0, 0, 0, robotPose);
 		drive.getCommand().setResetEncoders();
 		
     	PathSegment.Options pathOptions   = new PathSegment.Options(Constants.kPathFollowingMaxVel, Constants.kPathFollowingMaxAccel, Constants.kPathFollowingLookahead, false);
@@ -419,11 +419,11 @@ public class TestPathFollowerWithVisionAction
 	
 	public void simulateRobotStateLoop()
 	{
-		double time			= currentTime;
-        double lDistance 	= driveStatus.getLeftDistanceInches();
-        double rDistance 	= driveStatus.getRightDistanceInches();
-        double lSpeed    	= driveStatus.getLeftSpeedInchesPerSec();
-        double rSpeed    	= driveStatus.getRightSpeedInchesPerSec(); 
+		double time		 = currentTime;
+        double lDistance = driveStatus.getLeftDistanceInches();
+        double rDistance = driveStatus.getRightDistanceInches();
+        double lSpeed    = driveStatus.getLeftSpeedInchesPerSec();
+        double rSpeed    = driveStatus.getRightSpeedInchesPerSec(); 
         double gyroAngle = driveStatus.getHeading();
 
         robotState.generateOdometryFromSensors(time, lDistance, rDistance, lSpeed, rSpeed, gyroAngle);

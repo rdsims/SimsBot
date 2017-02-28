@@ -17,7 +17,7 @@ public class Constants extends ConstantsBase
     public static double kLoopDt = 0.01;
 
     // Front Bumper
-    public static double kFrontBumperX = 15;	// position of front bumper with respect to robot center of rotation
+    public static double kFrontBumperX = 18;	// position of front bumper with respect to robot center of rotation
     
 	// Wheels
     public static double kDriveWheelCircumInches = 13.00;
@@ -64,20 +64,20 @@ public class Constants extends ConstantsBase
     public static double kDriveHeadingVelocityKd = 0.0;
 
     // Path following constants
-    public static double kPathFollowingMaxVel    = 60.0; // inches/sec  		
+    public static double kPathFollowingMaxVel    = 70.0; // inches/sec  		
     public static double kPathFollowingMaxAccel  = 48.0; // inches/sec^2	
     public static double kPathFollowingLookahead = 24.0; // inches
     public static double kPathFollowingCompletionTolerance = 1.0; 
     
     // Vision constants
-    public static double kCameraPoseX        = +9;	// camera location with respect to robot center of rotation, +X axis is in direction of travel
-    public static double kCameraPoseY        =  0;	// camera location with respect to robot center of rotation, +Y axis is positive to the left
-    public static double kCameraPoseTheta =  0;	// camera angle with respect to robot heading
+    public static double kCameraPoseX     = +7.25;	// camera location with respect to robot center of rotation, +X axis is in direction of travel
+    public static double kCameraPoseY     =     0;	// camera location with respect to robot center of rotation, +Y axis is positive to the left
+    public static double kCameraPoseTheta =     0;	// camera angle with respect to robot heading
     
     public static double kVisionMaxVel    = 60.0; // inches/sec  		// RS measured ~100 inches/sec on carpet
     public static double kVisionMaxAccel  = 48.0; // inches/sec^2		// RS measured 800-1000 inches/sec^2 on carpet
     public static double kTargetWidthInches = 10.25;
-    public static double kPegTargetDistanceThresholdInches = kFrontBumperX+6;		// inches to stop from target (15" from camera = 4.5" from bumpers
+    public static double kPegTargetDistanceThresholdInches = kFrontBumperX - kCameraPoseX + 12;		// inches to stop from target (15" from camera = 4.5" from bumpers
     public static double kVisionMaxDistanceInches = 240;		// ignore targets greater than this distance
     public static double kVisionLookaheadDist = 24.0;	// inches
     public static double kCameraFOVDegrees = 42.5;			// Camera Field of View (degrees)
