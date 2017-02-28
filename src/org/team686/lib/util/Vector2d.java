@@ -122,26 +122,26 @@ public class Vector2d implements Interpolable<Vector2d>
     	return (x*x + y*y);
     }
     
-    static public Vector2d magnitudeAngle(double _mag, double _angleRad)
+    static public Vector2d magnitudeAngle(double _mag, double _angle)
     {
-    	return new Vector2d(_mag*Math.cos(_angleRad), _mag*Math.sin(_angleRad));
+    	return new Vector2d(_mag*Math.cos(_angle), _mag*Math.sin(_angle));
 
     }
 
     // normalize angle to within [-pi, pi)
-    public static double normalizeAngle(double _thetaRad)
+    public static double normalizeAngle(double _theta)
     {
     	double TWO_PI = 2 * Math.PI;
-    	double angle = _thetaRad - TWO_PI * Math.floor((_thetaRad + Math.PI) / TWO_PI);
+    	double angle = _theta - TWO_PI * Math.floor((_theta + Math.PI) / TWO_PI);
     	return angle;
     }
     
     
 	// Rotates Vector by the given angle
-	public Vector2d rotate(double _angleRad)
+	public Vector2d rotate(double _angle)
 	{
-		double cos = Math.cos(_angleRad);
-		double sin = Math.sin(_angleRad);
+		double cos = Math.cos(_angle);
+		double sin = Math.sin(_angle);
 
 		double x = this.x * cos - this.y * sin;
 		double y = this.x * sin + this.y * cos;

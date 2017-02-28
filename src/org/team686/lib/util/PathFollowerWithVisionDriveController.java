@@ -38,15 +38,18 @@ public class PathFollowerWithVisionDriveController
 	public double distanceFromPath;
 	public double lookaheadDist;
 	public Vector2d lookaheadPoint = new Vector2d();
-	public double headingToTargetRadians;		
+	public double headingToTarget;		
 	
 	public double currentTime;
 
 	public Pose currentPose = new Pose();
 	public Pose previousPose = new Pose();
-
+	
+	// camera pose with respect to robot
+	public Pose cameraPose_Robot = new Pose(Constants.kCameraPoseX, Constants.kCameraPoseY, Constants.kCameraPoseTheta);
+	
 	public double prevDistanceToTargetInches;
-	public double prevHeadingToTargetRadians;
+	public double prevHeadingToTarget;
 	
 	public Vector2d targetLocation = new Vector2d(0,0);
 	public double distanceToTargetInches;
@@ -174,11 +177,11 @@ imageTimestamp = currentTime - Constants.kCameraLatencySeconds;		// remove camer
 		//---------------------------------------------------
 		Vector2d robotToTarget = lookaheadPoint.sub(_currentPose.getPosition());
 		double lookaheadDist = robotToTarget.length();
-		headingToTargetRadians = robotToTarget.angle() - _currentPose.getHeadingRad();
+		headingToTarget = robotToTarget.angle() - _currentPose.getHeading();
 		if (reversed)
-			headingToTargetRadians -= Math.PI;
+			headingToTarget -= Math.PI;
 		
-		curvature = 2 * Math.sin(headingToTargetRadians) / lookaheadDist;
+		curvature = 2 * Math.sin(headingToTarget) / lookaheadDist;
 	}
 
 	
@@ -195,10 +198,11 @@ imageTimestamp = currentTime - Constants.kCameraLatencySeconds;		// remove camer
 			// Estimate target location based on previous location,
 			// to compensate for latency in processing image
 			//-----------------------------------------------------
+			Pose cameraPose_Field = cameraPose_Robot.transformBy(_previousPose);
 			prevDistanceToTargetInches = Constants.kTargetWidthInches / (2.0*_normalizedTargetWidth*Constants.kTangentCameraHalfFOV);
-			prevHeadingToTargetRadians = _previousPose.getHeadingRad() + (-_normalizedTargetX*Constants.kCameraHalfFOVRadians);
-			Vector2d prevToTarget = Vector2d.magnitudeAngle(prevDistanceToTargetInches, prevHeadingToTargetRadians);
-			targetLocation = _previousPose.getPosition().add(prevToTarget); 	
+			prevHeadingToTarget = _previousPose.getHeading() + (-_normalizedTargetX*Constants.kCameraHalfFOVRadians);
+			Vector2d prevToTarget = Vector2d.magnitudeAngle(prevDistanceToTargetInches, prevHeadingToTarget);
+			targetLocation = cameraPose_Field.getPosition().add(prevToTarget); 	
 			
 			// filter target location with exponential averaging
 
@@ -221,13 +225,13 @@ imageTimestamp = currentTime - Constants.kCameraLatencySeconds;		// remove camer
 		{
 			Vector2d robotToTarget = avgTargetLocation.sub(_currentPose.getPosition());
 			distanceToTargetInches = robotToTarget.length();
-			headingToTargetRadians = robotToTarget.angle() - _currentPose.getHeadingRad();
+			headingToTarget = robotToTarget.angle() - _currentPose.getHeading();
 			
 			//---------------------------------------------------
 			// Calculate motor settings to turn towards target   
 			//---------------------------------------------------
 			lookaheadDist = Math.min(Constants.kVisionLookaheadDist, distanceToTargetInches);	// length of chord <= kVisionLookaheadDist
-			curvature     = 2 * Math.sin(headingToTargetRadians) / lookaheadDist;				// curvature = 1/radius of circle (positive: turn left, negative: turn right)
+			curvature     = 2 * Math.sin(headingToTarget) / lookaheadDist;				// curvature = 1/radius of circle (positive: turn left, negative: turn right)
 		}
 		else
 		{
@@ -336,7 +340,7 @@ imageTimestamp = currentTime - Constants.kCameraLatencySeconds;		// remove camer
 			put("PathVision/avgTargetLocationX", avgTargetLocation.getX());
 			put("PathVision/avgTargetLocationY", avgTargetLocation.getY());
 			put("PathVision/distanceToTargetInches", distanceToTargetInches);
-			put("PathVision/headingToTargetRadians", headingToTargetRadians);
+			put("PathVision/headingToTarget", headingToTarget);
 
 			put("PathVision/remainingDistance",  remainingDistance );
 			

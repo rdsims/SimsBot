@@ -20,7 +20,7 @@ public class DriveStatus
 	
 	private double lDistanceInches, rDistanceInches;
 	private double lSpeedInchesPerSec, rSpeedInchesPerSec;
-	private double headingRad;
+	private double heading;
 	
 	private double lMotorCurrent, rMotorCurrent;
 	private double lMotorStatus, rMotorStatus;
@@ -59,11 +59,11 @@ public class DriveStatus
 	public synchronized double getLeftMotorPIDError()  { return lMotorPIDError; }
 	public synchronized double getRightMotorPIDError() { return rMotorPIDError; }
 
-	public synchronized void setHeadingDeg(double val) { setHeadingRad(val*Math.PI/180.0); }
-    public synchronized void setHeadingRad(double val) { headingRad = val; }
+	public synchronized void setHeadingDeg(double val) { setHeading(val*Math.PI/180.0); }
+    public synchronized void setHeading(double val) { heading = val; }
 
-    public synchronized double getHeadingRad() { return headingRad; };
-    public synchronized double getHeadingDeg() { return headingRad*180.0/Math.PI; }
+    public synchronized double getHeading() { return heading; };
+    public synchronized double getHeadingDeg() { return heading*180.0/Math.PI; }
 	
     
 

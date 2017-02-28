@@ -90,9 +90,9 @@ public class Kinematics
     
     /** Append the result of forward kinematics to a previous pose. */
 
-    public static Pose integrateForwardKinematics(Pose _currentPose, double _lSpeed, double _rSpeed, double _gyroAngleRad)
+    public static Pose integrateForwardKinematics(Pose _currentPose, double _lSpeed, double _rSpeed, double _gyroAngle)
     {
-    	LinearAngularSpeed speed = forwardKinematics(_lSpeed, _rSpeed, _gyroAngleRad - _currentPose.getHeadingRad());
+    	LinearAngularSpeed speed = forwardKinematics(_lSpeed, _rSpeed, _gyroAngle - _currentPose.getHeading());
         return travelArc(_currentPose, speed);
     }
     
@@ -106,12 +106,12 @@ public class Kinematics
 		if (Math.abs(dTheta) > 1e-9)
 			L = 2*D*Math.sin(dTheta/2)/dTheta;			// chord-length given change in heading
 				
-		double avgHeading = _initialPose.getHeadingRad() + dTheta/2;	// mean of current and final headings
+		double avgHeading = _initialPose.getHeading() + dTheta/2;	// mean of current and final headings
 
 		Vector2d translation = Vector2d.magnitudeAngle(L, avgHeading);	// calculate change in position
 		
 		// update pose
-		Pose finalPose = _initialPose.add(translation).turnRad(_speed.angularSpeed);
+		Pose finalPose = _initialPose.add(translation).turn(_speed.angularSpeed);
 		
 		return finalPose;
     }

@@ -198,7 +198,6 @@ public class PathTest {
         assertTrue(2 < lookahead_point.getY());
     }
 
-    // TODO: add simulation test, including reversed path
     
     @Test
     public void testNumericalStability() 

@@ -73,8 +73,8 @@ public class RobotState
         fieldToRobot.put(new InterpolatingDouble(_startTime), _initialFieldToRobot);
         
         // calibrate initial heading to initial pose (set by autonomous mode)
-        double desiredHeading = _initialFieldToRobot.getHeadingRad();  
-        double gyroHeading  = DriveStatus.getInstance().getHeadingRad();
+        double desiredHeading = _initialFieldToRobot.getHeading();  
+        double gyroHeading  = DriveStatus.getInstance().getHeading();
         gyroCorrection = gyroHeading - desiredHeading;		// subtract gyroCorrection from actual gyro heading to get desired orientation
         
         robotSpeed = new Kinematics.LinearAngularSpeed(0, 0);
@@ -109,7 +109,7 @@ public class RobotState
     }
 
     public void generateOdometryFromSensors(double _time, double _lEncoderDistance, double _rEncoderDistance, 
-    		                                double _lEncoderSpeed, double _rEncoderSpeed, double _gyroAngleRad) 
+    		                                double _lEncoderSpeed, double _rEncoderSpeed, double _gyroAngle) 
     {
         Pose lastPose = getLatestFieldToVehicle();
         
@@ -119,7 +119,7 @@ public class RobotState
 
         setPrevEncoderDistance(_lEncoderDistance, _rEncoderDistance);
                 
-        Pose odometry = Kinematics.integrateForwardKinematics(lastPose, dLeftDistance, dRightDistance, _gyroAngleRad - gyroCorrection);
+        Pose odometry = Kinematics.integrateForwardKinematics(lastPose, dLeftDistance, dRightDistance, _gyroAngle - gyroCorrection);
         Kinematics.LinearAngularSpeed speed = Kinematics.forwardKinematics(_lEncoderSpeed, _rEncoderSpeed);
         
         addFieldToVehicleObservation(_time, odometry);	// store odometry

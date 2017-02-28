@@ -284,7 +284,7 @@ public class TestPathFollowerWithVisionAction
 			// calculate relative position of target
 			Vector2d robotToTarget = new Vector2d(targetPose.getPosition()).sub(robotPose.getPosition());
 			double  distToTarget = robotToTarget.length(); 
-			double angleToTarget = robotToTarget.angle() - robotPose.getHeadingRad();
+			double angleToTarget = robotToTarget.angle() - robotPose.getHeading();
 			angleToTarget = Vector2d.normalizeAngle(angleToTarget);	// modulo 2pi
 	        
 	        // test that visionDrive ended up close to target and pointed at target
@@ -314,7 +314,7 @@ public class TestPathFollowerWithVisionAction
 		// calculate relative position of target
 		Vector2d robotToTarget = targetPose.sub(robotPose);
 		double  distToTarget = robotToTarget.length(); 
-		double angleToTarget = robotToTarget.angle() - robotPose.getHeadingRad();
+		double angleToTarget = robotToTarget.angle() - robotPose.getHeading();
 		angleToTarget = Vector2d.normalizeAngle(angleToTarget);	// modulo 2pi
 		
 		// calculate Vision output
@@ -402,7 +402,7 @@ public class TestPathFollowerWithVisionAction
 
 		Kinematics.LinearAngularSpeed speed = Kinematics.forwardKinematics(lSpeed, rSpeed);
 
-		driveStatus.setHeadingRad( driveStatus.getHeadingRad() + speed.angularSpeed*dt );
+		driveStatus.setHeading( driveStatus.getHeading() + speed.angularSpeed*dt );
 
 		if (newCmd.getResetEncoders())
 		{
@@ -424,9 +424,9 @@ public class TestPathFollowerWithVisionAction
         double rDistance 	= driveStatus.getRightDistanceInches();
         double lSpeed    	= driveStatus.getLeftSpeedInchesPerSec();
         double rSpeed    	= driveStatus.getRightSpeedInchesPerSec(); 
-        double gyroAngleRad = driveStatus.getHeadingRad();
+        double gyroAngle = driveStatus.getHeading();
 
-        robotState.generateOdometryFromSensors(time, lDistance, rDistance, lSpeed, rSpeed, gyroAngleRad);
+        robotState.generateOdometryFromSensors(time, lDistance, rDistance, lSpeed, rSpeed, gyroAngle);
 	}
     
 	
