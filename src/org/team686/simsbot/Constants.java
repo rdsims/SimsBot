@@ -59,10 +59,10 @@ public class Constants extends ConstantsBase
     // PID gains for constant heading velocity control
     // Units: Error is degrees. Output is inches/second difference to
     // left/right.
-    public static double kDriveHeadingVelocityKp = 0.0;
+    public static double kDriveHeadingVelocityKp = 4.0;
     public static double kDriveHeadingVelocityKi = 0.0;
-    public static double kDriveHeadingVelocityKd = 0.0;
-
+    public static double kDriveHeadingVelocityKd = 50.0;
+    
     // Path following constants
     public static double kPathFollowingMaxVel    = 60.0; // inches/sec  		
     public static double kPathFollowingMaxAccel  = 48.0; // inches/sec^2	
