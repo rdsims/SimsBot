@@ -75,7 +75,7 @@ public abstract class AutoModeBase
             autoLogger.log();
 
         	currTime = Timer.getFPGATimestamp();
-            long waitTime = (long) ((nextTime-currTime) * 1000.0);	// attempt to run thread every m_update_period seconds
+            long waitTime = (long) ((nextTime-currTime) * 1000.0);	// attempt to run thread every updatePeriod seconds
             waitTime = Math.max(waitTime, 0);						// avoid negative waits
             try
             {
