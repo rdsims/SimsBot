@@ -84,7 +84,7 @@ public class LoopController
                 prev_time_ = Timer.getFPGATimestamp();
                 for (Loop loop : loops_) 
                 {
-                    System.out.println("Starting " + loop);
+//                    System.out.println("Starting " + loop);
                     loop.onStart();
                 }
                 running_ = true;
@@ -105,7 +105,7 @@ public class LoopController
                 running_ = false;
                 for (Loop loop : loops_) 
                 {
-                    System.out.println("Stopping " + loop);
+//                    System.out.println("Stopping " + loop);
                     loop.onStop();
                 }
             }

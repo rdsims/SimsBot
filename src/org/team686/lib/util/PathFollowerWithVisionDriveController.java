@@ -114,8 +114,6 @@ imageTimestamp = currentTime - Constants.kCameraLatencySeconds;		// remove camer
     
 	public WheelSpeed pathVisionDrive(double _currentTime, Pose _currentPose, Pose _previousPose, double _imageTimestamp, double _normalizedTargetX, double _normalizedTargetWidth)
 	{
-		// TODO: address stopping when past final segment
-		
 		if (prevTime < 0)				// initial setting of prevTime is important to limit initial acceleration
 			prevTime = _currentTime;	// avoid calling Timer.getFPGATimestamp() in this function to allow off-robot testing
 		
@@ -133,13 +131,13 @@ imageTimestamp = currentTime - Constants.kCameraLatencySeconds;		// remove camer
 			
 		if (state == PathVisionState.PATH_FOLLOWING)	 
 		{
-			remainingDistance = path.getRemainingLength();
+			remainingDistance = path.getRemainingLength();		// TODO: address stopping when past final segment
 			maxSpeed = path.getSegmentMaxSpeed();
 			maxAccel = path.getSegmentMaxAccel();
 		}
 		else
 		{
-			remainingDistance = distanceToTargetInches;
+			remainingDistance = distanceToTargetInches - Constants.kPegTargetDistanceThresholdFromCameraInches;
 			maxSpeed = Constants.kVisionMaxVel;
 			maxAccel = Constants.kVisionMaxAccel;
 		}
@@ -149,7 +147,7 @@ imageTimestamp = currentTime - Constants.kCameraLatencySeconds;		// remove camer
 		if (reversed)
 		{
 			speed = -speed;
-			curvature = -curvature;
+			curvature = -curvature;	// TODO: simplify by removing this, and removing flipping heading 180 degrees below?
 		}
 		
 		wheelSpeed = Kinematics.inverseKinematicsFromSpeedCurvature(speed, curvature);
@@ -179,7 +177,7 @@ imageTimestamp = currentTime - Constants.kCameraLatencySeconds;		// remove camer
 		double lookaheadDist = robotToTarget.length();
 		headingToTarget = robotToTarget.angle() - _currentPose.getHeading();
 		if (reversed)
-			headingToTarget -= Math.PI;
+			headingToTarget -= Math.PI;	// flip robot around
 		
 		curvature = 2 * Math.sin(headingToTarget) / lookaheadDist;
 	}
@@ -282,7 +280,7 @@ imageTimestamp = currentTime - Constants.kCameraLatencySeconds;		// remove camer
     	if (state == PathVisionState.PATH_FOLLOWING)
 	        done = (remainingDistance <= Constants.kPathFollowingCompletionTolerance);
     	else
-    		done = (remainingDistance <= Constants.kPegTargetDistanceThresholdInches);
+    		done = (remainingDistance <= Constants.kVisionCompletionTolerance);
     	
     	return done;
     }

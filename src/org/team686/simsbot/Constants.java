@@ -15,7 +15,8 @@ import edu.wpi.first.wpilibj.I2C;
 public class Constants extends ConstantsBase
 {
     public static double kLoopDt = 0.01;
-
+    public static double kDriveWatchdogTimerThreshold = 0.500;    
+    
     // Front Bumper
     public static double kFrontBumperX = 18;	// position of front bumper with respect to robot center of rotation
     
@@ -77,25 +78,24 @@ public class Constants extends ConstantsBase
     public static double kVisionMaxVel    = 60.0; // inches/sec  		// RS measured ~100 inches/sec on carpet
     public static double kVisionMaxAccel  = 48.0; // inches/sec^2		// RS measured 800-1000 inches/sec^2 on carpet
     public static double kTargetWidthInches = 10.25;
-    public static double kPegTargetDistanceThresholdInches = kFrontBumperX - kCameraPoseX + 12;		// inches to stop from target (15" from camera = 4.5" from bumpers
+    public static double kPegTargetDistanceThresholdFromBumperInches = 18;		// inches to stop from target, measured from front bumper
+    public static double kPegTargetDistanceThresholdFromCameraInches = kFrontBumperX - kCameraPoseX + kPegTargetDistanceThresholdFromBumperInches;
+    public static double kVisionCompletionTolerance = 1.0; 
     public static double kVisionMaxDistanceInches = 240;		// ignore targets greater than this distance
     public static double kVisionLookaheadDist = 24.0;	// inches
     public static double kCameraFOVDegrees = 42.5;			// Camera Field of View (degrees)
     public static double kCameraHalfFOVRadians = kCameraFOVDegrees/2.0 * Math.PI/180.0;			// Half of Camera Field of View (radians)
     public static double kTangentCameraHalfFOV = Math.tan(kCameraHalfFOVRadians);
-    public static double kCameraLatencySeconds = 0.200;			// Camera image capturing latency
+    public static double kCameraLatencySeconds = 0.240;			// Camera image capturing latency  TODO: increase until it doesn't overshoot
     public static double kTargetLocationFilterConstant = (30.0 * kLoopDt);		// 30 time constants in 1 second
     
     // Do not change anything after this line!
-    // Port assignments should match up with the spreadsheet here:
-    // https://docs.google.com/spreadsheets/d/1O2Szvp3cC3gO2euKjqhdmpsyd54t6eB2t9jzo41G2H4
-    // Talons
-    // (Note that if multiple Talons are dedicated to a mechanism, any sensors
-    // are attached to the master)
     // TALONS
+    // (Note that if multiple Talons are dedicated to a mechanism, any sensors are attached to the master)
     public static final int kLeftMotorTalonId  = 1;
     public static final int kRightMotorTalonId = 2;
-    
+
+    // Joystick Controls
     public static int kXboxButtonA  = 1;
     public static int kXboxButtonB  = 2;
     public static int kXboxButtonX  = 3;
@@ -110,6 +110,7 @@ public class Constants extends ConstantsBase
     public static int kXboxRStickXAxis  = 4;
     public static int kXboxRStickYAxis  = 5;
 
+    // Gyro
 	// The I2C port the BNO055 is connected to
     public static final I2C.Port BNO055_PORT = I2C.Port.kOnboard;
     

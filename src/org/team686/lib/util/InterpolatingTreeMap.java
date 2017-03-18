@@ -13,79 +13,96 @@ import java.util.Map;
  * @param <V>
  *            The type of the value (must implement Interpolable)
  */
-public class InterpolatingTreeMap<K extends InverseInterpolable<K> & Comparable<K>, V extends Interpolable<V>>
-        extends TreeMap<K, V> {
+public class InterpolatingTreeMap<K extends InverseInterpolable<K> & Comparable<K>, V extends Interpolable<V>> extends TreeMap<K, V> 
+{
     private static final long serialVersionUID = 8347275262778054124L;
 
-    int max_;
+    int maxSize;
 
-    public InterpolatingTreeMap(int maximumSize) {
-        max_ = maximumSize;
+    public InterpolatingTreeMap(int _maxSize) 
+    {
+        maxSize = _maxSize;
     }
 
-    public InterpolatingTreeMap() {
+    public InterpolatingTreeMap() 
+    {
         this(0);
     }
 
     /**
      * Inserts a key value pair, and trims the tree if a max size is specified
      * 
-     * @param key
+     * @param _key
      *            Key for inserted data
-     * @param value
+     * @param _value
      *            Value for inserted data
      * @return the value
      */
     @Override
-    public V put(K key, V value) {
-        if (max_ > 0 && max_ <= size()) {
-            // "Prune" the tree if it is oversize
-            K first = firstKey();
-            remove(first);
+    public V put(K _key, V _value) 
+    {
+        if ((maxSize > 0) && (size() >= maxSize)) 
+        {
+            // "Prune" the tree when it overflows
+            remove( firstKey() );
         }
 
-        super.put(key, value);
+        super.put(_key, _value);
 
-        return value;
+        return _value;
     }
 
     @Override
-    public void putAll(Map<? extends K, ? extends V> map) {
+    public void putAll(Map<? extends K, ? extends V> _map) 
+    {
         System.out.println("Unimplemented Method");
     }
 
     /**
      *
-     * @param key
+     * @param _key
      *            Lookup for a value (does not have to exist)
      * @return V or null; V if it is Interpolable or exists, null if it is at a
      *         bound and cannot average
      */
-    public V getInterpolated(K key) {
-        V gotval = get(key);
-        if (gotval == null) {
+    public V getInterpolated(K _key) 
+    {
+        V retVal = get(_key);
+        
+        if (retVal == null) 
+        {
             /** Get surrounding keys for interpolation */
-            K topBound = ceilingKey(key);
-            K bottomBound = floorKey(key);
+            K topBound = ceilingKey(_key);
+            K bottomBound = floorKey(_key);
+
+System.out.println("Key: " + _key + "---" + bottomBound + "---" + topBound);
 
             /**
              * If attempting interpolation at ends of tree, return the nearest
              * data point
              */
-            if (topBound == null && bottomBound == null) {
-                return null;
-            } else if (topBound == null) {
-                return get(bottomBound);
-            } else if (bottomBound == null) {
-                return get(topBound);
+            if (topBound == null && bottomBound == null) 
+            {
+            	retVal = null;
+            } 
+            else if (topBound == null) 
+            {
+            	retVal = get(bottomBound);
+            } 
+            else if (bottomBound == null) 
+            {
+            	retVal = get(topBound);
             }
-
-            /** Get surrounding values for interpolation */
-            V topElem = get(topBound);
-            V bottomElem = get(bottomBound);
-            return bottomElem.interpolate(topElem, bottomBound.inverseInterpolate(topBound, key));
-        } else {
-            return gotval;
+            else
+            {
+	            /** Get surrounding values for interpolation */
+	            V topElem = get(topBound);
+	            V bottomElem = get(bottomBound);
+	            retVal = bottomElem.interpolate(topElem, bottomBound.inverseInterpolate(topBound, _key));
+System.out.println("Val: " + retVal + "---" + bottomElem + "---" + topElem);
+            }            
         }
+        
+        return retVal;
     }
 }

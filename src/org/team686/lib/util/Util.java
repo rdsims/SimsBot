@@ -69,7 +69,7 @@ public class Util
     }
 
     
-    public static Optional<Vector2d[]> lineCircleIntersection(Vector2d _p1, Vector2d _p2, Vector2d _center, double _radius)
+    public static Optional<Vector2d[]> getLineCircleIntersection(Vector2d _p1, Vector2d _p2, Vector2d _center, double _radius)
     {
     	// points of intersection are at 
     	// x = {  D*dy +/- sign(dy)*dx*sqrt(R^2*dr^2-D^2) } / dr^2

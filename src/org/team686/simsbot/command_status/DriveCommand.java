@@ -5,6 +5,8 @@ import org.team686.lib.util.Kinematics.WheelSpeed;
 
 import com.ctre.CANTalon.TalonControlMode;
 
+import edu.wpi.first.wpilibj.Timer;
+
 /**
  * A drivetrain command consisting of the left, right motor settings and whether the brake mode is enabled.  
  * The command is set by Drive.java, and read by DriveLoop.java, which sends it to the drive motors
@@ -42,6 +44,7 @@ public class DriveCommand
 	private WheelSpeed wheelSpeed = new WheelSpeed();
 	private boolean brake;
 	private boolean resetEncoders;
+    private double commandTime;
     
     public DriveCommand(double _left, double _right)
     {
@@ -94,8 +97,8 @@ public class DriveCommand
     public synchronized DriveControlMode getDriveControlMode() { return driveMode; }
     public synchronized TalonControlMode getTalonControlMode() { return talonMode; }
     
-    public synchronized void   setMotors(WheelSpeed _wheelSpeed) { wheelSpeed.left = _wheelSpeed.left; wheelSpeed.right = _wheelSpeed.right; }
-    public synchronized void   setMotors(double _left, double _right) { wheelSpeed.left = _left; wheelSpeed.right = _right; }
+    public synchronized void   setMotors(WheelSpeed _wheelSpeed) { wheelSpeed.left = _wheelSpeed.left; wheelSpeed.right = _wheelSpeed.right; setCommandTime(); }
+    public synchronized void   setMotors(double _left, double _right) { wheelSpeed.left = _left; wheelSpeed.right = _right; setCommandTime(); }
     public synchronized double getLeftMotor()  { return wheelSpeed.left; }
     public synchronized double getRightMotor() { return wheelSpeed.right; }
 
@@ -110,6 +113,10 @@ public class DriveCommand
     	resetEncoders = false; 
     	return rv; 
     }	
+    
+    public synchronized void   setCommandTime() { commandTime = Timer.getFPGATimestamp(); }
+    public synchronized double getCommandTime() { return commandTime; } 
+    
     
     // special constant commands
     public static DriveCommand NEUTRAL() { return new DriveCommand(DriveControlMode.OPEN_LOOP, 0, 0, false); }

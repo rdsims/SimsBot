@@ -3,6 +3,8 @@ package org.team686.simsbot.loops;
 import com.ctre.CANTalon;
 import com.ctre.CANTalon.TalonControlMode;
 
+import edu.wpi.first.wpilibj.Timer;
+
 import org.team686.lib.sensors.BNO055;
 import org.team686.simsbot.Constants;
 import org.team686.simsbot.command_status.DriveCommand;
@@ -109,7 +111,7 @@ public class DriveLoop implements Loop
 
 	private void stopMotors()
 	{
-		System.out.println("Stop Motors");
+		System.out.println("Stopping Motors");
 		drive.setCommand(DriveCommand.NEUTRAL());		// override any incoming commands
 		sendCommands();
 	}
@@ -147,6 +149,15 @@ public class DriveLoop implements Loop
 	{
 		DriveCommand newCmd = drive.getCommand();
 		
+		// Watchdog timer  
+		double currentTime = Timer.getFPGATimestamp();
+		if (currentTime - newCmd.getCommandTime() > Constants.kDriveWatchdogTimerThreshold)
+		{
+			// Halt robot if new command hasn't been sent in a while
+			stopMotors();
+			return;
+		}
+				
 		synchronized(newCmd)	// lock DriveCommand so no one changes it under us while we are sending the commands
 		{
 			setControlMode(newCmd);

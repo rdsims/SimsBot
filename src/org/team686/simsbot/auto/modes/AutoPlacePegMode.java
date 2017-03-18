@@ -21,7 +21,10 @@ import org.team686.simsbot.auto.actions.*;
  */
 public class AutoPlacePegMode extends AutoModeBase 
 {
+	// initialPose in inherited from AutoModeBase
 	int lane;
+	boolean isShooting;
+	List<Path> pathList;
 	
 	Pose start1 = new Pose(120,-90,180*Pose.degreesToRadians);
 	Pose start2 = new Pose(120,  0,180*Pose.degreesToRadians);
@@ -37,14 +40,27 @@ public class AutoPlacePegMode extends AutoModeBase
 	Vector2d target2 = new Vector2d(  0,  0);
 	Vector2d target3 = new Vector2d(  0,+12);
 	
-	List<Path> pathList;
 	
-    public AutoPlacePegMode(int _lane, boolean isShooting) 
+    public AutoPlacePegMode(int _lane, boolean _isShooting) 
     {
-    	initialPose = new Pose();
-   	
     	lane = _lane;
-    	
+    	isShooting = _isShooting;
+
+    	initialPose = new Pose();
+       	
+		switch (lane)
+		{
+		case 1:
+		case 2:
+		case 3:
+		default:
+			initialPose = new Pose(start3);
+System.out.println("initialPose = " + initialPose);
+		}    	
+    }
+    
+    private void init()
+    {
     	PathSegment.Options pathOptions   = new PathSegment.Options(Constants.kPathFollowingMaxVel, Constants.kPathFollowingMaxAccel, Constants.kPathFollowingLookahead, false);
     	PathSegment.Options visionOptions = new PathSegment.Options(Constants.kVisionMaxVel,        Constants.kVisionMaxAccel,        Constants.kPathFollowingLookahead, true);
     	
@@ -54,8 +70,6 @@ public class AutoPlacePegMode extends AutoModeBase
 		case 2:
 		case 3:
 		default:
-			initialPose = new Pose(start3);
-System.out.println("initialPose = " + initialPose);
 			
 			pathList = new ArrayList<Path>();
 
@@ -65,7 +79,8 @@ System.out.println("initialPose = " + initialPose);
 			path1.add(new Waypoint(approach3, 				  visionOptions));	// enable vision
 			path1.add(new Waypoint(  target3, 				  visionOptions));
 			pathList.add(path1);
-			
+System.out.println("path1.getRemainingLength() = " + path1.getRemainingLength());
+
 			// back up
 			Path path2 = new Path();
 			path2.add(new Waypoint(  target3, pathOptions));
@@ -114,17 +129,21 @@ System.out.println("initialPose = " + initialPose);
 			path8.add(new Waypoint(initialPose.getPosition(), pathOptions));
 			path8.setReverseDirection();
 			pathList.add(path8);
-
 		}
     }
 
+    // called by AutoModeExecuter.start() --> AutoModeBase.run()
     @Override
     protected void routine() throws AutoModeEndedException 
     {
     	System.out.println("Starting AutoPlacePegMode, lane " + lane);
 
-    	for (int k=0; k<pathList.size(); k++)
-            runAction( new PathFollowerWithVisionAction( pathList.get(k) ) );   
+    	// generate pathList 
+    	init();
+
+    	// execute each path, in sequence
+    	for (Path path : pathList)
+            runAction( new PathFollowerWithVisionAction( path ) );   
     		
     }
     

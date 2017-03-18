@@ -44,4 +44,8 @@ public class InterpolatingDouble implements Interpolable<InterpolatingDouble>, I
         }
     }
 
+    public String toString() 
+    {
+    	return value.toString();
+    }
 }

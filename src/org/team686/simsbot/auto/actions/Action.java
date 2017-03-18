@@ -9,7 +9,8 @@ import org.team686.lib.util.DataLogger;
  *
  * @see org.team686.simsbot.auto.AutoModeBase#runAction
  */
-public interface Action {
+public interface Action 
+{
 
     /**
      * Returns whether or not the code has finished execution. When implementing

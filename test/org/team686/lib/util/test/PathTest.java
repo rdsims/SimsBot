@@ -2,8 +2,6 @@ package org.team686.lib.util.test;
 
 import static org.junit.Assert.*;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Random;
 
 import org.team686.lib.util.*;

@@ -142,11 +142,18 @@ public class Robot extends IterativeRobot
 			}
 			autoModeExecuter = null;
 
-			loopController.stop();	
-
 			stopAll(); 			// stop all actuators
 			zeroAllSensors();	// keep sensors in reset, as robot is moved onto field
 
+			// keep loopController running until stopAll() and zeroAllSensors() have been processed
+			double startTime = Timer.getFPGATimestamp();
+			double elapsedTime = 0;
+			while (drive.getCommand().getResetEncoders() || elapsedTime < 0.5)
+			{
+				// watchdog timer
+				elapsedTime = Timer.getFPGATimestamp() - startTime;
+			}
+			loopController.stop();	
 		} 
 		catch (Throwable t) 
 		{

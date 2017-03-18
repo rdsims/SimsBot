@@ -31,8 +31,9 @@ public class SmartDashboardInteractions
         PLACE_PEG("Place Peg"),
         STAND_STILL("Stand Still"),
         DRIVE_STRAIGHT("Drive Straight"),
-        SQUARE_PATTERN("Square Pattern");
-
+        SQUARE_PATTERN("Square Pattern"),
+    	VISION_DELAY_CALIB("Vision Delay Calibration");
+    	
         public final String name;
 
         AutoModeOption(String name) {
@@ -87,6 +88,7 @@ public class SmartDashboardInteractions
     	autoModeChooser.addDefault( AutoModeOption.PLACE_PEG.toString(),      AutoModeOption.PLACE_PEG);
     	autoModeChooser.addObject( AutoModeOption.DRIVE_STRAIGHT.toString(), AutoModeOption.DRIVE_STRAIGHT);
     	autoModeChooser.addObject( AutoModeOption.SQUARE_PATTERN.toString(), AutoModeOption.SQUARE_PATTERN);
+    	autoModeChooser.addObject( AutoModeOption.VISION_DELAY_CALIB.toString(), AutoModeOption.VISION_DELAY_CALIB);
     	SmartDashboard.putData("Auto Mode Chooser", autoModeChooser);
     	
     	startPositionChooser = new SendableChooser<AutoStartOption>();
@@ -134,6 +136,9 @@ public class SmartDashboardInteractions
     	case SQUARE_PATTERN:
     		return new SquarePatternMode(selLane, false);
     		
+    	case VISION_DELAY_CALIB:
+			return new CalibrateVisionDelayMode();
+			
 		default:
             System.out.println("ERROR: unexpected auto mode: " + selMode);
 			return new StandStillMode();

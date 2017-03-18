@@ -3,52 +3,51 @@ package org.team686.simsbot.auto;
 import org.team686.lib.util.CrashTrackingRunnable;
 
 /**
- * This class selects, runs, and stops (if necessary) a specified autonomous
- * mode.
+ * This class selects, runs, and (if necessary) stops a specified autonomous mode
  */
 public class AutoModeExecuter 
 {
-    private AutoModeBase m_auto_mode;
-    private Thread m_thread = null;
+    private AutoModeBase autoMode;
+    private Thread autoThread = null;
     
-    public void setAutoMode(AutoModeBase new_auto_mode) 
+    public void setAutoMode(AutoModeBase _autoMode) 
     {
-        m_auto_mode = new_auto_mode;
+        autoMode = _autoMode;
     }
 
     public AutoModeBase getAutoMode() 
     {
-        return m_auto_mode;
+        return autoMode;
     }
 
     public void start() 
     {
 
-        if (m_thread == null) 
+        if (autoThread == null) 
         {
-            m_thread = new Thread(new CrashTrackingRunnable() 
+            autoThread = new Thread(new CrashTrackingRunnable() 
             {
                 @Override
                 public void runCrashTracked() 
                 {
-                    if (m_auto_mode != null) 
+                    if (autoMode != null) 
                     {
-                        m_auto_mode.run();
+                        autoMode.run();
                     }
                 }
             });
-            m_thread.start();
+            autoThread.start();
         }
 
     }
 
     public void stop() 
     {
-        if (m_auto_mode != null) 
+        if (autoMode != null) 
         {
-            m_auto_mode.stop();
+            autoMode.stop();
         }
-        m_thread = null;
+        autoThread = null;
     }
 
 }

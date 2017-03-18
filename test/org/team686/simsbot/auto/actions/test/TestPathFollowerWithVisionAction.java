@@ -288,7 +288,7 @@ public class TestPathFollowerWithVisionAction
 			angleToTarget = Vector2d.normalizeAngle(angleToTarget);	// modulo 2pi
 	        
 	        // test that visionDrive ended up close to target and pointed at target
-			assertEquals(Constants.kPegTargetDistanceThresholdInches, distToTarget, 1);
+			assertEquals(Constants.kPegTargetDistanceThresholdFromCameraInches, distToTarget, 1);
 			assertEquals(angleToTarget, 0, 0.1);
         }
 	}

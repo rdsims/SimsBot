@@ -56,23 +56,23 @@ public class RobotState
     public static final int kObservationBufferSize = 100;
     public static final double kMaxTargetAge = 0.4;
 
-    protected InterpolatingTreeMap<InterpolatingDouble, Pose> fieldToRobot;
-    protected Kinematics.LinearAngularSpeed robotSpeed;
+    private InterpolatingTreeMap<InterpolatingDouble, Pose> fieldToRobot;
+    private Kinematics.LinearAngularSpeed robotSpeed;
 
     private double gyroCorrection;
     
-    private double prevLeftDistance = 0;
-    private double prevRightDistance = 0;
+    private double lPrevDistance = 0;
+    private double rPrevDistance = 0;
     
-    protected RobotState() { reset(0, 0, 0, new Pose()); }
+    public RobotState() { reset( 0, 0, 0, new Pose() ); }
 
 	public synchronized void reset(double _startTime, double _lEncoderDistance, double _rEncoderDistance, Pose _initialFieldToRobot) 
 	{
 		// calibrate initial position to initial pose (set by autonomous mode)
         fieldToRobot = new InterpolatingTreeMap<>(kObservationBufferSize);
         fieldToRobot.put(new InterpolatingDouble(_startTime), _initialFieldToRobot);
-        
-        // calibrate initial heading to initial pose (set by autonomous mode)
+       
+        // calculate gyro heading correction for the desired initial pose (as set by autonomous mode)
         double desiredHeading = _initialFieldToRobot.getHeading();  
         double gyroHeading  = DriveStatus.getInstance().getHeading();
         gyroCorrection = gyroHeading - desiredHeading;		// subtract gyroCorrection from actual gyro heading to get desired orientation
@@ -82,10 +82,10 @@ public class RobotState
         setPrevEncoderDistance(_lEncoderDistance, _rEncoderDistance);
     }
 	
-	public void setPrevEncoderDistance(double _prevLeftDistance, double _prevRightDistance)
+	public void setPrevEncoderDistance(double _lPrevDistance, double _rPrevDistance)
 	{
-        prevLeftDistance  = _prevLeftDistance;
-        prevRightDistance = _prevRightDistance;     
+        lPrevDistance = _lPrevDistance;
+        rPrevDistance = _rPrevDistance;     
 	}
 	 	
 	public synchronized Pose getFieldToVehicle(double _timestamp) 
@@ -98,9 +98,9 @@ public class RobotState
         return fieldToRobot.lastEntry().getValue();
     }
 
-    public synchronized Pose getPredictedFieldToVehicle(double lookaheadTime) 
+    public synchronized Pose getPredictedFieldToVehicle(double _lookaheadTime) 
     {
-    	Kinematics.LinearAngularSpeed speed = new Kinematics.LinearAngularSpeed(robotSpeed.linearSpeed * lookaheadTime, robotSpeed.angularSpeed * lookaheadTime);
+    	Kinematics.LinearAngularSpeed speed = new Kinematics.LinearAngularSpeed(robotSpeed.linearSpeed * _lookaheadTime, robotSpeed.angularSpeed * _lookaheadTime);
         return Kinematics.travelArc(getLatestFieldToVehicle(), speed);
     }
 
@@ -116,16 +116,18 @@ public class RobotState
         Pose lastPose = getLatestFieldToVehicle();
 
         // get change in encoder distance from last call
-        double dLeftDistance  = _lEncoderDistance - prevLeftDistance; 
-        double dRightDistance = _rEncoderDistance - prevRightDistance;
-
+        double lDeltaDistance = _lEncoderDistance - lPrevDistance; 
+        double rDeltaDistance = _rEncoderDistance - rPrevDistance;
+        
         setPrevEncoderDistance(_lEncoderDistance, _rEncoderDistance);
 
-        Pose odometry = Kinematics.integrateForwardKinematics(lastPose, dLeftDistance, dRightDistance, _gyroAngle - gyroCorrection);
+        Pose odometry = Kinematics.integrateForwardKinematics(lastPose, lDeltaDistance, rDeltaDistance, _gyroAngle - gyroCorrection);
         Kinematics.LinearAngularSpeed speed = Kinematics.forwardKinematics(_lEncoderSpeed, _rEncoderSpeed);
         
         addFieldToVehicleObservation(_time, odometry);	// store odometry
         robotSpeed = speed;								// used in getPredictedFieldToVehicle()
+
+System.out.println("genOdoSens: " + _time + ": " + lastPose + ", " + lPrevDistance + ", " + _lEncoderDistance);        
     }
 
     public double getSpeed()

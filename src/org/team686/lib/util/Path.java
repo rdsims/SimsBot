@@ -279,8 +279,6 @@ public class Path
         // calculate interpolation factor to guarantee intersection
         lookaheadDistance = lastSegment.getOptions().getLookaheadDist() + _distanceFromPath;
         double interpFactor = 2*lookaheadDistance / lastSegment.getLength();
-// don't do this (overshoots endpoint)
-interpFactor = 1;        
         PathSegment extrapolatedLastSegment = new PathSegment(lastSegment.getStart(), lastSegment.interpolate(interpFactor), lastSegment.options);
         Optional<Vector2d> intersectionPoint = getPathLookaheadCircleIntersection(extrapolatedLastSegment, _position, lookaheadDistance);
         if (intersectionPoint.isPresent()) 
@@ -297,7 +295,7 @@ interpFactor = 1;
 
     static Optional<Vector2d> getPathLookaheadCircleIntersection(PathSegment _segment, Vector2d _center, double _radius)
     {
-    	Optional<Vector2d[]> intersectionPoints = Util.lineCircleIntersection(_segment.start, _segment.end, _center, _radius);
+    	Optional<Vector2d[]> intersectionPoints = Util.getLineCircleIntersection(_segment.start, _segment.end, _center, _radius);
 
     	if (intersectionPoints.isPresent())
     	{
