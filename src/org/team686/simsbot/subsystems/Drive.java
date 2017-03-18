@@ -2,7 +2,7 @@ package org.team686.simsbot.subsystems;
 
 import org.team686.lib.util.DataLogger;
 import org.team686.lib.util.Kinematics.WheelSpeed;
-import org.team686.lib.util.SynchronousPID;
+import org.team686.lib.util.PIDController;
 
 import org.team686.simsbot.Constants;
 import org.team686.simsbot.command_status.DriveCommand;
@@ -146,7 +146,7 @@ public class Drive extends Subsystem
 		private final double speed;
 		private final double headingSetpointDeg;
 
-		private SynchronousPID velocityHeadingPID = new SynchronousPID();
+		private PIDController velocityHeadingPID = new PIDController();
 
 		// Constructor for straight line motion
 		public VelocityHeadingSetpoint()
@@ -159,7 +159,7 @@ public class Drive extends Subsystem
 			speed = _speed;
 			headingSetpointDeg = _headingSetpointDeg;
 			
-			velocityHeadingPID = new SynchronousPID(Constants.kDriveHeadingVelocityKp, Constants.kDriveHeadingVelocityKi, Constants.kDriveHeadingVelocityKd);
+			velocityHeadingPID = new PIDController(Constants.kDriveHeadingVelocityKp, Constants.kDriveHeadingVelocityKi, Constants.kDriveHeadingVelocityKd);
 			velocityHeadingPID.setOutputRange(-30, 30);
 			
 			velocityHeadingPID.setSetpoint(headingSetpointDeg);
