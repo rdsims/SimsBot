@@ -111,7 +111,6 @@ public class DriveLoop implements Loop
 
 	private void stopMotors()
 	{
-		System.out.println("Stopping Motors");
 		drive.setCommand(DriveCommand.NEUTRAL());		// override any incoming commands
 		sendCommands();
 	}

@@ -65,7 +65,7 @@ public class Constants extends ConstantsBase
     public static double kDriveHeadingVelocityKd = 0.0;
 
     // Path following constants
-    public static double kPathFollowingMaxVel    = 70.0; // inches/sec  		
+    public static double kPathFollowingMaxVel    = 60.0; // inches/sec  		
     public static double kPathFollowingMaxAccel  = 48.0; // inches/sec^2	
     public static double kPathFollowingLookahead = 24.0; // inches
     public static double kPathFollowingCompletionTolerance = 1.0; 
@@ -75,8 +75,8 @@ public class Constants extends ConstantsBase
     public static double kCameraPoseY     =     0;	// camera location with respect to robot center of rotation, +Y axis is positive to the left
     public static double kCameraPoseTheta =     0;	// camera angle with respect to robot heading
     
-    public static double kVisionMaxVel    = 60.0; // inches/sec  		// RS measured ~100 inches/sec on carpet
-    public static double kVisionMaxAccel  = 48.0; // inches/sec^2		// RS measured 800-1000 inches/sec^2 on carpet
+    public static double kVisionMaxVel    = 60.0; // inches/sec  		
+    public static double kVisionMaxAccel  = 48.0; // inches/sec^2		
     public static double kTargetWidthInches = 10.25;
     public static double kPegTargetDistanceThresholdFromBumperInches = 18;		// inches to stop from target, measured from front bumper
     public static double kPegTargetDistanceThresholdFromCameraInches = kFrontBumperX - kCameraPoseX + kPegTargetDistanceThresholdFromBumperInches;

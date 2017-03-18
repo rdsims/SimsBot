@@ -126,8 +126,6 @@ public class RobotState
         
         addFieldToVehicleObservation(_time, odometry);	// store odometry
         robotSpeed = speed;								// used in getPredictedFieldToVehicle()
-
-System.out.println("genOdoSens: " + _time + ": " + lastPose + ", " + lPrevDistance + ", " + _lEncoderDistance);        
     }
 
     public double getSpeed()

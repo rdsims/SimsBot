@@ -104,7 +104,6 @@ public class Robot extends IterativeRobot
 
 	public void setInitialPose( Pose _initialPose )
 	{
-		zeroAllSensors();											// make sure all encoders are zeroed out
 		robotState.reset(Timer.getFPGATimestamp(), DriveStatus.getInstance().getLeftDistanceInches(), DriveStatus.getInstance().getRightDistanceInches(), _initialPose);	// set initial pose
 		System.out.println("InitialPose: " + _initialPose);
 	}
@@ -143,17 +142,8 @@ public class Robot extends IterativeRobot
 			autoModeExecuter = null;
 
 			stopAll(); 			// stop all actuators
-			zeroAllSensors();	// keep sensors in reset, as robot is moved onto field
-
-			// keep loopController running until stopAll() and zeroAllSensors() have been processed
-			double startTime = Timer.getFPGATimestamp();
-			double elapsedTime = 0;
-			while (drive.getCommand().getResetEncoders() || elapsedTime < 0.5)
-			{
-				// watchdog timer
-				elapsedTime = Timer.getFPGATimestamp() - startTime;
-			}
-			loopController.stop();	
+			loopController.start();
+			
 		} 
 		catch (Throwable t) 
 		{
@@ -168,9 +158,8 @@ public class Robot extends IterativeRobot
 		try 
 		{
 			stopAll(); 			// stop all actuators
-			zeroAllSensors();	// keep sensors in reset, as robot is moved onto field
 
-			System.gc(); // runs garbage collector
+			System.gc(); 		// runs garbage collector
 		} 
 		catch (Throwable t) 
 		{
@@ -205,7 +194,6 @@ public class Robot extends IterativeRobot
 
 			setInitialPose( autoModeExecuter.getAutoMode().getInitialPose() );		
 
-			loopController.start();
 			autoModeExecuter.start();
 
 		} 

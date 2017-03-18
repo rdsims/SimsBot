@@ -75,9 +75,7 @@ public class InterpolatingTreeMap<K extends InverseInterpolable<K> & Comparable<
             K topBound = ceilingKey(_key);
             K bottomBound = floorKey(_key);
 
-System.out.println("Key: " + _key + "---" + bottomBound + "---" + topBound);
-
-            /**
+           /**
              * If attempting interpolation at ends of tree, return the nearest
              * data point
              */
@@ -99,7 +97,6 @@ System.out.println("Key: " + _key + "---" + bottomBound + "---" + topBound);
 	            V topElem = get(topBound);
 	            V bottomElem = get(bottomBound);
 	            retVal = bottomElem.interpolate(topElem, bottomBound.inverseInterpolate(topBound, _key));
-System.out.println("Val: " + retVal + "---" + bottomElem + "---" + topElem);
             }            
         }
         
