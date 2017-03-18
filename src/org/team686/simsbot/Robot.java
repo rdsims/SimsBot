@@ -11,6 +11,7 @@ import org.team686.lib.joystick.*;
 import org.team686.lib.util.*;
 
 import org.team686.simsbot.auto.AutoModeExecuter;
+import org.team686.simsbot.auto.modes.PointTurnTestMode;
 import org.team686.simsbot.command_status.DriveCommand;
 import org.team686.simsbot.command_status.DriveStatus;
 import org.team686.simsbot.command_status.RobotState;
@@ -194,8 +195,9 @@ public class Robot extends IterativeRobot
 			mAutoModeExecuter = null;
 
 			mAutoModeExecuter = new AutoModeExecuter();
-			mAutoModeExecuter.setAutoMode(mSmartDashboardInteractions.getAutoModeSelection());
-
+			//mAutoModeExecuter.setAutoMode(mSmartDashboardInteractions.getAutoModeSelection());
+			mAutoModeExecuter.setAutoMode(new PointTurnTestMode());
+			
 			setInitialPose( mAutoModeExecuter.getAutoMode().getInitialPose() );		
 
 			loopController.start();

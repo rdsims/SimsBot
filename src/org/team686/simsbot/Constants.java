@@ -62,6 +62,12 @@ public class Constants extends ConstantsBase
     public static double kDriveHeadingVelocityKp = 4.0;
     public static double kDriveHeadingVelocityKi = 0.0;
     public static double kDriveHeadingVelocityKd = 50.0;
+
+    // Point Turn constants
+    public static double kPointTurnMaxVel    = 80.0; // inches/sec  		
+    public static double kPointTurnMaxAccel  = 200.0; // inches/sec^2	
+    public static double kPointTurnMinSpeed  = 20.0; // inches/sec 
+    public static double kPointTurnCompletionTolerance = 1.0 * (Math.PI/180.0); 
     
     // Path following constants
     public static double kPathFollowingMaxVel    = 60.0; // inches/sec  		

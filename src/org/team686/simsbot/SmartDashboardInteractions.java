@@ -31,7 +31,8 @@ public class SmartDashboardInteractions
         PLACE_PEG("Place Peg"),
         STAND_STILL("Stand Still"),
         DRIVE_STRAIGHT("Drive Straight"),
-        SQUARE_PATTERN("Square Pattern");
+        SQUARE_PATTERN("Square Pattern"),
+        POINT_TURN_TEST("Point Turn Test");
 
         public final String name;
 
@@ -87,6 +88,7 @@ public class SmartDashboardInteractions
     	autoModeChooser.addDefault( AutoModeOption.PLACE_PEG.toString(),      AutoModeOption.PLACE_PEG);
     	autoModeChooser.addObject( AutoModeOption.DRIVE_STRAIGHT.toString(), AutoModeOption.DRIVE_STRAIGHT);
     	autoModeChooser.addObject( AutoModeOption.SQUARE_PATTERN.toString(), AutoModeOption.SQUARE_PATTERN);
+    	autoModeChooser.addObject( AutoModeOption.POINT_TURN_TEST.toString(), AutoModeOption.POINT_TURN_TEST);
     	SmartDashboard.putData("Auto Mode Chooser", autoModeChooser);
     	
     	startPositionChooser = new SendableChooser<AutoStartOption>();
@@ -133,6 +135,9 @@ public class SmartDashboardInteractions
 			
     	case SQUARE_PATTERN:
     		return new SquarePatternMode(selLane, false);
+    		
+    	case POINT_TURN_TEST:
+    		return new PointTurnTestMode();
     		
 		default:
             System.out.println("ERROR: unexpected auto mode: " + selMode);

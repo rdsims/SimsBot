@@ -7,6 +7,8 @@ public class Vector2d implements Interpolable<Vector2d>
 	protected double x;
 	protected double y;
 	
+	public static final double TWO_PI = 2 * Math.PI;
+	
 	// constructors
 	public Vector2d()
 	{
@@ -131,7 +133,6 @@ public class Vector2d implements Interpolable<Vector2d>
     // normalize angle to within [-pi, pi)
     public static double normalizeAngle(double _theta)
     {
-    	double TWO_PI = 2 * Math.PI;
     	double angle = _theta - TWO_PI * Math.floor((_theta + Math.PI) / TWO_PI);
     	return angle;
     }
