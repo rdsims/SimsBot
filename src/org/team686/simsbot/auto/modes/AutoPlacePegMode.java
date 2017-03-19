@@ -74,54 +74,54 @@ System.out.println("initialPose = " + initialPose);
 			pathList = new ArrayList<Path>();
 
 			// drive to target 1
-			Path path1 = new Path();
-			path1.add(new Waypoint(initialPose.getPosition(), pathOptions));
-			path1.add(new Waypoint(approach3, 				  visionOptions));	// enable vision
-			path1.add(new Waypoint(  target3, 				  visionOptions));
-			pathList.add(path1);
-System.out.println("path1.getRemainingLength() = " + path1.getRemainingLength());
+			Path path0 = new Path();
+			path0.add(new Waypoint(initialPose.getPosition(), pathOptions));
+			path0.add(new Waypoint(approach3, 				  visionOptions));	// enable vision
+			path0.add(new Waypoint(  target3, 				  visionOptions));
+			pathList.add(path0);
+System.out.println("path1.getRemainingLength() = " + path0.getRemainingLength());
 
 			// back up
-			Path path2 = new Path();
-			path2.add(new Waypoint(  target3, pathOptions));
-			path2.add(new Waypoint(approach3, pathOptions));
-			path2.setReverseDirection();
-			pathList.add(path2);
+			Path path1 = new Path();
+			path1.add(new Waypoint(  target3, pathOptions));
+			path1.add(new Waypoint(approach3, pathOptions));
+			path1.setReverseDirection();
+			pathList.add(path1);
 			
 			// drive to target 2
-			Path path3 = new Path();
-			path3.add(new Waypoint(approach3, pathOptions));
-			path3.add(new Waypoint(approach2, visionOptions));	// enable vision
-			path3.add(new Waypoint(  target2, visionOptions));
-			pathList.add(path3);
+			Path path2 = new Path();
+			path2.add(new Waypoint(approach3, pathOptions));
+			path2.add(new Waypoint(approach2, visionOptions));	// enable vision
+			path2.add(new Waypoint(  target2, visionOptions));
+			pathList.add(path2);
 
 			// back up
-			Path path4 = new Path();
-			path4.add(new Waypoint(  target2, pathOptions));
-			path4.add(new Waypoint(approach2, pathOptions));
-			path4.setReverseDirection();
-			pathList.add(path4);
+			Path path3 = new Path();
+			path3.add(new Waypoint(  target2, pathOptions));
+			path3.add(new Waypoint(approach2, pathOptions));
+			path3.setReverseDirection();
+			pathList.add(path3);
 
 			// drive to target 3
-			Path path5 = new Path();
-			path5.add(new Waypoint(approach2, pathOptions));
-			path5.add(new Waypoint(approach1, visionOptions));	// enable vision
-			path5.add(new Waypoint(  target1, visionOptions));	
-			pathList.add(path5);
+			Path path4 = new Path();
+			path4.add(new Waypoint(approach2, pathOptions));
+			path4.add(new Waypoint(approach1, visionOptions));	// enable vision
+			path4.add(new Waypoint(  target1, visionOptions));	
+			pathList.add(path4);
 
 			// backup
-			Path path6 = new Path();
-			path6.add(new Waypoint(  target1, pathOptions));
-			path6.add(new Waypoint(approach1, pathOptions));
-			path6.setReverseDirection();
-			pathList.add(path6);
+			Path path5 = new Path();
+			path5.add(new Waypoint(  target1, pathOptions));
+			path5.add(new Waypoint(approach1, pathOptions));
+			path5.setReverseDirection();
+			pathList.add(path5);
 
 			// drive back to starting point
-			Path path7 = new Path();
-			path7.add(new Waypoint(approach1, 	pathOptions));
-			path7.add(new Waypoint(approach3, 	pathOptions));
-			path7.add(new Waypoint(flip3, 		pathOptions));
-			pathList.add(path7);
+			Path path6 = new Path();
+			path6.add(new Waypoint(approach1, 	pathOptions));
+			path6.add(new Waypoint(approach3, 	pathOptions));
+			path6.add(new Waypoint(flip3, 		pathOptions));
+			pathList.add(path6);
 
 			// backup to initial position
 			Path path8 = new Path();
@@ -143,7 +143,7 @@ System.out.println("path1.getRemainingLength() = " + path1.getRemainingLength())
 
     	// execute each path, in sequence
     	for (Path path : pathList)
-            runAction( new PathFollowerWithVisionAction( path ) );   
+    		runAction( new PathFollowerWithVisionAction( path ) );   
     		
     }
     

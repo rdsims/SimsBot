@@ -4,7 +4,6 @@ import org.team686.lib.util.DataLogger;
 import org.team686.lib.util.Vector2d;
 import org.team686.lib.util.Kinematics.WheelSpeed;
 import org.team686.simsbot.Constants;
-import org.team686.simsbot.command_status.DriveStatus;
 import org.team686.simsbot.command_status.RobotState;
 import org.team686.simsbot.subsystems.Drive;
 
