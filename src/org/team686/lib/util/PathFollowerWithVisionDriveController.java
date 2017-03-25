@@ -1,5 +1,6 @@
 package org.team686.lib.util;
 
+import edu.wpi.first.wpilibj.Relay;
 import edu.wpi.first.wpilibj.Timer;
 
 import org.team686.lib.util.Kinematics.WheelSpeed;
@@ -30,7 +31,8 @@ public class PathFollowerWithVisionDriveController
 	public Drive drive = Drive.getInstance();
 	public RobotState robotState = RobotState.getInstance();
 	public VisionStatus visionStatus = VisionStatus.getInstance();
-
+	private Relay ledRelay = LedRelay.getInstance();
+	
 	Path path;
 	
 	public Vector2d avgTargetLocation = new Vector2d(0,0);
@@ -87,7 +89,7 @@ public class PathFollowerWithVisionDriveController
 		//---------------------------------------------------
 		
 		// values from camera, normalized to camera's Field of View (-1 to +1) 
-		double imageTimestamp    	 = visionStatus.getImageTimestamp();			// TODO: modify vision code to return targets to edge of FOV
+		double imageTimestamp    	 = visionStatus.getImageTimestamp();
 		double normalizedTargetX 	 = visionStatus.getNormalizedTargetX();
 		double normalizedTargetWidth = visionStatus.getNormalizedTargetWidth();
 
@@ -187,6 +189,7 @@ imageTimestamp = currentTime - Constants.kCameraLatencySeconds;		// remove camer
 	// drive towards vision target (or follow path if no target acquired)
 	public void visionDrive(double _currentTime, Pose _currentPose, Pose _previousPose, double _imageTimestamp, double _normalizedTargetX, double _normalizedTargetWidth)
 	{
+		ledRelay.set(Relay.Value.kOn); 		// turn on LEDs during Vision-enabled segments
 		distanceToTargetInches = Double.MAX_VALUE;
 		
 		// If we get a valid message from the Vision co-processor, update our estimate of the target location
@@ -288,6 +291,7 @@ imageTimestamp = currentTime - Constants.kCameraLatencySeconds;		// remove camer
     public void done() 
     {
 		// cleanup code, if any
+    	ledRelay.set(Relay.Value.kOff); 		// turn off LEDs when done
         drive.stop();
     }
 

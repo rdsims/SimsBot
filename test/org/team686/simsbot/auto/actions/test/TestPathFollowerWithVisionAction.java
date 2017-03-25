@@ -362,7 +362,7 @@ public class TestPathFollowerWithVisionAction
 		//---------------------------------------------------
 		
 		// values from camera, normalized to camera's Field of View (-1 to +1) 
-		imageTimestamp    	  = visionStatus.getImageTimestamp();			// TODO: modify vision code to return targets to edge of FOV
+		imageTimestamp    	  = visionStatus.getImageTimestamp();
 		normalizedTargetX 	  = visionStatus.getNormalizedTargetX();
 		normalizedTargetWidth = visionStatus.getNormalizedTargetWidth();
 

@@ -92,11 +92,15 @@ public class Constants extends ConstantsBase
     public static double kCameraFOVDegrees = 42.5;			// Camera Field of View (degrees)
     public static double kCameraHalfFOVRadians = kCameraFOVDegrees/2.0 * Math.PI/180.0;			// Half of Camera Field of View (radians)
     public static double kTangentCameraHalfFOV = Math.tan(kCameraHalfFOVRadians);
-    public static double kCameraLatencySeconds = 0.240;			// Camera image capturing latency  TODO: increase until it doesn't overshoot
+    public static double kCameraLatencySeconds = 0.240;			// Camera image capturing latency
     public static double kTargetLocationFilterConstant = (30.0 * kLoopDt);		// 30 time constants in 1 second
     
+    
+    
+    
     // Do not change anything after this line!
-    // TALONS
+    
+    // Motor Controllers
     // (Note that if multiple Talons are dedicated to a mechanism, any sensors are attached to the master)
     public static final int kLeftMotorTalonId  = 1;
     public static final int kRightMotorTalonId = 2;
@@ -116,6 +120,9 @@ public class Constants extends ConstantsBase
     public static int kXboxRStickXAxis  = 4;
     public static int kXboxRStickYAxis  = 5;
 
+    // Relay Ports
+    public static int kLedRelayPort = 0;
+    
     // Gyro
 	// The I2C port the BNO055 is connected to
     public static final I2C.Port BNO055_PORT = I2C.Port.kOnboard;
