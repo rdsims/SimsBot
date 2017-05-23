@@ -77,13 +77,17 @@ public class Constants extends ConstantsBase
     public static double kPathFollowingCompletionTolerance = 1.0; 
     
     // Vision constants
-    public static double kCameraPoseX     = +7.25;	// camera location with respect to robot center of rotation, +X axis is in direction of travel
-    public static double kCameraPoseY     =     0;	// camera location with respect to robot center of rotation, +Y axis is positive to the left
-    public static double kCameraPoseTheta =     0;	// camera angle with respect to robot heading
-    
+    public static double kCameraPoseX        = +7.25;	// camera location with respect to robot center of rotation, X axis is in direction of travel
+    public static double kCameraPoseY        =     0;	// camera location with respect to robot center of rotation, Y axis is positive to the left
+    public static double kCameraPoseZ        =  12.0;	// camera location with respect to floor, Z axis is positive with increasing elevation
+    public static double kCameraPoseThetaRad =     0;	// camera angle with respect to robot heading, in radians
+    public static double kCameraPitchRad     =     0;   // camera vertical angle with respect to level ground, in radians
+    public static double kCameraDeadband = 0.0;
+  
     public static double kVisionMaxVel    = 60.0; // inches/sec  		
     public static double kVisionMaxAccel  = 48.0; // inches/sec^2		
     public static double kTargetWidthInches = 10.25;
+    public static double kCenterOfTargetHeight = 12.0;
     public static double kPegTargetDistanceThresholdFromBumperInches = 18;		// inches to stop from target, measured from front bumper
     public static double kPegTargetDistanceThresholdFromCameraInches = kFrontBumperX - kCameraPoseX + kPegTargetDistanceThresholdFromBumperInches;
     public static double kVisionCompletionTolerance = 1.0; 
@@ -94,7 +98,17 @@ public class Constants extends ConstantsBase
     public static double kTangentCameraHalfFOV = Math.tan(kCameraHalfFOVRadians);
     public static double kCameraLatencySeconds = 0.240;			// Camera image capturing latency
     public static double kTargetLocationFilterConstant = (30.0 * kLoopDt);		// 30 time constants in 1 second
-    
+
+    // Goal Tracking constants
+    public static double kMaxTrackerDistance = 18.0;
+    public static double kMaxGoalTrackAge = 0.3;
+    public static double kCameraFrameRate = 30.0;
+    public static double kTrackReportComparatorStablityWeight = 1.0;
+    public static double kTrackReportComparatorAgeWeight = 1.0;
+    public static double kTrackReportComparatorSwitchingWeight = 3.0;
+    public static double kTrackReportComparatorDistanceWeight = 2.0; // Unused
+
+    public static int kAndroidAppTcpPort = 8686;
     
     
     

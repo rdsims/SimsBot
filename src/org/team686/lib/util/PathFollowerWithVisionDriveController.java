@@ -48,7 +48,7 @@ public class PathFollowerWithVisionDriveController
 	public Pose previousPose = new Pose();
 	
 	// camera pose with respect to robot
-	public Pose cameraPose_Robot = new Pose(Constants.kCameraPoseX, Constants.kCameraPoseY, Constants.kCameraPoseTheta);
+	public Pose cameraPose_Robot = new Pose(Constants.kCameraPoseX, Constants.kCameraPoseY, Constants.kCameraPoseThetaRad);
 	
 	public double prevDistanceToTargetInches;
 	public double prevHeadingToTarget;
