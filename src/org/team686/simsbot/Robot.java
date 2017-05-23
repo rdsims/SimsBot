@@ -18,8 +18,11 @@ import org.team686.simsbot.command_status.VisionStatus;
 import org.team686.simsbot.loops.DriveLoop;
 import org.team686.simsbot.loops.LoopController;
 import org.team686.simsbot.loops.RobotStateLoop;
+import org.team686.simsbot.loops.VisionProcessor;
 import org.team686.simsbot.loops.VisionLoop;
 import org.team686.simsbot.subsystems.Drive;
+import org.team686.simsbot.vision.VisionServer;
+
 
 /**
  * The VM is configured to automatically run this class, and to call the
@@ -35,6 +38,7 @@ public class Robot extends IterativeRobot
 	JoystickControlsBase controls = ArcadeDriveJoystick.getInstance();
 	RobotState robotState = RobotState.getInstance();	
 	Drive drive = Drive.getInstance();					
+    VisionServer visionServer = VisionServer.getInstance();
 	
 	AutoModeExecuter autoModeExecuter = null;
 
@@ -70,6 +74,8 @@ public class Robot extends IterativeRobot
 		{
 			CrashTracker.logRobotInit();
 
+            visionServer.addVisionUpdateReceiver(VisionProcessor.getInstance());
+			
 			// Configure LoopController
 			loopController = new LoopController();
 			loopController.register(drive.getVelocityPIDLoop());

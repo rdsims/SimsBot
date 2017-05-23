@@ -34,6 +34,11 @@ public class Pose implements Interpolable<Pose>
 		heading  = _heading;
     }
 
+    public Pose(Vector2d _position) 
+    {
+    	this(_position, 0.0);
+    }
+
     public Pose(Pose that) 
     {
     	this(that.position, that.heading);
@@ -147,10 +152,12 @@ public class Pose implements Interpolable<Pose>
     // for example: the pose of the camera on the robot is found relative to the field
     //              this would be the pose of the camera with respect to the robot's center of rotation and heading
     //              that would give the pose of the robot with respect to the field
+    //
+    // poseInBaseCoordSystem = poseInRelCoordSystem.transformBy( poseOfRelCoordSystem_with_respect_to_BaseCoordSystem )    
 	public Pose transformBy(Pose _that)
 	{
 																// assume robot's center of rotation is (0,0)
-		Pose transformedPose = this.rotate(_that.heading);	// first, rotate by that.heading
+		Pose transformedPose = this.rotate(_that.heading);		// first, rotate by that.heading
 		transformedPose = transformedPose.add(_that.position);	// then translate by that.position
 		return transformedPose;
 	}
@@ -160,7 +167,7 @@ public class Pose implements Interpolable<Pose>
     public Pose inverse()
     {
     	Pose T = new Pose(-this.getTranslation().x, -this.getTranslation().y, 0);	// invert translation
-    	T = T.rotate(-this.getRotation());								// rotate translation by inverse of rotation
+    	T = T.rotate(-this.getRotation());											// rotate translation by inverse of rotation
     	return T;												
     }
 	
