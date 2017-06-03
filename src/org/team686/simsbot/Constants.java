@@ -93,7 +93,8 @@ public class Constants extends ConstantsBase
     public static double kVisionMaxVel    = 60.0; // inches/sec  		
     public static double kVisionMaxAccel  = 48.0; // inches/sec^2		
     public static double kTargetWidthInches = 10.25;
-    public static double kCenterOfTargetHeight = 12.0;
+    public static double kTargetHeightInches = 5.00;
+    public static double kCenterOfTargetHeightInches = 12.0;
     public static double kPegTargetDistanceThresholdFromBumperInches = 18;		// inches to stop from target, measured from front bumper
     public static double kPegTargetDistanceThresholdFromCameraInches = kFrontBumperX - kCameraPoseX + kPegTargetDistanceThresholdFromBumperInches;
     public static double kVisionCompletionTolerance = 1.0; 

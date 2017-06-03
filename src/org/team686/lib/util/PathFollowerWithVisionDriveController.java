@@ -188,8 +188,8 @@ public class PathFollowerWithVisionDriveController
 		if (state == PathVisionState.VISION)
 		{
 			// Get range and angle to target   
-			distanceToTargetInches = goalStates.getBestTargetRange();
-			bearingToTarget = goalStates.getBestTargetBearing();
+			distanceToTargetInches = goalStates.getBestTargetHorizontalDistance();
+			bearingToTarget = goalStates.getBestTargetRelativeBearing();
 			
 			// Calculate motor settings to turn towards target   
 			lookaheadDist = Math.min(Constants.kVisionLookaheadDist, distanceToTargetInches);	// length of chord <= kVisionLookaheadDist
@@ -281,8 +281,8 @@ public class PathFollowerWithVisionDriveController
 			put("PathVision/numTargets", goalStates.getNumTargets());
 			put("PathVision/bestTargetX", goalStates.getBestTargetPosition().getX());
 			put("PathVision/bestTargetY", goalStates.getBestTargetPosition().getY());
-			put("PathVision/bestTargetRange", goalStates.getBestTargetRange());
-			put("PathVision/bestTargetBearing", goalStates.getBestTargetBearing());
+			put("PathVision/bestTargetRange", goalStates.getBestTargetHorizontalDistance());
+			put("PathVision/bestTargetBearing", goalStates.getBestTargetRelativeBearing());
             
 			put("PathVision/reversed", reversed);
 			put("PathVision/state", state.toString());

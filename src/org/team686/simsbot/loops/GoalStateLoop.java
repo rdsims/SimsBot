@@ -38,6 +38,8 @@ public class GoalStateLoop implements Loop, VisionStateListener
 
 	int currentBestTrackId = -1;
 	
+	enum RangeMethod { DIFFERENTIAL_HEIGHT, TARGET_HEIGHT, TARGET_WIDTH };
+	final RangeMethod rangeMethod = RangeMethod.TARGET_WIDTH; 
 	
 	public static GoalStateLoop getInstance()
 	{
@@ -84,7 +86,6 @@ public class GoalStateLoop implements Loop, VisionStateListener
 		Pose fieldToCamera = robotState.getFieldToCamera(imageCaptureTimestamp);	// find position of camera back when image was taken (removes latency in processing)
 
 		List<Vector2d> fieldToGoals = new ArrayList<>();
-        double differentialHeight = Constants.kCenterOfTargetHeight - Constants.kCameraPoseZ;	
 		
 		if (!(visionTargets == null || visionTargets.isEmpty()))
 		{
@@ -92,17 +93,43 @@ public class GoalStateLoop implements Loop, VisionStateListener
 			{
 				double hAngle = target.getHorizontalAngle() - Constants.kCameraPoseThetaRad;	// compensate for camera yaw
 				double vAngle = target.getVerticalAngle()   - Constants.kCameraPitchRad;		// compensate for camera pitch
+				double hWidth = target.getHorizontalWidth();
+				double vWidth = target.getVerticalWidth();
+						
+		        double differentialHeight = Constants.kCenterOfTargetHeightInches - Constants.kCameraPoseZ;	
+				double horizontalDistance = 0;
+				double range = 0;
+				double cos = 0;
 				
-				// Targets have a known height.  
-				// If you know the height and the angle to the target, 
-				// you can calculate the horizontal distance to the target
-				if (vAngle > 0)
+				switch (rangeMethod)
 				{
-					double distance = differentialHeight / Math.tan(vAngle);
-					Pose cameraToTarget = new Pose( Vector2d.magnitudeAngle(distance, hAngle) );
-					Pose fieldToTarget = cameraToTarget.changeCoordinateSystem( fieldToCamera );
+				case DIFFERENTIAL_HEIGHT:
+					horizontalDistance = Math.abs(differentialHeight / Math.tan(vAngle));
+					break;
 					
-					fieldToGoals.add( fieldToTarget.getPosition() );	
+				case TARGET_HEIGHT:
+					// assumes target is vertical
+					cos = Math.cos(vAngle);
+					range = Constants.kTargetHeightInches * cos / vWidth;
+					horizontalDistance = range * cos;
+					break;
+					
+				case TARGET_WIDTH:
+					// assumes target is horizontally perpendicular to camera axis (not likely unless you attempt to make it so)
+					cos = Math.cos(hAngle);
+					range = Constants.kTargetWidthInches * cos / hWidth;
+					horizontalDistance = range * cos;
+					break;
+					
+				default:
+					break;
+				}
+				
+				if (horizontalDistance > 0)
+				{
+					Pose cameraToTarget = new Pose( Vector2d.magnitudeAngle(horizontalDistance, hAngle) );
+					Pose fieldToTarget = cameraToTarget.changeCoordinateSystem( fieldToCamera );
+					fieldToGoals.add( fieldToTarget.getPosition() );
 				}
 			}
 		}

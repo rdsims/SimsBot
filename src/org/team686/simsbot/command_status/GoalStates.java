@@ -27,12 +27,12 @@ public class GoalStates
 		goalList.add(new GoalState(_fieldToGoal, _fieldToShooter, _trackId));	
 	}
 
-	synchronized public boolean targetFound()				{	return (goalList.size() > 0);		}
-	synchronized public int getNumTargets()					{	return goalList.size();		}
-	synchronized public Vector2d getBestTargetPosition()	{	return goalList.get(0).getPosition();		}
-	synchronized public double getBestTargetRange()			{	return goalList.get(0).getRange();		}
-	synchronized public double getBestTargetBearing()		{	return goalList.get(0).getBearing();	}
-	synchronized public int getBestTargetTrackId()			{	return goalList.get(0).getTrackId();	}
+	synchronized public boolean targetFound()					 {	return (goalList.size() > 0);		}
+	synchronized public int getNumTargets()						 {	return goalList.size();		}
+	synchronized public Vector2d getBestTargetPosition()		 {	return goalList.get(0).getPosition();		}
+	synchronized public double getBestTargetHorizontalDistance() {	return goalList.get(0).getHorizontalDistance();		}
+	synchronized public double getBestTargetRelativeBearing()	 {	return goalList.get(0).getRelativeBearing();	}
+	synchronized public int getBestTargetTrackId()				 {	return goalList.get(0).getTrackId();	}
 
 
 	
@@ -44,8 +44,8 @@ public class GoalStates
 	public class GoalState 
 	{
 		Vector2d fieldToGoal;
-	    double range;	// in inches
-	    double bearing;	// in radians, relative to robot's heading
+	    double horizontalDistance;	// in inches
+	    double relativeBearing;		// in radians, relative to robot's heading
 	    int trackId;
 
 	    public GoalState(Vector2d _fieldToGoal, Pose _fieldToShooter, int _trackId) 
@@ -57,14 +57,14 @@ public class GoalStates
 			double bearingToGoal = shooterToGoal.angle() - _fieldToShooter.getHeading(); 	// bearing relative to shooter's heading
 		
 			fieldToGoal = _fieldToGoal;
-	        range = distanceToGoal;
-	        bearing = bearingToGoal;
+	        horizontalDistance = distanceToGoal;
+	        relativeBearing = bearingToGoal;
 	        trackId = _trackId;
 	    }
 
 	    public Vector2d getPosition() { return fieldToGoal; }
-	    public double getRange() { return range; }
-	    public double getBearing() { return bearing; }
+	    public double getHorizontalDistance() { return horizontalDistance; }
+	    public double getRelativeBearing() { return relativeBearing; }
 	    public int getTrackId() { return trackId; }
 	}	
 
@@ -82,8 +82,8 @@ public class GoalStates
 				put("GoalState/numTargets", goalList.size());
 				put("GoalState/bestTargetX", getBestTargetPosition().getX());
 				put("GoalState/bestTargetY", getBestTargetPosition().getY());
-				put("GoalState/bestTargetRange", getBestTargetRange());
-				put("GoalState/bestTargetBearing", getBestTargetBearing());
+				put("GoalState/bestTargetRange", getBestTargetHorizontalDistance());
+				put("GoalState/bestTargetBearing", getBestTargetRelativeBearing());
 			}
 		}
 	};
