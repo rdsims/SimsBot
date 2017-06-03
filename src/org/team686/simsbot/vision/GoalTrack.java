@@ -21,9 +21,9 @@ import edu.wpi.first.wpilibj.Timer;
  */
 public class GoalTrack
 {
-	Map<Double, Vector2d> mObservedPositions = new TreeMap<>();
-	Vector2d mSmoothedPosition = null;
-	int mId;
+	Map<Double, Vector2d> observedPositions = new TreeMap<>();
+	Vector2d smoothedPosition = null;
+	int trackId;
 
 	private GoalTrack()
 	{
@@ -36,9 +36,9 @@ public class GoalTrack
 	public static GoalTrack makeNewTrack(double timestamp, Vector2d firstObservation, int id)
 	{
 		GoalTrack track = new GoalTrack();
-		track.mObservedPositions.put(timestamp, firstObservation);
-		track.mSmoothedPosition = firstObservation;
-		track.mId = id;
+		track.observedPositions.put(timestamp, firstObservation);
+		track.smoothedPosition = firstObservation;
+		track.trackId = id;
 		return track;
 	}
 
@@ -58,10 +58,10 @@ public class GoalTrack
 		{
 			return false;
 		}
-		double distance = mSmoothedPosition.distance(newObservation);
+		double distance = smoothedPosition.distance(newObservation);
 		if (distance < Constants.kMaxTrackerDistance)
 		{
-			mObservedPositions.put(timestamp, newObservation);
+			observedPositions.put(timestamp, newObservation);
 			pruneByTime();
 			return true;
 		} 
@@ -75,7 +75,7 @@ public class GoalTrack
 
 	public boolean isAlive()
 	{
-		return mObservedPositions.size() > 0;
+		return observedPositions.size() > 0;
 	}
 
 	/**
@@ -86,8 +86,8 @@ public class GoalTrack
 	 */
 	void pruneByTime()
 	{
-		double deleteBefore = Timer.getFPGATimestamp() - Constants.kMaxGoalTrackAge;
-		for (Iterator<Map.Entry<Double, Vector2d>> it = mObservedPositions.entrySet().iterator(); it.hasNext();)
+		double deleteBefore = Timer.getFPGATimestamp() - Constants.kGoalTrackAveragePeriod;
+		for (Iterator<Map.Entry<Double, Vector2d>> it = observedPositions.entrySet().iterator(); it.hasNext();)
 		{
 			Map.Entry<Double, Vector2d> entry = it.next();
 			if (entry.getKey() < deleteBefore)
@@ -95,9 +95,9 @@ public class GoalTrack
 				it.remove();
 			}
 		}
-		if (mObservedPositions.isEmpty())
+		if (observedPositions.isEmpty())
 		{
-			mSmoothedPosition = null;
+			smoothedPosition = null;
 		} 
 		else
 		{
@@ -114,34 +114,34 @@ public class GoalTrack
 		{
 			double x = 0;
 			double y = 0;
-			for (Map.Entry<Double, Vector2d> entry : mObservedPositions.entrySet())
+			for (Map.Entry<Double, Vector2d> entry : observedPositions.entrySet())
 			{
 				x += entry.getValue().getX();
 				y += entry.getValue().getY();
 			}
-			x /= mObservedPositions.size();
-			y /= mObservedPositions.size();
-			mSmoothedPosition = new Vector2d(x, y);
+			x /= observedPositions.size();
+			y /= observedPositions.size();
+			smoothedPosition = new Vector2d(x, y);
 		}
 	}
 
 	public Vector2d getSmoothedPosition()
 	{
-		return mSmoothedPosition;
+		return smoothedPosition;
 	}
 
 	public double getLatestTimestamp()
 	{
-		return mObservedPositions.keySet().stream().max(Double::compareTo).orElse(0.0);
+		return observedPositions.keySet().stream().max(Double::compareTo).orElse(0.0);
 	}
 
 	public double getStability()
 	{
-		return Math.min(1.0, mObservedPositions.size() / (Constants.kCameraFrameRate * Constants.kMaxGoalTrackAge));
+		return Math.min(1.0, observedPositions.size() / (Constants.kCameraFrameRate * Constants.kGoalTrackAveragePeriod));
 	}
 
 	public int getId()
 	{
-		return mId;
+		return trackId;
 	}
 }

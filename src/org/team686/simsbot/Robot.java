@@ -13,13 +13,12 @@ import org.team686.lib.util.*;
 import org.team686.simsbot.auto.AutoModeExecuter;
 import org.team686.simsbot.command_status.DriveCommand;
 import org.team686.simsbot.command_status.DriveState;
+import org.team686.simsbot.command_status.GoalStates;
 import org.team686.simsbot.command_status.RobotState;
-import org.team686.simsbot.command_status.VisionStatus;
 import org.team686.simsbot.loops.DriveLoop;
 import org.team686.simsbot.loops.LoopController;
 import org.team686.simsbot.loops.RobotStateLoop;
 import org.team686.simsbot.loops.GoalStateLoop;
-import org.team686.simsbot.loops.VisionLoop;
 import org.team686.simsbot.subsystems.Drive;
 import org.team686.simsbot.vision.VisionServer;
 
@@ -76,12 +75,14 @@ public class Robot extends IterativeRobot
 
             visionServer.addVisionStateReceiver(GoalStateLoop.getInstance());
 			
+// TODO: make Enabled/Disabled LoopControllers
+            
 			// Configure LoopController
 			loopController = new LoopController();
 			loopController.register(drive.getVelocityPIDLoop());
 			loopController.register(DriveLoop.getInstance());
 			loopController.register(RobotStateLoop.getInstance());
-			loopController.register(VisionLoop.getInstance());
+			loopController.register(GoalStateLoop.getInstance());
 
 			smartDashboardInteractions = new SmartDashboardInteractions();
 			smartDashboardInteractions.initWithDefaults();
@@ -95,7 +96,7 @@ public class Robot extends IterativeRobot
 			robotLogger.register(drive.getCommand().getLogger());
 			robotLogger.register(DriveState.getInstance().getLogger());
 			robotLogger.register(RobotState.getInstance().getLogger());
-			robotLogger.register(VisionStatus.getInstance().getLogger());
+			robotLogger.register(GoalStates.getInstance().getLogger());
 			
 			// set initial Pose (will be updated during autonomousInit())
 			setInitialPose( new Pose() );
