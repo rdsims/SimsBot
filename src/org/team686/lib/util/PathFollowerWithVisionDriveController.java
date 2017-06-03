@@ -199,7 +199,7 @@ imageTimestamp = currentTime - Constants.kCameraLatencySeconds;		// remove camer
 			// Estimate target location based on previous location,
 			// to compensate for latency in processing image
 			//-----------------------------------------------------
-			Pose cameraPose_Field = cameraPose_Robot.transformBy(_previousPose);
+			Pose cameraPose_Field = cameraPose_Robot.changeCoordinateSystem(_previousPose);
 			prevDistanceToTargetInches = Constants.kTargetWidthInches / (2.0*_normalizedTargetWidth*Constants.kTangentCameraHalfFOV);
 			prevHeadingToTarget = _previousPose.getHeading() + (-_normalizedTargetX*Constants.kCameraHalfFOVRadians);
 			Vector2d prevToTarget = Vector2d.magnitudeAngle(prevDistanceToTargetInches, prevHeadingToTarget);

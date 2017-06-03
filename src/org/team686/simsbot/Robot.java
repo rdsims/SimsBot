@@ -12,13 +12,13 @@ import org.team686.lib.util.*;
 
 import org.team686.simsbot.auto.AutoModeExecuter;
 import org.team686.simsbot.command_status.DriveCommand;
-import org.team686.simsbot.command_status.DriveStatus;
+import org.team686.simsbot.command_status.DriveState;
 import org.team686.simsbot.command_status.RobotState;
 import org.team686.simsbot.command_status.VisionStatus;
 import org.team686.simsbot.loops.DriveLoop;
 import org.team686.simsbot.loops.LoopController;
 import org.team686.simsbot.loops.RobotStateLoop;
-import org.team686.simsbot.loops.VisionProcessor;
+import org.team686.simsbot.loops.GoalStateLoop;
 import org.team686.simsbot.loops.VisionLoop;
 import org.team686.simsbot.subsystems.Drive;
 import org.team686.simsbot.vision.VisionServer;
@@ -74,7 +74,7 @@ public class Robot extends IterativeRobot
 		{
 			CrashTracker.logRobotInit();
 
-            visionServer.addVisionUpdateReceiver(VisionProcessor.getInstance());
+            visionServer.addVisionStateReceiver(GoalStateLoop.getInstance());
 			
 			// Configure LoopController
 			loopController = new LoopController();
@@ -93,7 +93,7 @@ public class Robot extends IterativeRobot
 			robotLogger.register(this.getLogger());
 			robotLogger.register(Drive.getInstance().getLogger());
 			robotLogger.register(drive.getCommand().getLogger());
-			robotLogger.register(DriveStatus.getInstance().getLogger());
+			robotLogger.register(DriveState.getInstance().getLogger());
 			robotLogger.register(RobotState.getInstance().getLogger());
 			robotLogger.register(VisionStatus.getInstance().getLogger());
 			
@@ -110,7 +110,7 @@ public class Robot extends IterativeRobot
 
 	public void setInitialPose( Pose _initialPose )
 	{
-		robotState.reset(Timer.getFPGATimestamp(), DriveStatus.getInstance().getLeftDistanceInches(), DriveStatus.getInstance().getRightDistanceInches(), _initialPose);	// set initial pose
+		robotState.reset(Timer.getFPGATimestamp(), DriveState.getInstance().getLeftDistanceInches(), DriveState.getInstance().getRightDistanceInches(), _initialPose);	// set initial pose
 		System.out.println("InitialPose: " + _initialPose);
 	}
 	
