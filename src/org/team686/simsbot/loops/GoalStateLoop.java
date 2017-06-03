@@ -7,7 +7,7 @@ import java.util.List;
 import org.team686.lib.util.Pose;
 import org.team686.lib.util.Vector2d;
 import org.team686.simsbot.Constants;
-import org.team686.simsbot.command_status.GoalState;
+import org.team686.simsbot.command_status.GoalStates;
 import org.team686.simsbot.command_status.RobotState;
 import org.team686.simsbot.vision.GoalTracker;
 import org.team686.simsbot.vision.VisionState;
@@ -27,15 +27,14 @@ import edu.wpi.first.wpilibj.Timer;
 public class GoalStateLoop implements Loop, VisionStateListener
 {
 	static GoalStateLoop instance = new GoalStateLoop();
-	boolean visionUpdatePending = false; // set to true when updated vision
-											// information is available (set
-											// from VisionServer thread)
+	boolean visionUpdatePending = false; // set to true when updated vision information is available 
+										 // (set from VisionServer thread)
 
 	RobotState robotState = RobotState.getInstance();
 	VisionState visionState = VisionState.getInstance();
 
 	GoalTracker goalTracker;
-	GoalState goalState = GoalState.getInstance();
+	GoalStates goalStates = GoalStates.getInstance();
 
 	int currentBestTrackId = -1;
 	
@@ -121,7 +120,7 @@ public class GoalStateLoop implements Loop, VisionStateListener
 		
 		// define a comparator so that GoalTracks can be sorted by rank
         double now = Timer.getFPGATimestamp();
-		currentBestTrackId = goalState.getBestTargetTrackId();
+		currentBestTrackId = goalStates.getBestTargetTrackId();
         		
         GoalTracker.TrackReportComparator goalTrackComparator = new GoalTracker.TrackReportComparator(
         		Constants.kTrackReportComparatorStablityWeight, Constants.kTrackReportComparatorAgeWeight, 
@@ -134,21 +133,14 @@ public class GoalStateLoop implements Loop, VisionStateListener
 
 		
 		
-		// Step 4: Get range/bearing to each goal
+		// Step 4: Store position of goals, calculate range/bearing from shooter to each goal
 
-		Pose predictedFieldToRobot = robotState.getPredictedFieldToVehicle(Constants.kAutoAimPredictionTime);
-		Pose predictedFieldToCamera = robotState.getPredictedFieldToCamera(Constants.kAutoAimPredictionTime);
+		Pose predictedFieldToShooter = robotState.getPredictedFieldToShooter(Constants.kAutoAimPredictionTime);
 
-		goalState.clear();
+		goalStates.clear();
 		for (GoalTracker.TrackReport report : reports)
 		{
-			// find relative distance and bearing to goal, store in list
-			Vector2d cameraToGoal = report.fieldToGoal.sub(predictedFieldToCamera.getPosition());
-			
-			double distanceToGoal = cameraToGoal.length();
-			double bearingToGoal = cameraToGoal.angle() - predictedFieldToRobot.getHeading(); 	// bearing relative to robot's heading
-		
-			goalState.add(distanceToGoal, bearingToGoal, report.trackId);
+			goalStates.add(report.fieldToGoal, predictedFieldToShooter, report.trackId);
 		}		
 
 	}

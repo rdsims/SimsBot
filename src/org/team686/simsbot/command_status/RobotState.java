@@ -177,6 +177,26 @@ public class RobotState
         return fieldToCamera;
 	}
 
+	// Field to camera functions
+
+	public static final Pose robotToShooter = new Pose(Constants.kShooterPoseX, Constants.kShooterPoseY, Constants.kShooterPoseThetaRad);
+
+    public synchronized Pose getFieldToShooter(double timestamp) 
+    {
+    	Pose fieldToRobot = getFieldToVehicle(timestamp); 
+    	Pose fieldToShooter = robotToShooter.changeCoordinateSystem(fieldToRobot);
+        return fieldToShooter;
+    }
+
+	public synchronized Pose getPredictedFieldToShooter(double _lookaheadTime)
+	{
+		Pose fieldToRobot = getPredictedFieldToVehicle(_lookaheadTime);
+		Pose fieldToShooter = robotToShooter.changeCoordinateSystem(fieldToRobot);
+        return fieldToShooter;
+	}
+
+
+
     
 	private final DataLogger logger = new DataLogger()
 	{
