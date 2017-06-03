@@ -1,6 +1,6 @@
 package org.team686.simsbot.loops;
 
-import org.team686.simsbot.command_status.DriveStatus;
+import org.team686.simsbot.command_status.DriveState;
 import org.team686.simsbot.command_status.RobotState;
 
 import edu.wpi.first.wpilibj.Timer;
@@ -16,12 +16,12 @@ public class RobotStateLoop implements Loop
     public static RobotStateLoop getInstance() { return instance; }
 
     RobotState robotState;
-    DriveStatus driveStatus;
+    DriveState driveStatus;
     
     RobotStateLoop() 
     {
         robotState = RobotState.getInstance();
-        driveStatus = DriveStatus.getInstance();
+        driveStatus = DriveState.getInstance();
     }
     
 

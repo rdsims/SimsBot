@@ -76,6 +76,11 @@ public class Constants extends ConstantsBase
     public static double kPathFollowingLookahead = 24.0; // inches
     public static double kPathFollowingCompletionTolerance = 1.0; 
     
+    // Vision App Constants
+    public static String kAppPackage  = "org.team686.droidvision";
+	public static String kAppActivity = Constants.kAppPackage + "./VisionTrackerActivity";	
+    public static int kAndroidAppTcpPort = 8686;
+    
     // Vision constants
     public static double kCameraPoseX        = +7.25;	// camera location with respect to robot center of rotation, X axis is in direction of travel
     public static double kCameraPoseY        =     0;	// camera location with respect to robot center of rotation, Y axis is positive to the left
@@ -100,16 +105,18 @@ public class Constants extends ConstantsBase
     public static double kTargetLocationFilterConstant = (30.0 * kLoopDt);		// 30 time constants in 1 second
 
     // Goal Tracking constants
-    public static double kMaxTrackerDistance = 18.0;
-    public static double kMaxGoalTrackAge = 0.3;
-    public static double kCameraFrameRate = 30.0;
+    public static double kMaxTrackerDistance = 18.0;	// inches
+    public static double kMaxGoalTrackAge = 0.3;		// seconds (will average goal detections over this period)
+    public static double kMaxTargetAge = 0.4;			// seconds (will not consider targets that haven't been updated in this time)
+    public static double kCameraFrameRate = 30.0;		// frames per second
     public static double kTrackReportComparatorStablityWeight = 1.0;
     public static double kTrackReportComparatorAgeWeight = 1.0;
     public static double kTrackReportComparatorSwitchingWeight = 3.0;
     public static double kTrackReportComparatorDistanceWeight = 2.0; // Unused
 
-    public static int kAndroidAppTcpPort = 8686;
-    
+    // Aiming Constants
+    public static double kAutoAimPredictionTime = 0.25;
+
     
     
     // Do not change anything after this line!

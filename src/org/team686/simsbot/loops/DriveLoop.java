@@ -8,7 +8,7 @@ import edu.wpi.first.wpilibj.Timer;
 import org.team686.lib.sensors.BNO055;
 import org.team686.simsbot.Constants;
 import org.team686.simsbot.command_status.DriveCommand;
-import org.team686.simsbot.command_status.DriveStatus;
+import org.team686.simsbot.command_status.DriveState;
 import org.team686.simsbot.subsystems.Drive;
 
 /*
@@ -26,7 +26,7 @@ public class DriveLoop implements Loop
 	
     private static Drive drive;
 	private static BNO055 imu;
-    private DriveStatus driveStatus;
+    private DriveState driveStatus;
     
 	public final CANTalon lMotor, rMotor;
 
@@ -38,7 +38,7 @@ public class DriveLoop implements Loop
 	{
 		drive = Drive.getInstance();
 		imu = BNO055.getInstance(Constants.BNO055_PORT);
-		driveStatus = DriveStatus.getInstance();
+		driveStatus = DriveState.getInstance();
 		
 		lMotor = new CANTalon(Constants.kLeftMotorTalonId);
 		rMotor = new CANTalon(Constants.kRightMotorTalonId);

@@ -4,7 +4,7 @@ package org.team686.simsbot.vision;
  * A container class for Targets detected by the vision system, containing the
  * horizontal and vertical angles from the optical axis.
  */
-public class TargetAngles
+public class VisionTargetState
 {
 	protected double hCenter; 	// horizontal angle to center of target from optical axis, in radians
 	protected double vCenter; 	//   vertical angle to center of target from optical axis, in radians
@@ -12,7 +12,7 @@ public class TargetAngles
 	protected double hWidth; 	// horizontal angular width of target, in radians
 	protected double vWidth; 	//   vertical angular width of target, in radians
 
-	public TargetAngles(double _hCenter, double _vCenter, double _hWidth, double _vWidth)
+	public VisionTargetState(double _hCenter, double _vCenter, double _hWidth, double _vWidth)
 	{
 		hCenter = _hCenter;
 		vCenter = _vCenter;

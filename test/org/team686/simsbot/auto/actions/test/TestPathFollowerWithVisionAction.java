@@ -22,7 +22,7 @@ import org.team686.lib.util.PathFollowerWithVisionDriveController.PathVisionStat
 import org.team686.simsbot.Constants;
 import org.team686.simsbot.auto.actions.PathFollowerWithVisionAction;
 import org.team686.simsbot.command_status.DriveCommand;
-import org.team686.simsbot.command_status.DriveStatus;
+import org.team686.simsbot.command_status.DriveState;
 import org.team686.simsbot.command_status.RobotState;
 import org.team686.simsbot.command_status.VisionStatus;
 import org.team686.simsbot.subsystems.Drive;
@@ -35,7 +35,7 @@ public class TestPathFollowerWithVisionAction
 	Pose targetPose;
 
 	Drive drive = Drive.getInstance();
-	DriveStatus driveStatus = DriveStatus.getInstance();
+	DriveState driveStatus = DriveState.getInstance();
 	RobotState robotState = RobotState.getInstance();
 	VisionStatus visionStatus = VisionStatus.getInstance();
 	
@@ -312,7 +312,7 @@ public class TestPathFollowerWithVisionAction
 		robotPose = robotState.getLatestFieldToVehicle();
 		
 		// calculate relative position of target
-		Vector2d robotToTarget = targetPose.sub(robotPose);
+		Vector2d robotToTarget = targetPose.getPosition().sub(robotPose.getPosition());
 		double  distToTarget = robotToTarget.length(); 
 		double angleToTarget = robotToTarget.angle() - robotPose.getHeading();
 		angleToTarget = Vector2d.normalizeAngle(angleToTarget);	// modulo 2pi

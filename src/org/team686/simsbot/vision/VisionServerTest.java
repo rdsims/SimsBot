@@ -1,19 +1,23 @@
 package org.team686.simsbot.vision;
 
+import java.util.List;
+
 /**
  * Tests the vision system by getting targets
  */
 public class VisionServerTest
 {
-	public static class TestReceiver implements VisionUpdateReceiver
+	public static class TestReceiver implements VisionStateListener
 	{
 		@Override
-		public void gotUpdate(VisionUpdate update)
+		public void visionStateNotify()
 		{
-			System.out.println("num targets: " + update.getTargets().size());
-			for (int i = 0; i < update.getTargets().size(); i++)
+			List<VisionTargetState> targets = VisionState.getInstance().getTargets();
+			
+			System.out.println("num targets: " + targets.size());
+			for (int i = 0; i < targets.size(); i++)
 			{
-				TargetAngles target = update.getTargets().get(i);
+				VisionTargetState target = targets.get(i);
 				System.out.println( "Target: " + target.getHorizontalAngle() + ", " + target.getVerticalAngle() + target.getHorizontalWidth() + ", " + target.getVerticalWidth() );
 			}
 		}
@@ -22,7 +26,7 @@ public class VisionServerTest
 	public static void main(String[] args)
 	{
 		VisionServer visionServer = VisionServer.getInstance();
-		visionServer.addVisionUpdateReceiver(new TestReceiver());
+		visionServer.addVisionStateReceiver(new TestReceiver());
 		while (true)
 		{
 			try

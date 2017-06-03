@@ -1,7 +1,7 @@
 package org.team686.simsbot.auto.actions;
 
 import org.team686.lib.util.DataLogger;
-import org.team686.simsbot.command_status.DriveStatus;
+import org.team686.simsbot.command_status.DriveState;
 import org.team686.simsbot.subsystems.Drive;
 
 /**
@@ -20,7 +20,7 @@ public class DriveStraightAction implements Action {
     private double mVelocity;
     private double mHeadingDeg;
     private Drive mDrive = Drive.getInstance();
-    private DriveStatus driveStatus = DriveStatus.getInstance();
+    private DriveState driveStatus = DriveState.getInstance();
 
     public DriveStraightAction(double distance, double velocity) {
         this(distance, velocity, 0);

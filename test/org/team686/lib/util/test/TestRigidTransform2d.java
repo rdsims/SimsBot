@@ -163,7 +163,7 @@ public class TestRigidTransform2d
         // A translation times its inverse should be the identity
         Vector2d identity = new Vector2d();
         Pose T1 = new Pose(2.16612, -23.55);
-        Pose T2 = T1.transformBy(T1.inverse());
+        Pose T2 = T1.changeCoordinateSystem(T1.inverse());
         assertEquals(identity.getX(), T2.getX(), kTestEpsilon);
         assertEquals(identity.getY(), T2.getY(), kTestEpsilon);
         assertEquals(identity.length(), T2.getTranslation().length(), kTestEpsilon);
@@ -198,14 +198,14 @@ public class TestRigidTransform2d
         // Test transformation
         pose1 = new Pose(3, 4, 90*Vector2d.degreesToRadians);
         Pose T = new Pose(1, 0, 0);
-        Pose pose3 = pose1.transformBy(T);
+        Pose pose3 = pose1.changeCoordinateSystem(T);
         assertEquals(3, pose3.getX(), kTestEpsilon);
         assertEquals(5, pose3.getY(), kTestEpsilon);
         assertEquals(90, pose3.getHeadingDeg(), kTestEpsilon);
 
         pose1 = new Pose(3, 4,  90*Vector2d.degreesToRadians);
         T = new Pose(1, 0, -90*Vector2d.degreesToRadians);
-        pose3 = pose1.transformBy(T);
+        pose3 = pose1.changeCoordinateSystem(T);
         assertEquals(3, pose3.getX(), kTestEpsilon);
         assertEquals(5, pose3.getY(), kTestEpsilon);
         assertEquals(0, pose3.getHeadingDeg(), kTestEpsilon);
@@ -213,7 +213,7 @@ public class TestRigidTransform2d
         // A pose times its inverse should be the identity
         Pose identity = new Pose();
         Pose T1 = new Pose(3.51512152, 4.23, 91.6*Vector2d.degreesToRadians);
-        Pose T2 = T1.transformBy(T1.inverse());
+        Pose T2 = T1.changeCoordinateSystem(T1.inverse());
         assertEquals(identity.getX(), T2.getX(), kTestEpsilon);
         assertEquals(identity.getY(), T2.getY(), kTestEpsilon);
         assertEquals(identity.getRotationDeg(), T2.getRotationDeg(), kTestEpsilon);

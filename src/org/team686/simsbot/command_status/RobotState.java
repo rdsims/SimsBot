@@ -1,6 +1,6 @@
 package org.team686.simsbot.command_status;
 
-import org.team686.simsbot.command_status.DriveStatus;
+import org.team686.simsbot.command_status.DriveState;
 
 import org.team686.lib.util.DataLogger;
 import org.team686.lib.util.InterpolatingDouble;
@@ -9,8 +9,6 @@ import org.team686.lib.util.Kinematics;
 import org.team686.lib.util.Pose;
 import org.team686.lib.util.Vector2d;
 import org.team686.simsbot.Constants;
-import org.team686.simsbot.vision.GoalTracker;
-import org.team686.simsbot.vision.TargetAngles;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -78,8 +76,6 @@ public class RobotState
 	private double lPrevDistance = 0;
 	private double rPrevDistance = 0;
 
-	Pose robotToCamera;
-    protected GoalTracker goalTracker;
 	
 	
 	
@@ -98,7 +94,7 @@ public class RobotState
 		// calculate gyro heading correction for the desired initial pose (as
 		// set by autonomous mode)
 		double desiredHeading = _initialFieldToRobot.getHeading();
-		double gyroHeading = DriveStatus.getInstance().getHeading();
+		double gyroHeading = DriveState.getInstance().getHeading();
 		gyroCorrection = gyroHeading - desiredHeading; // subtract
 														// gyroCorrection from
 														// actual gyro heading
@@ -108,8 +104,6 @@ public class RobotState
 		robotSpeed = new Kinematics.LinearAngularSpeed(0, 0);
 
 		setPrevEncoderDistance(_lEncoderDistance, _rEncoderDistance);
-		
-        goalTracker = new GoalTracker();
 	}
 
 	public void setPrevEncoderDistance(double _lPrevDistance, double _rPrevDistance)
@@ -131,7 +125,7 @@ public class RobotState
 	public synchronized Pose getPredictedFieldToVehicle(double _lookaheadTime)
 	{
 		Kinematics.LinearAngularSpeed speed = new Kinematics.LinearAngularSpeed(robotSpeed.linearSpeed * _lookaheadTime,
-				robotSpeed.angularSpeed * _lookaheadTime);
+																				robotSpeed.angularSpeed * _lookaheadTime);
 		return Kinematics.travelArc(getLatestFieldToVehicle(), speed);
 	}
 
@@ -165,51 +159,25 @@ public class RobotState
 	}
 
 	
+	// Field to camera functions
 	
+	public static final Pose robotToCamera = new Pose(Constants.kCameraPoseX, Constants.kCameraPoseY, Constants.kCameraPoseThetaRad);
+
     public synchronized Pose getFieldToCamera(double timestamp) 
     {
-		Pose robotToCamera = new Pose(Constants.kCameraPoseX, Constants.kCameraPoseY, Constants.kCameraPoseThetaRad);
     	Pose fieldToRobot = getFieldToVehicle(timestamp); 
-    	Pose fieldToCamera = robotToCamera.transformBy(fieldToRobot);
+    	Pose fieldToCamera = robotToCamera.changeCoordinateSystem(fieldToRobot);
         return fieldToCamera;
     }
 
-	public void addVisionTargets(double timestamp, List<TargetAngles> targets)
+	public synchronized Pose getPredictedFieldToCamera(double _lookaheadTime)
 	{
-		List<Vector2d> fieldToGoals = new ArrayList<>();
-		Pose fieldToCamera = getFieldToCamera(timestamp);
-        double differentialHeight = Constants.kCenterOfTargetHeight - Constants.kCameraPoseZ;	
-		
-		if (!(targets == null || targets.isEmpty()))
-		{
-			for (TargetAngles target : targets)
-			{
-				double hAngle = target.getHorizontalAngle() - Constants.kCameraPoseThetaRad;	// compensate for camera yaw
-				double vAngle = target.getVerticalAngle()   - Constants.kCameraPitchRad;		// compensate for camera pitch
-				
-				// find intersection with the goal
-				if (vAngle > 0)
-				{
-					double distance = differentialHeight / Math.tan(vAngle);
-					Pose cameraToTarget = new Pose( Vector2d.magnitudeAngle(distance, hAngle) );
-					Pose fieldToTarget = cameraToTarget.transformBy( fieldToCamera );
-					
-					fieldToGoals.add( fieldToTarget.getPosition() );	
-				}
-			}
-		}
-		
-		synchronized (this)
-		{
-			goalTracker.update(timestamp, fieldToGoals);
-		}
+		Pose fieldToRobot = getPredictedFieldToVehicle(_lookaheadTime);
+		Pose fieldToCamera = robotToCamera.changeCoordinateSystem(fieldToRobot);
+        return fieldToCamera;
 	}
 
-	public synchronized void resetVision()
-	{
-		goalTracker.reset();
-	}
-
+    
 	private final DataLogger logger = new DataLogger()
 	{
 		@Override
