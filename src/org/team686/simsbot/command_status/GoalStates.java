@@ -2,6 +2,7 @@ package org.team686.simsbot.command_status;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import org.team686.lib.util.DataLogger;
 import org.team686.lib.util.Pose;
@@ -19,21 +20,35 @@ public class GoalStates
 		return instance;
 	}
 
-	List<GoalState> goalList = new ArrayList<>();	
+	static List<GoalState> goalList = new ArrayList<>();	
 
-	synchronized public void clear()					{	goalList.clear();	}
+	synchronized public void clear() 
+	{	
+		goalList.clear();	
+	
+	}
 	synchronized public void add(Vector2d _fieldToGoal, Pose _fieldToShooter, int _trackId)	
 	{	
 		goalList.add(new GoalState(_fieldToGoal, _fieldToShooter, _trackId));	
 	}
 
-	synchronized public boolean targetFound()					 {	return (goalList.size() > 0);		}
-	synchronized public int getNumTargets()						 {	return goalList.size();		}
-	synchronized public Vector2d getBestTargetPosition()		 {	return goalList.get(0).getPosition();		}
-	synchronized public double getBestTargetHorizontalDistance() {	return goalList.get(0).getHorizontalDistance();		}
-	synchronized public double getBestTargetRelativeBearing()	 {	return goalList.get(0).getRelativeBearing();	}
-	synchronized public int getBestTargetTrackId()				 {	return goalList.get(0).getTrackId();	}
-
+	synchronized public boolean targetFound() { return !goalList.isEmpty(); }
+	
+	synchronized public Optional<GoalState> getBestVisionTarget()
+	{
+		Optional<GoalState> rv;
+		
+		if (goalList.isEmpty())
+		{
+			rv = Optional.empty();
+		}
+		else
+		{
+			rv = Optional.of(goalList.get(0));	// goalList is sorted so that goalList.get(0) has the best target
+		}
+		return rv;
+	}
+	
 
 	
 	
@@ -77,13 +92,24 @@ public class GoalStates
 		@Override
 		public void log()
 		{
-			synchronized (GoalStates.this)
+			GoalStates goalStates = GoalStates.getInstance();
+			put("GoalState/numTargets", goalList.size());
+			
+			Optional<GoalState> optTarget = goalStates.getBestVisionTarget();
+			if (optTarget.isPresent())
 			{
-				put("GoalState/numTargets", goalList.size());
-				put("GoalState/bestTargetX", getBestTargetPosition().getX());
-				put("GoalState/bestTargetY", getBestTargetPosition().getY());
-				put("GoalState/bestTargetRange", getBestTargetHorizontalDistance());
-				put("GoalState/bestTargetBearing", getBestTargetRelativeBearing());
+				GoalState target = optTarget.get();
+				put("GoalState/bestTargetX", target.getPosition().getX());
+				put("GoalState/bestTargetY", target.getPosition().getY());
+				put("GoalState/bestTargetRange", target.getHorizontalDistance());
+				put("GoalState/bestTargetBearing", target.getRelativeBearing());
+			}
+			else
+			{
+				put("GoalState/bestTargetX", -999);
+				put("GoalState/bestTargetY", -999);
+				put("GoalState/bestTargetRange", -999);
+				put("GoalState/bestTargetBearing", -999);
 			}
 		}
 	};

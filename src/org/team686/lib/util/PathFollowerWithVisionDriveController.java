@@ -3,11 +3,14 @@ package org.team686.lib.util;
 import edu.wpi.first.wpilibj.Relay;
 import edu.wpi.first.wpilibj.Timer;
 
+import java.util.Optional;
+
 import org.team686.lib.util.Kinematics.WheelSpeed;
 import org.team686.simsbot.Constants;
 import org.team686.simsbot.command_status.DriveCommand;
 import org.team686.simsbot.command_status.RobotState;
 import org.team686.simsbot.command_status.GoalStates;
+import org.team686.simsbot.command_status.GoalStates.GoalState;
 import org.team686.simsbot.subsystems.Drive;
 
 /**
@@ -179,17 +182,20 @@ public class PathFollowerWithVisionDriveController
 	public void visionDrive(double _currentTime, Pose _currentPose)
 	{
 		ledRelay.set(Relay.Value.kOn); 		// turn on LEDs during Vision-enabled segments
-		
+
+		Optional<GoalState> optGoalState = goalStates.getBestVisionTarget();
+
 		// If we get a valid message from the Vision co-processor, update our estimate of the target location
-		if (goalStates.targetFound()) 
+		if (optGoalState.isPresent()) 
 			state = PathVisionState.VISION;
 			
 		// Drive towards target, even if we didn't get a valid Vision co-processor message this time
 		if (state == PathVisionState.VISION)
 		{
-			// Get range and angle to target   
-			distanceToTargetInches = goalStates.getBestTargetHorizontalDistance();
-			bearingToTarget = goalStates.getBestTargetRelativeBearing();
+			// Get range and angle to target
+			GoalState goalState = optGoalState.get();
+			distanceToTargetInches = goalState.getHorizontalDistance();
+			bearingToTarget = goalState.getRelativeBearing();
 			
 			// Calculate motor settings to turn towards target   
 			lookaheadDist = Math.min(Constants.kVisionLookaheadDist, distanceToTargetInches);	// length of chord <= kVisionLookaheadDist
@@ -254,7 +260,7 @@ public class PathFollowerWithVisionDriveController
     public void done() 
     {
 		// cleanup code, if any
-    	ledRelay.set(Relay.Value.kOff); 		// turn off LEDs when done
+//    	ledRelay.set(Relay.Value.kOff); 		// turn off LEDs when done
         drive.stop();
     }
 
@@ -278,12 +284,6 @@ public class PathFollowerWithVisionDriveController
             put("PathVision/positionY",  odometry.getY());
             put("PathVision/headingDeg", odometry.getHeadingDeg());
         	
-			put("PathVision/numTargets", goalStates.getNumTargets());
-			put("PathVision/bestTargetX", goalStates.getBestTargetPosition().getX());
-			put("PathVision/bestTargetY", goalStates.getBestTargetPosition().getY());
-			put("PathVision/bestTargetRange", goalStates.getBestTargetHorizontalDistance());
-			put("PathVision/bestTargetBearing", goalStates.getBestTargetRelativeBearing());
-            
 			put("PathVision/reversed", reversed);
 			put("PathVision/state", state.toString());
 

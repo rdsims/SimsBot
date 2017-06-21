@@ -24,7 +24,7 @@ import org.team686.simsbot.auto.actions.PathFollowerWithVisionAction;
 import org.team686.simsbot.command_status.DriveCommand;
 import org.team686.simsbot.command_status.DriveState;
 import org.team686.simsbot.command_status.RobotState;
-import org.team686.simsbot.command_status.VisionStatus;
+//import org.team686.simsbot.command_status.VisionStatus;
 import org.team686.simsbot.subsystems.Drive;
 
 
@@ -372,7 +372,7 @@ public class TestPathFollowerWithVisionAction
 		//---------------------------------------------------
 		// Process
 		//---------------------------------------------------
-		WheelSpeed wheelSpeed = driveCtrl.pathVisionDrive(currentTime, currentPose, previousPose, imageTimestamp, normalizedTargetX, normalizedTargetWidth);	// sets speed, curvature to follow path
+//		WheelSpeed wheelSpeed = driveCtrl.pathVisionDrive(currentTime, currentPose, previousPose, imageTimestamp, normalizedTargetX, normalizedTargetWidth);	// sets speed, curvature to follow path
 
 		//---------------------------------------------------
 		// Output: Send drive control 

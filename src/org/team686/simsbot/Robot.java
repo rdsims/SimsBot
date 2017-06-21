@@ -5,6 +5,7 @@ import java.util.TimeZone;
 
 import edu.wpi.first.wpilibj.IterativeRobot;
 import edu.wpi.first.wpilibj.PowerDistributionPanel;
+import edu.wpi.first.wpilibj.Relay;
 import edu.wpi.first.wpilibj.Timer;
 
 import org.team686.lib.joystick.*;
@@ -21,7 +22,7 @@ import org.team686.simsbot.loops.RobotStateLoop;
 import org.team686.simsbot.loops.GoalStateLoop;
 import org.team686.simsbot.subsystems.Drive;
 import org.team686.simsbot.vision.VisionServer;
-
+import org.team686.simsbot.vision.VisionState;
 
 /**
  * The VM is configured to automatically run this class, and to call the
@@ -30,35 +31,48 @@ import org.team686.simsbot.vision.VisionServer;
  * creating this project, you must also update the manifest file in the resource
  * directory.
  */
-public class Robot extends IterativeRobot 
+public class Robot extends IterativeRobot
 {
-	PowerDistributionPanel pdp = new PowerDistributionPanel();	// TODO: add relay for LED light ring
+	PowerDistributionPanel pdp = new PowerDistributionPanel(); // TODO: add
+																// relay for LED
+																// light ring
 
 	JoystickControlsBase controls = ArcadeDriveJoystick.getInstance();
-	RobotState robotState = RobotState.getInstance();	
-	Drive drive = Drive.getInstance();					
-    VisionServer visionServer = VisionServer.getInstance();
-	
+	RobotState robotState = RobotState.getInstance();
+	Drive drive = Drive.getInstance();
+	VisionServer visionServer = VisionServer.getInstance();
+	VisionState visionState = VisionState.getInstance();
+
 	AutoModeExecuter autoModeExecuter = null;
 
 	LoopController loopController;
-	
-	SmartDashboardInteractions smartDashboardInteractions;
-	DataLogController robotLogger;	// logger for Robot thread (autonomous thread has it's own logger)
 
-	enum OperationalMode 
+	SmartDashboardInteractions smartDashboardInteractions;
+	DataLogController robotLogger; 	// logger for Robot thread (autonomous thread has it's own logger)
+
+	Relay ledRelay = LedRelay.getInstance();
+
+	enum OperationalMode
 	{
 		DISABLED(0), AUTONOMOUS(1), TELEOP(2), TEST(3);
 
 		private int val;
 
-		private OperationalMode(int val) { this.val = val; }
-		public int getVal() { return val; }
+		private OperationalMode(int val)
+		{
+			this.val = val;
+		}
+
+		public int getVal()
+		{
+			return val;
+		}
 	}
 
 	OperationalMode operationalMode = OperationalMode.DISABLED;
-	
-	public Robot() {
+
+	public Robot()
+	{
 		CrashTracker.logRobotConstruction();
 	}
 
@@ -67,16 +81,14 @@ public class Robot extends IterativeRobot
 	 * used for any initialization code.
 	 */
 	@Override
-	public void robotInit() 
+	public void robotInit()
 	{
-		try 
+		try
 		{
 			CrashTracker.logRobotInit();
 
-            visionServer.addVisionStateReceiver(GoalStateLoop.getInstance());
-			
-// TODO: make Enabled/Disabled LoopControllers
-            
+			// TODO: make Enabled/Disabled LoopControllers
+
 			// Configure LoopController
 			loopController = new LoopController();
 			loopController.register(drive.getVelocityPIDLoop());
@@ -97,31 +109,40 @@ public class Robot extends IterativeRobot
 			robotLogger.register(DriveState.getInstance().getLogger());
 			robotLogger.register(RobotState.getInstance().getLogger());
 			robotLogger.register(GoalStates.getInstance().getLogger());
-			
+
 			// set initial Pose (will be updated during autonomousInit())
-			setInitialPose( new Pose() );
+			setInitialPose(new Pose());
+
 			
-		} 
-		catch (Throwable t) 
+			// 2nd attempt to start VisionServer in case the first failed
+			visionServer = VisionServer.getInstance();
+			
+			// notify GoalStateLoop when a new vision target message has been received
+			visionState.addVisionStateListener(GoalStateLoop.getInstance());
+		}
+		catch (Throwable t)
 		{
 			CrashTracker.logThrowableCrash(t);
 			throw t;
 		}
 	}
 
-	public void setInitialPose( Pose _initialPose )
+	public void setInitialPose(Pose _initialPose)
 	{
-		robotState.reset(Timer.getFPGATimestamp(), DriveState.getInstance().getLeftDistanceInches(), DriveState.getInstance().getRightDistanceInches(), _initialPose);	// set initial pose
+		robotState.reset(Timer.getFPGATimestamp(), DriveState.getInstance().getLeftDistanceInches(),
+				DriveState.getInstance().getRightDistanceInches(), _initialPose); // set
+																					// initial
+																					// pose
 		System.out.println("InitialPose: " + _initialPose);
 	}
-	
-	public void zeroAllSensors() 
+
+	public void zeroAllSensors()
 	{
 		drive.zeroSensors();
 		// mSuperstructure.zeroSensors();
 	}
-	
-	public void stopAll() 
+
+	public void stopAll()
 	{
 		drive.stop();
 		// mSuperstructure.stop();
@@ -132,27 +153,28 @@ public class Robot extends IterativeRobot
 	 ****************************************************************/
 
 	@Override
-	public void disabledInit() 
+	public void disabledInit()
 	{
 		operationalMode = OperationalMode.DISABLED;
 		boolean logToFile = true;
 		boolean logToSmartDashboard = true;
 		robotLogger.setOutputMode(logToFile, logToSmartDashboard);
-		
-		try 
+		// ledRelay.set(Relay.Value.kOff); // turn off LEDs
+
+		try
 		{
 			CrashTracker.logDisabledInit();
-			if (autoModeExecuter != null) 
+			if (autoModeExecuter != null)
 			{
 				autoModeExecuter.stop();
 			}
 			autoModeExecuter = null;
 
-			stopAll(); 			// stop all actuators
+			stopAll(); // stop all actuators
 			loopController.start();
-			
-		} 
-		catch (Throwable t) 
+
+		}
+		catch (Throwable t)
 		{
 			CrashTracker.logThrowableCrash(t);
 			throw t;
@@ -160,15 +182,15 @@ public class Robot extends IterativeRobot
 	}
 
 	@Override
-	public void disabledPeriodic() 
+	public void disabledPeriodic()
 	{
-		try 
+		try
 		{
-			stopAll(); 			// stop all actuators
+			stopAll(); // stop all actuators
 
-			System.gc(); 		// runs garbage collector
-		} 
-		catch (Throwable t) 
+			System.gc(); // runs garbage collector
+		}
+		catch (Throwable t)
 		{
 			CrashTracker.logThrowableCrash(t);
 			throw t;
@@ -180,17 +202,19 @@ public class Robot extends IterativeRobot
 	 ****************************************************************/
 
 	@Override
-	public void autonomousInit() 
+	public void autonomousInit()
 	{
 		operationalMode = OperationalMode.AUTONOMOUS;
 		boolean logToFile = true;
 		boolean logToSmartDashboard = true;
 		robotLogger.setOutputMode(logToFile, logToSmartDashboard);
 
-		try 
+		try
 		{
 			CrashTracker.logAutoInit();
-			if (autoModeExecuter != null) 
+			visionServer.requestAppRestart();
+			
+			if (autoModeExecuter != null)
 			{
 				autoModeExecuter.stop();
 			}
@@ -199,12 +223,12 @@ public class Robot extends IterativeRobot
 			autoModeExecuter = new AutoModeExecuter();
 			autoModeExecuter.setAutoMode(smartDashboardInteractions.getAutoModeSelection());
 
-			setInitialPose( autoModeExecuter.getAutoMode().getInitialPose() );		
+			setInitialPose(autoModeExecuter.getAutoMode().getInitialPose());
 
 			autoModeExecuter.start();
 
-		} 
-		catch (Throwable t) 
+		}
+		catch (Throwable t)
 		{
 			CrashTracker.logThrowableCrash(t);
 			throw t;
@@ -212,14 +236,14 @@ public class Robot extends IterativeRobot
 	}
 
 	@Override
-	public void autonomousPeriodic() 
+	public void autonomousPeriodic()
 	{
-		try 
+		try
 		{
 			// outputAllToSmartDashboard();
 			// updateDriverFeedback();
-		} 
-		catch (Throwable t) 
+		}
+		catch (Throwable t)
 		{
 			CrashTracker.logThrowableCrash(t);
 			throw t;
@@ -231,17 +255,22 @@ public class Robot extends IterativeRobot
 	 ****************************************************************/
 
 	@Override
-	public void teleopInit() 
+	public void teleopInit()
 	{
 		operationalMode = OperationalMode.TELEOP;
 		boolean logToFile = true;
 		boolean logToSmartDashboard = true;
 		robotLogger.setOutputMode(logToFile, logToSmartDashboard);
+// vision testing		
+ ledRelay.set(Relay.Value.kOn); // turn on LEDs for vision test
 
-		try 
+		
+		try
 		{
 			CrashTracker.logTeleopInit();
 
+			visionServer.requestAppRestart();
+			
 			// Select joystick control method
 			controls = smartDashboardInteractions.getJoystickControlsMode();
 
@@ -250,8 +279,8 @@ public class Robot extends IterativeRobot
 
 			drive.setOpenLoop(DriveCommand.NEUTRAL());
 
-		} 
-		catch (Throwable t) 
+		}
+		catch (Throwable t)
 		{
 			CrashTracker.logThrowableCrash(t);
 			throw t;
@@ -260,55 +289,78 @@ public class Robot extends IterativeRobot
 	}
 
 	@Override
-	public void teleopPeriodic() 
+	public void teleopPeriodic()
 	{
-		try 
+		try
 		{
 			drive.setOpenLoop(controls.getDriveCommand());
-		} 
-		catch (Throwable t) 
+		}
+		catch (Throwable t)
 		{
 			CrashTracker.logThrowableCrash(t);
 			throw t;
 		}
 
 	}
-	
-	
-	
-	@Override
-	public void testInit() 
+
+	/****************************************************************
+	 * TEST MODE
+	 ****************************************************************/
+
+	enum TestModeEnum
 	{
+		WHEEL_SPEED_TEST_1REV_PER_SEC
+	};
+
+	TestModeEnum testMode = TestModeEnum.WHEEL_SPEED_TEST_1REV_PER_SEC;
+
+	@Override
+	public void testInit()
+	{
+		switch (testMode)
+		{
+		case WHEEL_SPEED_TEST_1REV_PER_SEC:
+			break;
+		}
+
 		loopController.start();
 	}
 
 	@Override
 	public void testPeriodic()
 	{
-		drive.testDriveSpeedControl();
+		switch (testMode)
+		{
+		case WHEEL_SPEED_TEST_1REV_PER_SEC:
+			drive.testDriveSpeedControl();
+			break;
+		}
+
 	}
-	
-	
-	// called after disabledPeriodic, autoPeriodic, and teleopPeriodic 
+
+	/****************************************************************
+	 * ROBOT PERIODIC
+	 ****************************************************************/
+
+	// called after disabledPeriodic, autoPeriodic, and teleopPeriodic
 	@Override
 	public void robotPeriodic()
 	{
 		robotLogger.log();
 	}
 
-
-	
-	
 	private final DataLogger logger = new DataLogger()
-    {
-        @Override
-        public void log()
-        {
+	{
+		@Override
+		public void log()
+		{
 			put("OperationalMode", operationalMode.getVal());
-        }
-    };
-    
-    public DataLogger getLogger() { return logger; }
-	
-	
+		}
+	};
+
+	public DataLogger getLogger()
+	{
+		return logger;
+	}
+
 }

@@ -1,12 +1,15 @@
 package org.team686.simsbot.vision;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Optional;
 
 import org.team686.lib.util.Vector2d;
 import org.team686.simsbot.Constants;
+import org.team686.simsbot.command_status.GoalStates.GoalState;
 
 import edu.wpi.first.wpilibj.Timer;
 
@@ -107,6 +110,7 @@ public class GoalTracker
 	}
 
 	List<GoalTrack> currentTracks = new ArrayList<>();
+	int currentBestTrackId = -1;
 	int mNextId = 0;
 
 	public GoalTracker()
@@ -118,7 +122,7 @@ public class GoalTracker
 		currentTracks.clear();
 	}
 
-	public void update(double timestamp, List<Vector2d> fieldToGoals)
+	public void update(double imageTimestamp, List<Vector2d> fieldToGoals)
 	{
 		boolean hasUpdatedTrack = false;
 		
@@ -130,7 +134,7 @@ public class GoalTracker
 				if (!hasUpdatedTrack)
 				{
 					// see if this goal location is close to any previously found goals
-					if (track.tryUpdate(timestamp, target))
+					if (track.tryUpdate(imageTimestamp, target))
 					{
 						hasUpdatedTrack = true;
 					}
@@ -157,18 +161,21 @@ public class GoalTracker
 		{
 			for (Vector2d target : fieldToGoals)
 			{
-				currentTracks.add(GoalTrack.makeNewTrack(timestamp, target, mNextId));
+				currentTracks.add(GoalTrack.makeNewTrack(imageTimestamp, target, mNextId));
 				++mNextId;
 			}
 		}
 	}
 
+
+	
+	
 	public boolean hasTracks()
 	{
 		return !currentTracks.isEmpty();
 	}
 
-	public List<TrackReport> getTracks()
+	public List<TrackReport> getTrackReports()
 	{
         double now = Timer.getFPGATimestamp();
 		
@@ -182,5 +189,24 @@ public class GoalTracker
 			}
 		}
 		return rv;
+	}
+
+	public List<TrackReport> getSortedTrackReports(double currentTime, Optional<GoalState> currentTarget)
+	{
+		// Sort tracks (actually TrackReports) so we can identify the best track
+		if (currentTarget.isPresent())
+			currentBestTrackId = currentTarget.get().getTrackId();
+		else
+			currentBestTrackId = -1;
+			
+		// define a comparator so that GoalTracks can be sorted by rank
+	    GoalTracker.TrackReportComparator goalTrackComparator = new GoalTracker.TrackReportComparator(
+	    		Constants.kTrackReportComparatorStablityWeight, Constants.kTrackReportComparatorAgeWeight, 
+	    		Constants.kTrackReportComparatorSwitchingWeight, currentBestTrackId, currentTime);
+		
+		List<GoalTracker.TrackReport> trackReports = getTrackReports();
+		Collections.sort(trackReports, goalTrackComparator);	// sort tracks by rank
+		
+		return trackReports;
 	}
 }

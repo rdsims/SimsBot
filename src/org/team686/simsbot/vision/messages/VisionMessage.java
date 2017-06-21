@@ -12,6 +12,7 @@ public abstract class VisionMessage
 
 	public abstract String getMessage();
 
+	@SuppressWarnings("unchecked")
 	public String toJson()
 	{
 		JSONObject j = new JSONObject();
