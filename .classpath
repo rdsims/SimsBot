@@ -10,6 +10,7 @@
 	<classpathentry kind="var" path="cscore" sourcepath="cscore.sources"/>
 	<classpathentry kind="var" path="USERLIBS_DIR/CTRLib.jar"/>
 <<<<<<< Upstream, based on origin/master
+<<<<<<< Upstream, based on origin/master
 	<classpathentry kind="var" path="USERLIBS_DIR/json-simple-1.1.1.jar"/>
 	<classpathentry kind="var" path="USERLIBS_DIR/jTCPfwd-lite.jar"/>
 	<classpathentry kind="var" path="USERLIBS_DIR/org.eclipse.paho.client.mqttv3-1.0.2.jar"/>
@@ -18,5 +19,13 @@
 	<classpathentry kind="lib" path="lib/jTCPfwd-lite.jar"/>
 	<classpathentry kind="lib" path="lib/org.eclipse.paho.client.mqttv3-1.0.2.jar"/>
 >>>>>>> 7b1acb7 Started integrating in 254's CheezDroid
+=======
+	<classpathentry kind="lib" path="C:/Users/Richard/wpilib/user/java/lib/json-simple-1.1.1.jar"/>
+	<classpathentry kind="lib" path="C:/Users/Richard/wpilib/user/java/lib/jTCPfwd-lite.jar"/>
+	<classpathentry kind="lib" path="C:/Users/Richard/wpilib/user/java/lib/org.eclipse.paho.client.mqttv3-1.0.2.jar"/>
+	<classpathentry kind="var" path="USERLIBS_DIR/json-simple-1.1.1.jar"/>
+	<classpathentry kind="var" path="USERLIBS_DIR/jTCPfwd-lite.jar"/>
+	<classpathentry kind="var" path="USERLIBS_DIR/org.eclipse.paho.client.mqttv3-1.0.2.jar"/>
+>>>>>>> 17ffdaa Integrated DroidVision into RoboRIO code.  Initial range/angle tests work.  Haven't tested PathFollowerWithVisionDriveController yet (need new camera mount)
 	<classpathentry kind="output" path="bin"/>
 </classpath>

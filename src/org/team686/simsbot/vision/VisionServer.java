@@ -31,7 +31,6 @@ public class VisionServer extends CrashTrackingRunnable
 	private ServerSocket serverSocket;
 	private boolean running = true;
 	private int port;
-	private ArrayList<VisionStateListener> receivers = new ArrayList<>();	
 	AdbBridge adb = new AdbBridge();
 	double lastMessageReceivedTime = 0;
 	private boolean useJavaTime = false;
@@ -61,7 +60,8 @@ public class VisionServer extends CrashTrackingRunnable
 	}
 
 	/**
-	 * Instantializes the VisionServer and connects to ADB via the specified port.
+	 * Instantializes the VisionServer and connects to ADB via the specified
+	 * port.
 	 * 
 	 * @param Port
 	 */
@@ -97,27 +97,6 @@ public class VisionServer extends CrashTrackingRunnable
 		adb.reversePortForward(port, port);
 	}
 
-	
-	/**
-	 * If a VisionState object (i.e. a target) is not in the list, add it.
-	 * 
-	 * @see VisionState
-	 */
-	public void addVisionStateReceiver(VisionStateListener receiver)
-	{
-		if (!receivers.contains(receiver))
-		{
-			receivers.add(receiver);
-		}
-	}
-
-	public void removeVisionStateReceiver(VisionStateListener receiver)
-	{
-		if (receivers.contains(receiver))
-		{
-			receivers.remove(receiver);
-		}
-	}
 
 	@Override
 	public void runCrashTracked()
@@ -148,7 +127,7 @@ public class VisionServer extends CrashTrackingRunnable
 			}
 		}
 	}
-	
+
 	private double getTimestamp()
 	{
 		if (useJavaTime)
@@ -160,15 +139,7 @@ public class VisionServer extends CrashTrackingRunnable
 			return Timer.getFPGATimestamp();
 		}
 	}
-	
-	
-	
-	
-	
-	
-	
-	
-	
+
 	protected class ServerThread extends CrashTrackingRunnable
 	{
 		private Socket socket;
@@ -195,17 +166,20 @@ public class VisionServer extends CrashTrackingRunnable
 				InputStream is = socket.getInputStream();
 				byte[] buffer = new byte[2048];
 				int numBytesRead;
-				while (socket.isConnected() && (numBytesRead = is.read(buffer)) != -1)	// numBytesRead==-1 when end of stream has been reached
+				// numBytesRead==-1 when end of stream has been reached
+				while (socket.isConnected() && (numBytesRead = is.read(buffer)) != -1) 
 				{
 					double timestamp = getTimestamp();
 					lastMessageReceivedTime = timestamp;
 					String messageRaw = new String(buffer, 0, numBytesRead);
-					
-					// if multiple messages have been received, they will be separated by "\n"s
+
+					// if multiple messages have been received, they will be
+					// separated by "\n"s
 					String[] messages = messageRaw.split("\n");
 					for (String message : messages)
 					{
-						OffWireMessage parsedMessage = new OffWireMessage(message);	// first level of parsing into "type" and "message" 
+						// first level of parsing into "type" and "message
+						OffWireMessage parsedMessage = new OffWireMessage(message); 
 						if (parsedMessage.isValid())
 						{
 							handleMessage(timestamp, parsedMessage);
@@ -231,22 +205,19 @@ public class VisionServer extends CrashTrackingRunnable
 			}
 		}
 
-		
 		public void handleMessage(double timestamp, VisionMessage message)
 		{
 			if ("targets".equals(message.getType()))
 			{
 				VisionState.getInstance().updateFromJsonString(timestamp, message.getMessage());
 			}
-			
+
 			if ("heartbeat".equals(message.getType()))
 			{
 				send(HeartbeatMessage.getInstance());
 			}
 		}
 
-
-		
 		public void send(VisionMessage message)
 		{
 			String toSend = message.toJson() + "\n";
@@ -264,12 +235,6 @@ public class VisionServer extends CrashTrackingRunnable
 			}
 		}
 	}
-
-	
-	
-	
-	
-	
 
 	private class AppMaintainanceThread extends CrashTrackingRunnable
 	{
@@ -303,17 +268,13 @@ public class VisionServer extends CrashTrackingRunnable
 				}
 			}
 		}
-		
-	    public void restartApp() 
-	    {
-	    	adb.stopPackage(Constants.kAppPackage); 
-	        adb.startActivity(Constants.kAppActivity);
-	    }
-		
-	}
-	
-	
-	
 
+		public void restartApp()
+		{
+			adb.stopPackage(Constants.kAppPackage);
+			adb.startActivity(Constants.kAppActivity);
+		}
+
+	}
 
 }

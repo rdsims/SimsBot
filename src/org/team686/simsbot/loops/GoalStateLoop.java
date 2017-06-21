@@ -1,14 +1,15 @@
 package org.team686.simsbot.loops;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 import org.team686.lib.util.Pose;
 import org.team686.lib.util.Vector2d;
 import org.team686.simsbot.Constants;
 import org.team686.simsbot.command_status.GoalStates;
 import org.team686.simsbot.command_status.RobotState;
+import org.team686.simsbot.command_status.GoalStates.GoalState;
 import org.team686.simsbot.vision.GoalTracker;
 import org.team686.simsbot.vision.VisionState;
 import org.team686.simsbot.vision.VisionStateListener;
@@ -33,7 +34,7 @@ public class GoalStateLoop implements Loop, VisionStateListener
 	RobotState robotState = RobotState.getInstance();
 	VisionState visionState = VisionState.getInstance();
 
-	GoalTracker goalTracker;
+	GoalTracker goalTracker = new GoalTracker();
 	GoalStates goalStates = GoalStates.getInstance();
 
 	int currentBestTrackId = -1;
@@ -51,9 +52,7 @@ public class GoalStateLoop implements Loop, VisionStateListener
 	}
 
 	@Override
-	public void onStart()
-	{
-	}
+	public void onStart() {}
 
 	@Override
 	public void onLoop()
@@ -141,31 +140,16 @@ public class GoalStateLoop implements Loop, VisionStateListener
 		goalTracker.update(imageCaptureTimestamp, fieldToGoals);
 		
 		
+
 		
-		
-		// Step 3: Rank each goal, sort goals by rank
-		
-		// define a comparator so that GoalTracks can be sorted by rank
+		// Step 3: 	Rank each goal, sort goals by rank
+		//			Store position of goals, calculate range/bearing from shooter to each goal
         double now = Timer.getFPGATimestamp();
-		currentBestTrackId = goalStates.getBestTargetTrackId();
-        		
-        GoalTracker.TrackReportComparator goalTrackComparator = new GoalTracker.TrackReportComparator(
-        		Constants.kTrackReportComparatorStablityWeight, Constants.kTrackReportComparatorAgeWeight, 
-        		Constants.kTrackReportComparatorSwitchingWeight, currentBestTrackId, now);
-		
-		List<GoalTracker.TrackReport> reports = goalTracker.getTracks();
-		Collections.sort(reports, goalTrackComparator);	// sort tracks by rank
-        
-		
-
-		
-		
-		// Step 4: Store position of goals, calculate range/bearing from shooter to each goal
-
+        Optional<GoalState> currentTarget = goalStates.getBestVisionTarget();
 		Pose predictedFieldToShooter = robotState.getPredictedFieldToShooter(Constants.kAutoAimPredictionTime);
 
 		goalStates.clear();
-		for (GoalTracker.TrackReport report : reports)
+		for (GoalTracker.TrackReport report : goalTracker.getSortedTrackReports(now, currentTarget))
 		{
 			goalStates.add(report.fieldToGoal, predictedFieldToShooter, report.trackId);
 		}		

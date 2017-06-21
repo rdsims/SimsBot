@@ -77,8 +77,8 @@ public class Constants extends ConstantsBase
     public static double kPathFollowingCompletionTolerance = 1.0; 
     
     // Vision App Constants
-    public static String kAppPackage  = "org.team686.droidvision";
-	public static String kAppActivity = Constants.kAppPackage + "./VisionTrackerActivity";	
+    public static String kAppPackage  = "org.team686.droidvision2017";
+	public static String kAppActivity = "org.team686.droidvision2017/.VisionTrackerActivity";	
     public static int kAndroidAppTcpPort = 8686;
     
     // Vision constants
@@ -166,5 +166,8 @@ public class Constants extends ConstantsBase
     public static short kAccelOffsetZ =  25;
     public static short kAccelRadius  = -24;
     
-    
+    // to be deleted
+    public static double kCameraHalfFOVRadians = Math.PI/2.0;
+    public static double kCameraLatencySeconds = 250.0;
+    public static double kTangentCameraHalfFOV = 0.5;
 }

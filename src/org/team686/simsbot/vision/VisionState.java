@@ -16,7 +16,11 @@ import java.util.Optional;
 public class VisionState
 {
 	private static VisionState instance = new VisionState();
-
+	public static VisionState getInstance()
+	{
+		return instance;
+	}
+	
 	protected List<VisionTargetState> targets;
 	protected double imageCaptureTimestamp = 0;			// note: assumes transport time from phone to this code is instantaneous
 
@@ -24,11 +28,6 @@ public class VisionState
     private ArrayList<VisionStateListener> listeners = new ArrayList<>();
 
 	
-	
-	public static VisionState getInstance()
-	{
-		return instance;
-	}
 	
 	/**
 	 * Generates a VisionState object given a JSON blob and a timestamp.
@@ -119,8 +118,10 @@ public class VisionState
 	
 	public void addVisionStateListener(VisionStateListener listener) 
 	{
-	     if (!listeners.contains(listener)) 
+	     if (!listeners.contains(listener))
+	     {
 	     	listeners.add(listener);
+	     }
 	}
 	
 	public void removeVisionStateListener(VisionStateListener listener) 
