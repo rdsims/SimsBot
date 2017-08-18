@@ -102,8 +102,11 @@ public class Constants extends ConstantsBase
     
     // Motor Controllers
     // (Note that if multiple Talons are dedicated to a mechanism, any sensors are attached to the master)
-    public static final int kLeftMotorTalonId  = 1;
-    public static final int kRightMotorTalonId = 2;
+    public static final int kLeftMotorMasterTalonId  = 1;
+    public static final int kRightMotorMasterTalonId = 2;
+    public static final int kLeftMotorSlaveTalonId   = 3;
+    public static final int kRightMotorSlaveTalonId  = 4;
+    
 
     // Joystick Controls
     public static int kXboxButtonA  = 1;
