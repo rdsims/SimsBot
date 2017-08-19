@@ -311,13 +311,7 @@ public class PathFollowerWithVisionDriveController
 
 			put("PathVision/prevPoseX", previousPose.getX());
 			put("PathVision/prevPoseY", previousPose.getY());
-			
-			put("PathVision/GoalX", )
-			put("PathVision/GoalY", )
-			put("PathVision/GoalRange", )
-			put("PathVision/GoalBearing", )
-			
-			
+						
 			put("PathVision/remainingDistance",  remainingDistance );
 			
 			put("PathVision/speed", 	speed);

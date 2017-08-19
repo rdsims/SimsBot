@@ -163,6 +163,6 @@ public class GoalStateLoop implements Loop, VisionStateListener
 	}
 
 	
-	
+	public GoalTracker getGoalTracker() { return goalTracker; }
 	
 }
