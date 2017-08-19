@@ -151,7 +151,7 @@ public class GoalStateLoop implements Loop, VisionStateListener
 		goalStates.clear();
 		for (GoalTracker.TrackReport report : goalTracker.getSortedTrackReports(now, currentTarget))
 		{
-			goalStates.add(report.fieldToGoal, predictedFieldToShooter, report.trackId);
+			goalStates.add(report.fieldToGoal, predictedFieldToShooter, report.trackId, report.getLatestTimestamp());
 		}		
 
 	}
@@ -162,4 +162,7 @@ public class GoalStateLoop implements Loop, VisionStateListener
 		goalTracker.reset();
 	}
 
+	
+	
+	
 }

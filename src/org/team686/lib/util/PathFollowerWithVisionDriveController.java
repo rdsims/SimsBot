@@ -105,6 +105,8 @@ public class PathFollowerWithVisionDriveController
         drive.setVelocitySetpoint(wheelSpeed);
 	}
 
+	boolean visionEnabledPrevSegment = false;
+
     
 	public WheelSpeed pathVisionDrive(double _currentTime, Pose _currentPose)
 	{
@@ -117,12 +119,22 @@ public class PathFollowerWithVisionDriveController
 		double maxAccel = 0;
 		
 		reversed = path.getReverseDirection();
-		boolean visionEnabledSegment = path.getSegmentVisionEnable(); 
+		
+		boolean visionEnabledSegment = path.getSegmentVisionEnable();
+		
+		// turn on/off LEDs when changing to/from vision-enabled segments
+		if (visionEnabledSegment && !visionEnabledPrevSegment)
+			ledRelay.set(Relay.Value.kOn);
+		else if (!visionEnabledSegment && visionEnabledPrevSegment)
+			ledRelay.set(Relay.Value.kOff);
+			
 		if (visionEnabledSegment)
 			visionDrive(_currentTime, _currentPose);
 		else
 			pathDrive(_currentTime, _currentPose);
-			
+
+		boolean visionEnabledPrevSegment = visionEnabledSegment; 
+		
 		if (state == PathVisionState.PATH_FOLLOWING)	 
 		{
 			remainingDistance = path.getRemainingLength();		// TODO: address stopping when past final segment
@@ -158,6 +170,8 @@ public class PathFollowerWithVisionDriveController
 	// Drive towards lookahead point on path
 	private void pathDrive(double _currentTime, Pose _currentPose)
 	{
+		state = PathVisionState.PATH_FOLLOWING;
+				
 		//---------------------------------------------------
 		// Find Lookahead Point
 		//---------------------------------------------------
@@ -181,17 +195,13 @@ public class PathFollowerWithVisionDriveController
 	// drive towards vision target (or follow path if no target acquired)
 	public void visionDrive(double _currentTime, Pose _currentPose)
 	{
-		ledRelay.set(Relay.Value.kOn); 		// turn on LEDs during Vision-enabled segments
-
 		Optional<GoalState> optGoalState = goalStates.getBestVisionTarget();
 
 		// If we get a valid message from the Vision co-processor, update our estimate of the target location
 		if (optGoalState.isPresent()) 
+		{
 			state = PathVisionState.VISION;
 			
-		// Drive towards target, even if we didn't get a valid Vision co-processor message this time
-		if (state == PathVisionState.VISION)
-		{
 			// Get range and angle to target
 			GoalState goalState = optGoalState.get();
 			distanceToTargetInches = goalState.getHorizontalDistance();
@@ -260,8 +270,8 @@ public class PathFollowerWithVisionDriveController
     public void done() 
     {
 		// cleanup code, if any
-//    	ledRelay.set(Relay.Value.kOff); 		// turn off LEDs when done
-        drive.stop();
+    	ledRelay.set(Relay.Value.kOff); 		// turn off LEDs when done
+    	drive.stop();
     }
 
  
@@ -301,6 +311,12 @@ public class PathFollowerWithVisionDriveController
 
 			put("PathVision/prevPoseX", previousPose.getX());
 			put("PathVision/prevPoseY", previousPose.getY());
+			
+			put("PathVision/GoalX", )
+			put("PathVision/GoalY", )
+			put("PathVision/GoalRange", )
+			put("PathVision/GoalBearing", )
+			
 			
 			put("PathVision/remainingDistance",  remainingDistance );
 			
