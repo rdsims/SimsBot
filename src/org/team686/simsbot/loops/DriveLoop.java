@@ -45,12 +45,12 @@ public class DriveLoop implements Loop
         lMotorSlave  = new CANTalon(Constants.kLeftMotorSlaveTalonId);
 
 		rMotorMaster = new CANTalon(Constants.kRightMotorMasterTalonId);
-        rMotorSlave  = new CANTalon(Constants.kLeftMotorSlaveTalonId);
+        rMotorSlave  = new CANTalon(Constants.kRightMotorSlaveTalonId);
 
 		lMotorSlave.changeControlMode(CANTalon.TalonControlMode.Follower);
 		rMotorSlave.changeControlMode(CANTalon.TalonControlMode.Follower);
-		lMotorSlave.set(Constants.kLeftMotorMasterTalonId);
-		rMotorSlave.set(Constants.kRightMotorMasterTalonId);
+		lMotorSlave.set(Constants.kLeftMotorMasterTalonId);		// give slave the TalonID of it's master
+		rMotorSlave.set(Constants.kRightMotorMasterTalonId);	// give slave the TalonID of it's master
         
 		// Get status at 100Hz
 		lMotorMaster.setStatusFrameRateMs(CANTalon.StatusFrameRate.Feedback, 10);
@@ -78,9 +78,9 @@ public class DriveLoop implements Loop
 		lMotorMaster.configEncoderCodesPerRev(Constants.kQuadEncoderCodesPerRev);	// using this API lets us program velocity in RPM in closed-loop modes
 		rMotorMaster.configEncoderCodesPerRev(Constants.kQuadEncoderCodesPerRev);	// Talon SRX Software Reference Manual Section 17.2 API Unit Scaling
 		lMotorMaster.setInverted(false);
-		rMotorMaster.setInverted(false);
+		rMotorMaster.setInverted(true);		// right motor controls are reversed
 		lMotorMaster.reverseSensor(false);
-		rMotorMaster.reverseSensor(true); // inverts feedback in closed loop modes
+		rMotorMaster.reverseSensor(false); // inverts feedback in closed loop modes
 		lMotorMaster.reverseOutput(false);
 		rMotorMaster.reverseOutput(false);
 		lMotorSlave.reverseOutput(false);
