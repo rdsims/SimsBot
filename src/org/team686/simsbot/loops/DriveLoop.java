@@ -136,11 +136,11 @@ public class DriveLoop implements Loop
 			driveStatus.setBrakeMode( lMotorMaster.getBrakeEnableDuringNeutral() );
 			
 			// get encoder values from hardware, set in Drive
-			driveStatus.setLeftDistanceInches(  Constants.lMotorReversed * rotationsToInches( lMotorMaster.getPosition() ));
-			driveStatus.setRightDistanceInches( Constants.rMotorReversed * rotationsToInches( rMotorMaster.getPosition() ));
+			driveStatus.setLeftDistanceInches(  Constants.lMotorPolarity * rotationsToInches( lMotorMaster.getPosition() ));
+			driveStatus.setRightDistanceInches( Constants.rMotorPolarity * rotationsToInches( rMotorMaster.getPosition() ));
 	
-			driveStatus.setLeftSpeedInchesPerSec(  Constants.lMotorReversed * rpmToInchesPerSecond( lMotorMaster.getSpeed() ));
-			driveStatus.setRightSpeedInchesPerSec( Constants.rMotorReversed * rpmToInchesPerSecond( rMotorMaster.getSpeed() ));
+			driveStatus.setLeftSpeedInchesPerSec(  Constants.lMotorPolarity * rpmToInchesPerSecond( lMotorMaster.getSpeed() ));
+			driveStatus.setRightSpeedInchesPerSec( Constants.rMotorPolarity * rpmToInchesPerSecond( rMotorMaster.getSpeed() ));
 				
 			/*
 			 * measured angle decreases with clockwise rotation
@@ -250,8 +250,8 @@ public class DriveLoop implements Loop
         {
         	case PercentVbus:
         		// DriveCommand given in range +/-1, with 1 representing full throttle
-        		lMotorMaster.set(Constants.lMotorReversed * lMotorCtrl);
-        		rMotorMaster.set(Constants.rMotorReversed * rMotorCtrl);
+        		lMotorMaster.set(Constants.lMotorPolarity * lMotorCtrl);
+        		rMotorMaster.set(Constants.rMotorPolarity * rMotorCtrl);
         		break;
 
         	case Position:
@@ -262,8 +262,8 @@ public class DriveLoop implements Loop
         		// DriveCommand given in inches/sec
         		// Talon SRX needs RPM in closed-loop mode.
         		// convert inches/sec to RPM
-           		lMotorMaster.set(Constants.lMotorReversed * inchesPerSecondToRpm(lMotorCtrl)); 
-        		rMotorMaster.set(Constants.rMotorReversed * inchesPerSecondToRpm(rMotorCtrl));
+           		lMotorMaster.set(Constants.lMotorPolarity * inchesPerSecondToRpm(lMotorCtrl)); 
+        		rMotorMaster.set(Constants.rMotorPolarity * inchesPerSecondToRpm(rMotorCtrl));
         		break;
         		
         	case Disabled:

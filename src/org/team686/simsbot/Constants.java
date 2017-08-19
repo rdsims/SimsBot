@@ -108,9 +108,9 @@ public class Constants extends ConstantsBase
     public static final int kRightMotorSlaveTalonId  = 4;
 
     // WPILib doesn't handle drive motor reversal correctly, so we'll do it with these flags
-	// +1 if not inverted, -1 if inverted
-	public static final int lMotorReversed = +1;
-	public static final int rMotorReversed = -1;
+	// +1 if not reversed, -1 if reversed
+	public static final int lMotorPolarity = +1;
+	public static final int rMotorPolarity = -1;
     
 
     // Joystick Controls
