@@ -181,8 +181,10 @@ public class Drive extends Subsystem
 		// get change in left/right motor speeds based on error in heading
 		double diffSpeed = velocityHeadingSetpoint.velocityHeadingPID.calculate( driveStatus.getHeadingDeg() );
 		
-		updateVelocitySetpoint(velocityHeadingSetpoint.getSpeed() + diffSpeed / 2,
-				               velocityHeadingSetpoint.getSpeed() - diffSpeed / 2);
+		// speed up   left side when robot turns left (actual heading > heading setpoint --> diffSpeed < 0) 
+		// slow down right side when robot turns left (actual heading > heading setpoint --> diffSpeed < 0) 
+		updateVelocitySetpoint(velocityHeadingSetpoint.getSpeed() - diffSpeed / 2,
+				               velocityHeadingSetpoint.getSpeed() + diffSpeed / 2);
 	}
 
 	public void resetVelocityHeadingPID()

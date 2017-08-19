@@ -34,7 +34,6 @@ public class DriveLoop implements Loop
 	private static final int kVelocityControlSlot = 0;
 	private static final int kBaseLockControlSlot = 1;
 
-	
 	private DriveLoop() 
 	{
 		drive = Drive.getInstance();
@@ -78,9 +77,9 @@ public class DriveLoop implements Loop
 		lMotorMaster.configEncoderCodesPerRev(Constants.kQuadEncoderCodesPerRev);	// using this API lets us program velocity in RPM in closed-loop modes
 		rMotorMaster.configEncoderCodesPerRev(Constants.kQuadEncoderCodesPerRev);	// Talon SRX Software Reference Manual Section 17.2 API Unit Scaling
 		lMotorMaster.setInverted(false);
-		rMotorMaster.setInverted(true);		// right motor controls are reversed
+		rMotorMaster.setInverted(false);
 		lMotorMaster.reverseSensor(false);
-		rMotorMaster.reverseSensor(false); // inverts feedback in closed loop modes
+		rMotorMaster.reverseSensor(false);
 		lMotorMaster.reverseOutput(false);
 		rMotorMaster.reverseOutput(false);
 		lMotorSlave.reverseOutput(false);
@@ -137,12 +136,12 @@ public class DriveLoop implements Loop
 			driveStatus.setBrakeMode( lMotorMaster.getBrakeEnableDuringNeutral() );
 			
 			// get encoder values from hardware, set in Drive
-			driveStatus.setLeftDistanceInches(  rotationsToInches( lMotorMaster.getPosition() ));
-			driveStatus.setRightDistanceInches( rotationsToInches( rMotorMaster.getPosition() ));
+			driveStatus.setLeftDistanceInches(  Constants.lMotorReversed * rotationsToInches( lMotorMaster.getPosition() ));
+			driveStatus.setRightDistanceInches( Constants.rMotorReversed * rotationsToInches( rMotorMaster.getPosition() ));
 	
-			driveStatus.setLeftSpeedInchesPerSec(  rpmToInchesPerSecond( lMotorMaster.getSpeed() ));
-			driveStatus.setRightSpeedInchesPerSec( rpmToInchesPerSecond( rMotorMaster.getSpeed() ));
-	
+			driveStatus.setLeftSpeedInchesPerSec(  Constants.lMotorReversed * rpmToInchesPerSecond( lMotorMaster.getSpeed() ));
+			driveStatus.setRightSpeedInchesPerSec( Constants.rMotorReversed * rpmToInchesPerSecond( rMotorMaster.getSpeed() ));
+				
 			/*
 			 * measured angle decreases with clockwise rotation
 			 * it should increase with clockwise rotation (according to
@@ -251,8 +250,8 @@ public class DriveLoop implements Loop
         {
         	case PercentVbus:
         		// DriveCommand given in range +/-1, with 1 representing full throttle
-        		lMotorMaster.set(lMotorCtrl);
-        		rMotorMaster.set(rMotorCtrl);
+        		lMotorMaster.set(Constants.lMotorReversed * lMotorCtrl);
+        		rMotorMaster.set(Constants.rMotorReversed * rMotorCtrl);
         		break;
 
         	case Position:
@@ -263,8 +262,8 @@ public class DriveLoop implements Loop
         		// DriveCommand given in inches/sec
         		// Talon SRX needs RPM in closed-loop mode.
         		// convert inches/sec to RPM
-           		lMotorMaster.set(inchesPerSecondToRpm(lMotorCtrl)); 
-        		rMotorMaster.set(inchesPerSecondToRpm(rMotorCtrl));
+           		lMotorMaster.set(Constants.lMotorReversed * inchesPerSecondToRpm(lMotorCtrl)); 
+        		rMotorMaster.set(Constants.rMotorReversed * inchesPerSecondToRpm(rMotorCtrl));
         		break;
         		
         	case Disabled:
