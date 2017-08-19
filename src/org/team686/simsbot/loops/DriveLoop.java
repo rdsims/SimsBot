@@ -123,7 +123,7 @@ public class DriveLoop implements Loop
 
 	private void stopMotors()
 	{
-		drive.setCommand(DriveCommand.NEUTRAL());		// override any incoming commands
+		drive.setCommand(DriveCommand.NEUTRAL());		// override any incoming commands 
 		sendCommands();
 	}
 
