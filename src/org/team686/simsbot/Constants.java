@@ -7,6 +7,8 @@ package org.team686.simsbot;
 import org.team686.lib.util.ConstantsBase;
 
 import edu.wpi.first.wpilibj.I2C;
+import edu.wpi.first.wpilibj.Solenoid;
+import edu.wpi.first.wpilibj.DoubleSolenoid;
 
 /**
  * A list of constants used by the rest of the robot code. This include physics
@@ -21,26 +23,32 @@ public class Constants extends ConstantsBase
     public static double kFrontBumperX = 18;	// position of front bumper with respect to robot center of rotation
     
 	// Wheels
-    public static double kDriveWheelCircumInches = 13.00;
+    public static double kDriveWheelCircumInches = 13.250;
     public static double kDriveWheelDiameterInches = kDriveWheelCircumInches / Math.PI;
-    public static double kTrackLengthInches = 9.625;
-    public static double kTrackWidthInches = 25.125;
+    public static double kTrackLengthInches = 12.500;
+    public static double kTrackWidthInches = 23.000;
     public static double kTrackEffectiveDiameter = (kTrackWidthInches * kTrackWidthInches + kTrackLengthInches * kTrackLengthInches) / kTrackWidthInches;
     public static double kTrackScrubFactor = 0.5;
 
     // Wheel Encoder
+    					// 54:30 drive shaft --> 3rd stage, 36:12 3rd stage --> encoder shaft 
+//    public static double kQuadEncoderGain = ( 30.0 / 54.0 ) * ( 12.0 / 36.0 );	// number of drive shaft rotations per encoder shaft rotation
+//    public static double kQuadEncoderGain = ( 54.0 / 30.0) * ( 12.0 / 36.0 );	// number of drive shaft rotations per encoder shaft rotation
+    public static double kQuadEncoderGain = 0.75;	// empirically found -- desparate after nothing else worked
+    
     public static int    kQuadEncoderCodesPerRev = 256;
-    public static int    kQuadEncoderPulsesPerRev = 4*kQuadEncoderCodesPerRev;
+    public static int    kQuadEncoderPulsesPerRev = (int)(4*kQuadEncoderCodesPerRev / kQuadEncoderGain);
     public static double kQuadEncoderStatusFramePeriod = 0.100;	// 100ms
     
     // CONTROL LOOP GAINS
-    public static double kFullThrottleRPM = 520;	// measured max RPM using NI web interface
+//    public static double kFullThrottleRPM = 350;	//  low gear : measured max RPM using NI web interface
+    public static double kFullThrottleRPM = 1250;	// high gear: measured max RPM using NI web interface
     public static double kFullThrottleEncoderPulsePer100ms = kFullThrottleRPM / 60.0 * kQuadEncoderStatusFramePeriod * kQuadEncoderPulsesPerRev; 
     
     // PID gains for drive velocity loop (sent to Talon)
     // Units: error is 4*256 counts/rev. Max output is +/- 1023 units.
     public static double kDriveVelocityKp = 1.0;
-    public static double kDriveVelocityKi = 0.0;
+    public static double kDriveVelocityKi = 0.001;
     public static double kDriveVelocityKd = 6.0;
     public static double kDriveVelocityKf = 1023.0 / kFullThrottleEncoderPulsePer100ms;
     public static int    kDriveVelocityIZone = 0;
@@ -95,24 +103,6 @@ public class Constants extends ConstantsBase
     public static double kCameraLatencySeconds = 0.240;			// Camera image capturing latency
     public static double kTargetLocationFilterConstant = (30.0 * kLoopDt);		// 30 time constants in 1 second
     
-    
-    
-    
-    // Do not change anything after this line!
-    
-    // Motor Controllers
-    // (Note that if multiple Talons are dedicated to a mechanism, any sensors are attached to the master)
-    public static final int kLeftMotorMasterTalonId  = 1;
-    public static final int kRightMotorMasterTalonId = 2;
-    public static final int kLeftMotorSlaveTalonId   = 3;
-    public static final int kRightMotorSlaveTalonId  = 4;
-
-    // WPILib doesn't handle drive motor reversal correctly, so we'll do it with these flags
-	// +1 if not reversed, -1 if reversed
-	public static final int lMotorPolarity = +1;
-	public static final int rMotorPolarity = -1;
-    
-
     // Joystick Controls
     public static int kXboxButtonA  = 1;
     public static int kXboxButtonB  = 2;
@@ -127,6 +117,72 @@ public class Constants extends ConstantsBase
     public static int kXboxRTriggerAxis = 3;
     public static int kXboxRStickXAxis  = 4;
     public static int kXboxRStickYAxis  = 5;
+
+
+    
+    // Joystick Mappings
+    public static int kLowGearButton 		= Constants.kXboxButtonY;
+    public static int kForwardIntakeButton 	= Constants.kXboxButtonB;
+    public static int kReverseIntakeButton 	= Constants.kXboxButtonA;
+    public static int kClimbButton 			= Constants.kXboxButtonRB;
+    public static int kReverseClimbButton 	= Constants.kXboxButtonLB;
+    public static int kBallTrayButton 		= Constants.kXboxButtonX;
+    
+    public static int kGearIntakeAxis		= Constants.kXboxRStickYAxis; 
+    
+    // Pneumatic Control Mappings
+    public static final int kHighGearSolenoidId 		= 0;	// PCM 0, Solenoid 0
+    public static final int kLowGearSolenoidId	 		= 1;	// PCM 0, Solenoid 1
+    public static final int kGearIntakeUpSolenoidId 	= 2; 	// PCM 0, Solenoid 2
+    public static final int kGearIntakeDownSolenoidId 	= 3; 	// PCM 0, Solenoid 3
+    public static final int kGearTrayUpSolenoidId 		= 4;	// PCM 0, Solenoid 4
+    public static final int kGearTrayDownSolenoidId 	= 5; 	// PCM 0, Solenoid 5
+    
+    /**
+     * Make an Solenoid instance for the single-number ID of the solenoid
+     *
+     * solenoidIds 0- 7 get mapped to PCM module 0, channels 0-7
+     * solenoidIds 8-15 get mapped to PCM module 1, channels 0-7
+     * 
+     */    
+    public static Solenoid getSolenoidModuleChannel(int solenoidId)
+    {
+    	int module = solenoidId / 8;
+    	int channel = solenoidId % 8;
+        return new Solenoid(module, channel);
+    }
+    
+    public static DoubleSolenoid getDoubleSolenoidModuleChannel(int fwdSolenoidId, int revSolenoidId)
+    {
+    	int module = fwdSolenoidId / 8;		// assumes fwd and rev on same module
+    	int fwdChannel = fwdSolenoidId % 8;
+    	int revChannel = revSolenoidId % 8;
+        return new DoubleSolenoid(module, fwdChannel, revChannel);
+    }
+    
+    
+    // Do not change anything after this line!
+    
+    // Motor Controllers
+    // (Note that if multiple Talons are dedicated to a mechanism, any sensors are attached to the master)
+    public static final int kLeftMotorMasterTalonId  	= 1;
+    public static final int kLeftMotorSlave1TalonId  	= 2;
+    public static final int kLeftMotorSlave2TalonId  	= 3;
+    
+    public static final int kClimbTalonId  				= 4;    
+    
+    public static final int kRightMotorMasterTalonId 	= 5;
+    public static final int kRightMotorSlave1TalonId 	= 6;
+    public static final int kRightMotorSlave2TalonId 	= 7;
+
+    public static final int kIntakeTalonId  			= 8;
+
+    
+    // WPILib doesn't handle drive motor reversal correctly, so we'll do it with these flags
+	// +1 if not reversed, -1 if reversed
+	public static final int lMotorPolarity = -1;
+	public static final int rMotorPolarity = +1;
+    
 
     // Relay Ports
     public static int kLedRelayPort = 0;

@@ -38,7 +38,7 @@ public class Drive extends Subsystem
 	// robot powers up
 	private Drive() 
 	{
-		driveCmd = DriveCommand.NEUTRAL();	
+		driveCmd = DriveCommand.NEUTRAL_HIGH();	
 		driveStatus = DriveStatus.getInstance();
 	}
 
@@ -53,7 +53,7 @@ public class Drive extends Subsystem
         @Override
         public void onStart()
         {
-            setOpenLoop(DriveCommand.NEUTRAL());
+            setOpenLoop(DriveCommand.NEUTRAL_HIGH());
         }
 
         @Override
@@ -84,7 +84,7 @@ public class Drive extends Subsystem
         @Override
         public void onStop() 
         {
-            setOpenLoop(DriveCommand.NEUTRAL());
+            setOpenLoop(DriveCommand.NEUTRAL_HIGH());
         }
     };
 
@@ -209,8 +209,8 @@ public class Drive extends Subsystem
 	// test function -- rotates wheels 1 RPM
 	public void testDriveSpeedControl() 
 	{
-		double  left_inches_per_second = Constants.kDriveWheelCircumInches;
-		double right_inches_per_second = Constants.kDriveWheelCircumInches;
+		double  left_inches_per_second = 1.0 * Constants.kDriveWheelCircumInches;
+		double right_inches_per_second = 1.0 * Constants.kDriveWheelCircumInches;
 		setVelocitySetpoint(left_inches_per_second, right_inches_per_second);
 	}
 
@@ -227,7 +227,7 @@ public class Drive extends Subsystem
 	@Override
 	public void stop()
 	{ 
-		setOpenLoop(DriveCommand.NEUTRAL()); 
+		setOpenLoop(DriveCommand.NEUTRAL_HIGH()); 
 	}
 
 	@Override

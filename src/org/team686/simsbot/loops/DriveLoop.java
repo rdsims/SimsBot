@@ -3,6 +3,7 @@ package org.team686.simsbot.loops;
 import com.ctre.CANTalon;
 import com.ctre.CANTalon.TalonControlMode;
 
+import edu.wpi.first.wpilibj.DoubleSolenoid;
 import edu.wpi.first.wpilibj.Timer;
 
 import org.team686.lib.sensors.BNO055;
@@ -28,35 +29,50 @@ public class DriveLoop implements Loop
 	private static BNO055 imu;
     private DriveStatus driveStatus;
     
-	public final CANTalon lMotorMaster, lMotorSlave;
-	public final CANTalon rMotorMaster, rMotorSlave;
+	public final CANTalon lMotorMaster, lMotorSlave1, lMotorSlave2;
+	public final CANTalon rMotorMaster, rMotorSlave1, rMotorSlave2;
 
 	private static final int kVelocityControlSlot = 0;
 	private static final int kBaseLockControlSlot = 1;
-
+	
+    private final DoubleSolenoid shifter;
+    
+	
+	
 	private DriveLoop() 
 	{
 		drive = Drive.getInstance();
 		imu = BNO055.getInstance(Constants.BNO055_PORT);
 		driveStatus = DriveStatus.getInstance();
 		
+		// Set up shifter
+	    shifter = Constants.getDoubleSolenoidModuleChannel(Constants.kLowGearSolenoidId, Constants.kHighGearSolenoidId);
+        setHighGear(true);
+		
 		lMotorMaster = new CANTalon(Constants.kLeftMotorMasterTalonId);
-        lMotorSlave  = new CANTalon(Constants.kLeftMotorSlaveTalonId);
+        lMotorSlave1 = new CANTalon(Constants.kLeftMotorSlave1TalonId);
+        lMotorSlave2 = new CANTalon(Constants.kLeftMotorSlave2TalonId);
 
 		rMotorMaster = new CANTalon(Constants.kRightMotorMasterTalonId);
-        rMotorSlave  = new CANTalon(Constants.kRightMotorSlaveTalonId);
+        rMotorSlave1 = new CANTalon(Constants.kRightMotorSlave1TalonId);
+        rMotorSlave2 = new CANTalon(Constants.kRightMotorSlave2TalonId);
 
-		lMotorSlave.changeControlMode(CANTalon.TalonControlMode.Follower);
-		rMotorSlave.changeControlMode(CANTalon.TalonControlMode.Follower);
-		lMotorSlave.set(Constants.kLeftMotorMasterTalonId);		// give slave the TalonID of it's master
-		rMotorSlave.set(Constants.kRightMotorMasterTalonId);	// give slave the TalonID of it's master
+		lMotorSlave1.changeControlMode(CANTalon.TalonControlMode.Follower);
+		lMotorSlave2.changeControlMode(CANTalon.TalonControlMode.Follower);
+		rMotorSlave1.changeControlMode(CANTalon.TalonControlMode.Follower);
+		rMotorSlave2.changeControlMode(CANTalon.TalonControlMode.Follower);
+		lMotorSlave1.set(Constants.kLeftMotorMasterTalonId);		// give slave the TalonID of it's master
+		lMotorSlave2.set(Constants.kLeftMotorMasterTalonId);		// give slave the TalonID of it's master
+		rMotorSlave1.set(Constants.kRightMotorMasterTalonId);	// give slave the TalonID of it's master
+		rMotorSlave2.set(Constants.kRightMotorMasterTalonId);	// give slave the TalonID of it's master
         
 		// Get status at 100Hz
 		lMotorMaster.setStatusFrameRateMs(CANTalon.StatusFrameRate.Feedback, 10);
 		rMotorMaster.setStatusFrameRateMs(CANTalon.StatusFrameRate.Feedback, 10);
 
 		// Set initial settings
-		DriveCommand neutralCmd = DriveCommand.NEUTRAL();
+		DriveCommand neutralCmd = DriveCommand.NEUTRAL_HIGH();
+		setHighGear(neutralCmd);
 		setControlMode(neutralCmd);
 		setMotors(neutralCmd);
 		setBrakeMode(neutralCmd);
@@ -68,22 +84,22 @@ public class DriveLoop implements Loop
 		rMotorMaster.set(0);
 		lMotorMaster.enableBrakeMode(false);
 		rMotorMaster.enableBrakeMode(false);
-		lMotorSlave.enableBrakeMode(false);
-		rMotorSlave.enableBrakeMode(false);
+		lMotorSlave1.enableBrakeMode(false);
+		rMotorSlave1.enableBrakeMode(false);
+		lMotorSlave2.enableBrakeMode(false);
+		rMotorSlave2.enableBrakeMode(false);
 
 		// Set up the encoders
 		lMotorMaster.setFeedbackDevice(CANTalon.FeedbackDevice.QuadEncoder);
 		rMotorMaster.setFeedbackDevice(CANTalon.FeedbackDevice.QuadEncoder);
-		lMotorMaster.configEncoderCodesPerRev(Constants.kQuadEncoderCodesPerRev);	// using this API lets us program velocity in RPM in closed-loop modes
-		rMotorMaster.configEncoderCodesPerRev(Constants.kQuadEncoderCodesPerRev);	// Talon SRX Software Reference Manual Section 17.2 API Unit Scaling
+		lMotorMaster.configEncoderCodesPerRev( Constants.kQuadEncoderCodesPerRev );	// using this API lets us program velocity in RPM in closed-loop modes
+		rMotorMaster.configEncoderCodesPerRev( Constants.kQuadEncoderCodesPerRev );	// Talon SRX Software Reference Manual Section 17.2 API Unit Scaling
 		lMotorMaster.setInverted(false);
 		rMotorMaster.setInverted(false);
-		lMotorMaster.reverseSensor(false);
-		rMotorMaster.reverseSensor(false);
+		lMotorMaster.reverseSensor(true);		// account for wheel encoder readings being reversed
+		rMotorMaster.reverseSensor(true);		// account for wheel encoder readings being reversed
 		lMotorMaster.reverseOutput(false);
 		rMotorMaster.reverseOutput(false);
-		lMotorSlave.reverseOutput(false);
-		rMotorSlave.reverseOutput(false);
 
 		// Load velocity control gains
 		lMotorMaster.setPID(Constants.kDriveVelocityKp, Constants.kDriveVelocityKi, Constants.kDriveVelocityKd,
@@ -92,6 +108,7 @@ public class DriveLoop implements Loop
 		rMotorMaster.setPID(Constants.kDriveVelocityKp, Constants.kDriveVelocityKi, Constants.kDriveVelocityKd,
 				Constants.kDriveVelocityKf, Constants.kDriveVelocityIZone, Constants.kDriveVelocityRampRate,
 				kVelocityControlSlot);
+		
 		// Load base lock control gains
 		lMotorMaster.setPID(Constants.kDriveBaseLockKp, Constants.kDriveBaseLockKi, Constants.kDriveBaseLockKd,
 				Constants.kDriveBaseLockKf, Constants.kDriveBaseLockIZone, Constants.kDriveBaseLockRampRate,
@@ -99,7 +116,9 @@ public class DriveLoop implements Loop
 		rMotorMaster.setPID(Constants.kDriveBaseLockKp, Constants.kDriveBaseLockKi, Constants.kDriveBaseLockKd,
 				Constants.kDriveBaseLockKf, Constants.kDriveBaseLockIZone, Constants.kDriveBaseLockRampRate,
 				kBaseLockControlSlot);
+		
 	}
+	
 	
 	
 	@Override public void onStart()
@@ -123,7 +142,7 @@ public class DriveLoop implements Loop
 
 	private void stopMotors()
 	{
-		drive.setCommand(DriveCommand.NEUTRAL());		// override any incoming commands 
+		drive.setCommand(DriveCommand.NEUTRAL_HIGH());		// override any incoming commands 
 		sendCommands();
 	}
 
@@ -153,6 +172,8 @@ public class DriveLoop implements Loop
 			driveStatus.setMotorCurrent(lMotorMaster.getOutputCurrent(), rMotorMaster.getOutputCurrent() );
 			driveStatus.setMotorStatus(lMotorMaster.get(), rMotorMaster.get() );
 			driveStatus.setMotorPIDError(lMotorMaster.getClosedLoopError(), rMotorMaster.getClosedLoopError() );
+
+			driveStatus.setHighGear( (shifter.get() == DoubleSolenoid.Value.kReverse) );
 		}
 	}
 		
@@ -171,6 +192,7 @@ public class DriveLoop implements Loop
 				
 		synchronized(newCmd)	// lock DriveCommand so no one changes it under us while we are sending the commands
 		{
+			setHighGear(newCmd);
 			setControlMode(newCmd);
 			setMotors(newCmd);
 			setBrakeMode(newCmd);
@@ -178,6 +200,22 @@ public class DriveLoop implements Loop
 		}
 	}
 	
+
+	private void setHighGear(DriveCommand newCmd)
+	{
+		boolean newHighGear = newCmd.getHighGear();
+		setHighGear(newHighGear);
+	}
+
+    private void setHighGear(boolean _highGear)
+    {
+    	if (_highGear)
+        	shifter.set(DoubleSolenoid.Value.kReverse);
+    	else
+        	shifter.set(DoubleSolenoid.Value.kForward);
+    }
+
+			
 	
 	private void setControlMode(DriveCommand newCmd)
     {
@@ -190,11 +228,14 @@ public class DriveLoop implements Loop
 			
 	        switch (newMode)
 	        {
-	        	case PercentVbus: 
+	        	case PercentVbus:
+	        		// leave shifter in current gear
 	                break;
 	
 	        	case Position:
-	    			lMotorMaster.setProfile(kBaseLockControlSlot);
+	        		setHighGear(false);
+
+	        		lMotorMaster.setProfile(kBaseLockControlSlot);
 	    			rMotorMaster.setProfile(kBaseLockControlSlot);
 
 	    			lMotorMaster.setAllowableClosedLoopErr(Constants.kDriveBaseLockAllowableError);
@@ -205,6 +246,8 @@ public class DriveLoop implements Loop
 	        		break;
 	        		
 	        	case Speed:
+	        		setHighGear(true);
+	        		
 	        		lMotorMaster.setProfile(kVelocityControlSlot);
 	        		rMotorMaster.setProfile(kVelocityControlSlot);
 	        		
@@ -234,13 +277,14 @@ public class DriveLoop implements Loop
 		{
 			lMotorMaster.enableBrakeMode(newBrake);
 			rMotorMaster.enableBrakeMode(newBrake);
-			lMotorSlave.enableBrakeMode(newBrake);
-			rMotorSlave.enableBrakeMode(newBrake);
+			lMotorSlave1.enableBrakeMode(newBrake);
+			rMotorSlave1.enableBrakeMode(newBrake);
+			lMotorSlave2.enableBrakeMode(newBrake);
+			rMotorSlave2.enableBrakeMode(newBrake);
 		}
 	}
 	
-	
-		
+
 	private void setMotors(DriveCommand newCmd)
     {
 		double lMotorCtrl = newCmd.getLeftMotor();
@@ -262,6 +306,8 @@ public class DriveLoop implements Loop
         		// DriveCommand given in inches/sec
         		// Talon SRX needs RPM in closed-loop mode.
         		// convert inches/sec to RPM
+System.out.println(lMotorCtrl + " in/sec");
+System.out.println(inchesPerSecondToRpm(lMotorCtrl) + "rpm");        		
            		lMotorMaster.set(Constants.lMotorPolarity * inchesPerSecondToRpm(lMotorCtrl)); 
         		rMotorMaster.set(Constants.rMotorPolarity * inchesPerSecondToRpm(rMotorCtrl));
         		break;
@@ -275,15 +321,16 @@ public class DriveLoop implements Loop
 	}
 
 	// Talon SRX reports position in rotations while in closed-loop Position mode
-	private static double rotationsToInches(double _rotations) {	return _rotations * Constants.kDriveWheelCircumInches; }
-	private static double inchesToRotations(double _inches) { return _inches / Constants.kDriveWheelCircumInches; }
+	private static double rotationsToInches(double _rotations) {	return _rotations * Constants.kQuadEncoderGain * Constants.kDriveWheelCircumInches; }
+	private static double inchesToRotations(double _inches) { return _inches / (Constants.kQuadEncoderGain * Constants.kDriveWheelCircumInches); }
 
 	// Talon SRX reports speed in RPM while in closed-loop Speed mode
 	private static double rpmToInchesPerSecond(double _rpm) { return rotationsToInches(_rpm) / 60.0; }
 	private static double inchesPerSecondToRpm(double _inches_per_second) { return inchesToRotations(_inches_per_second) * 60.0; }
 
 	
-	
+
+
 
 	private void resetEncoders(DriveCommand newCmd)
 	{

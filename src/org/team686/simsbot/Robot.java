@@ -10,6 +10,7 @@ import edu.wpi.first.wpilibj.Timer;
 import org.team686.lib.joystick.*;
 import org.team686.lib.util.*;
 
+import org.team686.simsbot.Constants;
 import org.team686.simsbot.auto.AutoModeExecuter;
 import org.team686.simsbot.command_status.DriveCommand;
 import org.team686.simsbot.command_status.DriveStatus;
@@ -183,6 +184,10 @@ public class Robot extends IterativeRobot
 		try 
 		{
 			CrashTracker.logAutoInit();
+
+			DriveCommand driveCmd = drive.getCommand();
+			driveCmd.setHighGear( true );
+			
 			if (autoModeExecuter != null) 
 			{
 				autoModeExecuter.stop();
@@ -241,7 +246,7 @@ public class Robot extends IterativeRobot
 			// Configure looper
 			loopController.start();
 
-			drive.setOpenLoop(DriveCommand.NEUTRAL());
+			drive.setOpenLoop(DriveCommand.NEUTRAL_HIGH());
 
 		} 
 		catch (Throwable t) 
@@ -258,6 +263,11 @@ public class Robot extends IterativeRobot
 		try 
 		{
 			drive.setOpenLoop(controls.getDriveCommand());
+			
+			DriveCommand driveCmd = drive.getCommand();
+			
+			// set low/high gear
+			driveCmd.setHighGear( !controls.getButton(Constants.kLowGearButton) );
 		} 
 		catch (Throwable t) 
 		{

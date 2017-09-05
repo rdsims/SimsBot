@@ -36,9 +36,10 @@ public class DriveCommand
 {    
 	// The robot drivetrain's various states
 	public enum DriveControlMode { OPEN_LOOP, BASE_LOCKED, VELOCITY_SETPOINT, VELOCITY_HEADING }
-
+	
 	// all member variables should be private to force other object to use the set/get access methods
 	// which are synchronized to allow multi-thread synchronization	
+	private boolean highGear;
 	private DriveControlMode driveMode = DriveControlMode.OPEN_LOOP;
 	private TalonControlMode talonMode = TalonControlMode.PercentVbus;
 	private WheelSpeed wheelSpeed = new WheelSpeed();
@@ -48,29 +49,34 @@ public class DriveCommand
     
     public DriveCommand(double _left, double _right)
     {
-        this(DriveControlMode.OPEN_LOOP, _left, _right, false);
+        this(DriveControlMode.OPEN_LOOP, _left, _right, false, true);
     }
 
-    public DriveCommand(double _left, double _right, boolean _brake)
+    public DriveCommand(double _left, double _right, boolean _brake, boolean _highGear)
     {
-        this(DriveControlMode.OPEN_LOOP, _left, _right, _brake);
+        this(DriveControlMode.OPEN_LOOP, _left, _right, _brake, _highGear);
     }
 
-    public DriveCommand(DriveControlMode _mode, double _left, double _right, boolean _brake) 
+    public DriveCommand(DriveControlMode _mode, double _left, double _right, boolean _brake, boolean _highGear) 
     {
+    	setHighGear(_highGear);
     	setDriveMode(_mode);
     	setMotors(_left, _right);
     	setBrake(_brake);
     	resetEncoders = false;
     }
 
-    public DriveCommand(DriveControlMode _mode, WheelSpeed _vWheel, boolean _brake) 
+    public DriveCommand(DriveControlMode _mode, WheelSpeed _vWheel, boolean _brake, boolean _highGear) 
     {
+    	setHighGear(_highGear);
     	setDriveMode(_mode);
     	setMotors(_vWheel);
     	setBrake(_brake);
     	resetEncoders = false;
     }
+    
+    public synchronized void setHighGear(boolean _highGear) { highGear = _highGear; }
+    public synchronized boolean getHighGear() { return highGear; }
     
     public synchronized void setDriveMode(DriveControlMode _driveMode) 
     {
@@ -119,8 +125,8 @@ public class DriveCommand
     
     
     // special constant commands
-    public static DriveCommand NEUTRAL() { return new DriveCommand(DriveControlMode.OPEN_LOOP, 0, 0, false); }
-    public static DriveCommand BRAKE()   { return new DriveCommand(DriveControlMode.OPEN_LOOP, 0, 0, true); }
+    public static DriveCommand NEUTRAL_HIGH() { return new DriveCommand(DriveControlMode.OPEN_LOOP, 0, 0, false, true); }
+    public static DriveCommand BRAKE_HIGH()   { return new DriveCommand(DriveControlMode.OPEN_LOOP, 0, 0, true,  true); }
     
     
     @Override
@@ -143,6 +149,7 @@ public class DriveCommand
 	    		put("DriveCommand/left",  wheelSpeed.left );
 	       		put("DriveCommand/right", wheelSpeed.right );
 	       		put("DriveCommand/brake", brake );
+	       		put("DriveCommand/highGear", highGear );
         	}
         }
     };

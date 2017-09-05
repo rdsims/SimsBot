@@ -17,6 +17,7 @@ public class DriveStatus
 
 	private TalonControlMode talonControlMode = TalonControlMode.Disabled;
 	private boolean brakeMode;
+	private boolean highGear;
 	
 	private double lDistanceInches, rDistanceInches;
 	private double lSpeedInchesPerSec, rSpeedInchesPerSec;
@@ -33,6 +34,9 @@ public class DriveStatus
 	
 	public synchronized void setBrakeMode(boolean val) { brakeMode = val; }
 	public synchronized boolean getBrakeMode() { return brakeMode; }
+	
+	public synchronized void setHighGear(boolean val) { highGear = val; }
+	public synchronized boolean getHighGear() { return highGear; }
 	
 	public synchronized void setLeftDistanceInches(double val)  { lDistanceInches = val; }
 	public synchronized void setRightDistanceInches(double val) { rDistanceInches = val; }
@@ -77,6 +81,7 @@ public class DriveStatus
         	{
 	    		put("DriveStatus/TalonControlMode", talonControlMode.toString() );
 	    		put("DriveStatus/brakeMode", brakeMode );
+	    		put("DriveStatus/highGear", highGear );
 	    		put("DriveStatus/lMotorCurrent", lMotorCurrent );
 	    		put("DriveStatus/rMotorCurrent", rMotorCurrent );
 	    		put("DriveStatus/lMotorStatus", lMotorStatus );
