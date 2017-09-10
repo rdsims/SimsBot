@@ -2,6 +2,7 @@ package org.team686.lib.joystick;
 
 import org.team686.lib.joystick.JoystickControlsBase;
 import org.team686.lib.util.Util;
+import org.team686.simsbot.Constants;
 import org.team686.simsbot.command_status.DriveCommand;
 
 /**
@@ -25,6 +26,13 @@ public class ArcadeDriveJoystick extends JoystickControlsBase
     	double throttle = -mStick.getY();	// TODO: figure out why Y-axis is negated
         double turn     = -mStick.getX();	// TODO: figure out why X-axis is negated
      
+        if ((Math.abs(throttle) < Constants.kJoystickDeadZoneThreshold) &&
+            (Math.abs(turn) < Constants.kJoystickDeadZoneThreshold))
+        {
+        	throttle = 0.0;
+	        turn = 0.0;
+	    }
+        
 	    double moveValue   = Util.limit(throttle, 1.0);
 	    double rotateValue = Util.limit(turn,     1.0);
 	    double lMotorSpeed, rMotorSpeed;

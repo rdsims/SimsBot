@@ -306,8 +306,6 @@ public class DriveLoop implements Loop
         		// DriveCommand given in inches/sec
         		// Talon SRX needs RPM in closed-loop mode.
         		// convert inches/sec to RPM
-System.out.println(lMotorCtrl + " in/sec");
-System.out.println(inchesPerSecondToRpm(lMotorCtrl) + "rpm");        		
            		lMotorMaster.set(Constants.lMotorPolarity * inchesPerSecondToRpm(lMotorCtrl)); 
         		rMotorMaster.set(Constants.rMotorPolarity * inchesPerSecondToRpm(rMotorCtrl));
         		break;

@@ -31,18 +31,15 @@ public class Constants extends ConstantsBase
     public static double kTrackScrubFactor = 0.5;
 
     // Wheel Encoder
-    					// 54:30 drive shaft --> 3rd stage, 36:12 3rd stage --> encoder shaft 
-//    public static double kQuadEncoderGain = ( 30.0 / 54.0 ) * ( 12.0 / 36.0 );	// number of drive shaft rotations per encoder shaft rotation
-//    public static double kQuadEncoderGain = ( 54.0 / 30.0) * ( 12.0 / 36.0 );	// number of drive shaft rotations per encoder shaft rotation
-    public static double kQuadEncoderGain = 0.75;	// empirically found -- desparate after nothing else worked
+    public static double kQuadEncoderGain = ( 30.0 / 54.0 ) * ( 12.0 / 36.0 );	// number of drive shaft rotations per encoder shaft rotation
+																				// 54:30 drive shaft --> 3rd stage, 36:12 3rd stage --> encoder shaft 
     
-    public static int    kQuadEncoderCodesPerRev = 256;
+    public static int    kQuadEncoderCodesPerRev = 64;
     public static int    kQuadEncoderPulsesPerRev = (int)(4*kQuadEncoderCodesPerRev / kQuadEncoderGain);
     public static double kQuadEncoderStatusFramePeriod = 0.100;	// 100ms
     
     // CONTROL LOOP GAINS
-//    public static double kFullThrottleRPM = 350;	//  low gear : measured max RPM using NI web interface
-    public static double kFullThrottleRPM = 1250;	// high gear: measured max RPM using NI web interface
+    public static double kFullThrottleRPM = 4500 * kQuadEncoderGain;	// high gear: measured max RPM using NI web interface
     public static double kFullThrottleEncoderPulsePer100ms = kFullThrottleRPM / 60.0 * kQuadEncoderStatusFramePeriod * kQuadEncoderPulsesPerRev; 
     
     // PID gains for drive velocity loop (sent to Talon)
@@ -103,14 +100,15 @@ public class Constants extends ConstantsBase
     public static double kCameraLatencySeconds = 0.240;			// Camera image capturing latency
     public static double kTargetLocationFilterConstant = (30.0 * kLoopDt);		// 30 time constants in 1 second
     
-    // Joystick Controls
+
+    
+    // Joystick Controls (don't change this section)
     public static int kXboxButtonA  = 1;
     public static int kXboxButtonB  = 2;
     public static int kXboxButtonX  = 3;
     public static int kXboxButtonY  = 4;
     public static int kXboxButtonLB = 5;
     public static int kXboxButtonRB = 6;
-    
     public static int kXboxLStickXAxis  = 0;
     public static int kXboxLStickYAxis  = 1;
     public static int kXboxLTriggerAxis = 2;
@@ -118,8 +116,6 @@ public class Constants extends ConstantsBase
     public static int kXboxRStickXAxis  = 4;
     public static int kXboxRStickYAxis  = 5;
 
-
-    
     // Joystick Mappings
     public static int kLowGearButton 		= Constants.kXboxButtonY;
     public static int kForwardIntakeButton 	= Constants.kXboxButtonB;
@@ -129,6 +125,8 @@ public class Constants extends ConstantsBase
     public static int kBallTrayButton 		= Constants.kXboxButtonX;
     
     public static int kGearIntakeAxis		= Constants.kXboxRStickYAxis; 
+    
+    public static double kJoystickDeadZoneThreshold = 0.1;
     
     // Pneumatic Control Mappings
     public static final int kHighGearSolenoidId 		= 0;	// PCM 0, Solenoid 0
@@ -163,6 +161,7 @@ public class Constants extends ConstantsBase
     
     // Do not change anything after this line!
     
+
     // Motor Controllers
     // (Note that if multiple Talons are dedicated to a mechanism, any sensors are attached to the master)
     public static final int kLeftMotorMasterTalonId  	= 1;

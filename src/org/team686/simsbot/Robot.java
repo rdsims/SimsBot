@@ -289,6 +289,11 @@ public class Robot extends IterativeRobot
 	public void testPeriodic()
 	{
 		drive.testDriveSpeedControl();
+
+		DriveCommand driveCmd = drive.getCommand();
+		
+		// set low/high gear
+		driveCmd.setHighGear( !controls.getButton(Constants.kLowGearButton) );
 	}
 	
 	
