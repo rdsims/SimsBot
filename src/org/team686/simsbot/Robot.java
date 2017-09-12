@@ -3,6 +3,9 @@ package org.team686.simsbot;
 
 import java.util.TimeZone;
 
+import edu.wpi.cscore.UsbCamera;
+import edu.wpi.first.wpilibj.CameraServer;
+import edu.wpi.first.wpilibj.DoubleSolenoid;
 import edu.wpi.first.wpilibj.IterativeRobot;
 import edu.wpi.first.wpilibj.PowerDistributionPanel;
 import edu.wpi.first.wpilibj.Timer;
@@ -44,6 +47,10 @@ public class Robot extends IterativeRobot
 	SmartDashboardInteractions smartDashboardInteractions;
 	DataLogController robotLogger;	// logger for Robot thread (autonomous thread has it's own logger)
 
+    CameraServer server;
+    
+    DoubleSolenoid gearSolenoid; 
+	
 	enum OperationalMode 
 	{
 		DISABLED(0), AUTONOMOUS(1), TELEOP(2), TEST(3);
@@ -94,6 +101,14 @@ public class Robot extends IterativeRobot
 			
 			// set initial Pose (will be updated during autonomousInit())
 			setInitialPose( new Pose() );
+			
+	        // Get the UsbCamera from CameraServer
+	        UsbCamera camera = CameraServer.getInstance().startAutomaticCapture();
+	        camera.setBrightness(-255);
+	        //camera.setExposureManual(0);
+			camera.setResolution(640, 480);
+			
+			gearSolenoid = Constants.getDoubleSolenoidModuleChannel(Constants.kGearIntakeUpSolenoidId, Constants.kGearIntakeDownSolenoidId);
 			
 		} 
 		catch (Throwable t) 
@@ -268,6 +283,13 @@ public class Robot extends IterativeRobot
 			
 			// set low/high gear
 			driveCmd.setHighGear( !controls.getButton(Constants.kLowGearButton) );
+			
+			// set gear intake up/down
+			if (controls.getAxis(Constants.kGearIntakeAxis) > 0.5)
+				gearSolenoid.set(DoubleSolenoid.Value.kForward);
+			else if (controls.getAxis(Constants.kGearIntakeAxis) < 0.5)
+				gearSolenoid.set(DoubleSolenoid.Value.kReverse);
+			
 		} 
 		catch (Throwable t) 
 		{
