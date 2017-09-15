@@ -38,10 +38,24 @@ public class Drive extends Subsystem
 	// robot powers up
 	private Drive() 
 	{
-		driveCmd = DriveCommand.NEUTRAL();	
+		driveCmd = DriveCommand.NEUTRAL_HIGH();	
 		driveStatus = DriveStatus.getInstance();
 	}
 
+	public void setHighGear(boolean _value)
+	{
+		driveCmd.setHighGear(_value); 
+	}
+	
+	public void setHighGear()
+	{
+		setHighGear(true);
+	}
+
+	public void setLowGear()
+	{
+		setHighGear(false);
+	}
 	
 	
 	/*
@@ -53,7 +67,7 @@ public class Drive extends Subsystem
         @Override
         public void onStart()
         {
-            setOpenLoop(DriveCommand.NEUTRAL());
+            setOpenLoop(DriveCommand.NEUTRAL_HIGH());
         }
 
         @Override
@@ -84,7 +98,7 @@ public class Drive extends Subsystem
         @Override
         public void onStop() 
         {
-            setOpenLoop(DriveCommand.NEUTRAL());
+            setOpenLoop(DriveCommand.NEUTRAL_HIGH());
         }
     };
 
@@ -225,7 +239,7 @@ public class Drive extends Subsystem
 	@Override
 	public void stop()
 	{ 
-		setOpenLoop(DriveCommand.NEUTRAL()); 
+		setOpenLoop(DriveCommand.NEUTRAL_HIGH()); 
 	}
 
 	@Override

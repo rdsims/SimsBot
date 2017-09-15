@@ -3,6 +3,9 @@ package org.team686.simsbot;
 
 import java.util.TimeZone;
 
+import edu.wpi.cscore.UsbCamera;
+import edu.wpi.first.wpilibj.CameraServer;
+import edu.wpi.first.wpilibj.DoubleSolenoid;
 import edu.wpi.first.wpilibj.IterativeRobot;
 import edu.wpi.first.wpilibj.PowerDistributionPanel;
 import edu.wpi.first.wpilibj.Timer;
@@ -10,6 +13,7 @@ import edu.wpi.first.wpilibj.Timer;
 import org.team686.lib.joystick.*;
 import org.team686.lib.util.*;
 
+import org.team686.simsbot.Constants;
 import org.team686.simsbot.auto.AutoModeExecuter;
 import org.team686.simsbot.command_status.DriveCommand;
 import org.team686.simsbot.command_status.DriveStatus;
@@ -43,6 +47,9 @@ public class Robot extends IterativeRobot
 	SmartDashboardInteractions smartDashboardInteractions;
 	DataLogController robotLogger;	// logger for Robot thread (autonomous thread has it's own logger)
 
+    CameraServer server;
+    
+	
 	enum OperationalMode 
 	{
 		DISABLED(0), AUTONOMOUS(1), TELEOP(2), TEST(3);
@@ -52,8 +59,10 @@ public class Robot extends IterativeRobot
 		private OperationalMode(int val) { this.val = val; }
 		public int getVal() { return val; }
 	}
-
 	OperationalMode operationalMode = OperationalMode.DISABLED;
+	
+	
+	
 	
 	public Robot() {
 		CrashTracker.logRobotConstruction();
@@ -94,6 +103,11 @@ public class Robot extends IterativeRobot
 			// set initial Pose (will be updated during autonomousInit())
 			setInitialPose( new Pose() );
 			
+	        // Get the UsbCamera from CameraServer
+	        UsbCamera camera = CameraServer.getInstance().startAutomaticCapture();
+	        camera.setBrightness(-255);
+	        //camera.setExposureManual(0);
+			camera.setResolution(640, 480);
 		} 
 		catch (Throwable t) 
 		{
@@ -183,6 +197,9 @@ public class Robot extends IterativeRobot
 		try 
 		{
 			CrashTracker.logAutoInit();
+
+			drive.setHighGear( true );
+			
 			if (autoModeExecuter != null) 
 			{
 				autoModeExecuter.stop();
@@ -241,7 +258,7 @@ public class Robot extends IterativeRobot
 			// Configure looper
 			loopController.start();
 
-			drive.setOpenLoop(DriveCommand.NEUTRAL());
+			drive.setOpenLoop(DriveCommand.NEUTRAL_HIGH());
 
 		} 
 		catch (Throwable t) 
@@ -257,6 +274,8 @@ public class Robot extends IterativeRobot
 	{
 		try 
 		{
+			// drive subsystem
+			drive.setHighGear( !(controls.getButton(Constants.kLowGearButton1) || controls.getButton(Constants.kLowGearButton2)) );
 			drive.setOpenLoop(controls.getDriveCommand());
 		} 
 		catch (Throwable t) 
@@ -278,6 +297,7 @@ public class Robot extends IterativeRobot
 	@Override
 	public void testPeriodic()
 	{
+		drive.setHighGear( !(controls.getButton(Constants.kLowGearButton1) || controls.getButton(Constants.kLowGearButton2)) );
 		drive.testDriveSpeedControl();
 	}
 	

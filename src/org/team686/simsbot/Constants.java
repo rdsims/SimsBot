@@ -7,6 +7,8 @@ package org.team686.simsbot;
 import org.team686.lib.util.ConstantsBase;
 
 import edu.wpi.first.wpilibj.I2C;
+import edu.wpi.first.wpilibj.Solenoid;
+import edu.wpi.first.wpilibj.DoubleSolenoid;
 
 /**
  * A list of constants used by the rest of the robot code. This include physics
@@ -29,12 +31,13 @@ public class Constants extends ConstantsBase
     public static double kTrackScrubFactor = 0.5;
 
     // Wheel Encoder
+    public static double kQuadEncoderGain = 1.0;	// number of drive shaft rotations per encoder shaft rotation
     public static int    kQuadEncoderCodesPerRev = 256;
-    public static int    kQuadEncoderPulsesPerRev = 4*kQuadEncoderCodesPerRev;
+    public static int    kQuadEncoderPulsesPerRev = (int)(4*kQuadEncoderCodesPerRev / kQuadEncoderGain);
     public static double kQuadEncoderStatusFramePeriod = 0.100;	// 100ms
     
     // CONTROL LOOP GAINS
-    public static double kFullThrottleRPM = 520;	// measured max RPM using NI web interface
+    public static double kFullThrottleRPM = 520 * kQuadEncoderGain;	// measured max RPM using NI web interface
     public static double kFullThrottleEncoderPulsePer100ms = kFullThrottleRPM / 60.0 * kQuadEncoderStatusFramePeriod * kQuadEncoderPulsesPerRev; 
     
     // PID gains for drive velocity loop (sent to Talon)
@@ -96,12 +99,7 @@ public class Constants extends ConstantsBase
     public static double kTargetLocationFilterConstant = (30.0 * kLoopDt);		// 30 time constants in 1 second
     
     // Do not change anything after this line!
-    // TALONS
-    // (Note that if multiple Talons are dedicated to a mechanism, any sensors are attached to the master)
-    public static final int kLeftMotorTalonId  = 1;
-    public static final int kRightMotorTalonId = 2;
 
-    public static int kQuickTurnButton = Constants.kXboxButtonY;
     
     // Joystick Controls
     public static int kXboxButtonA  = 1;
@@ -118,6 +116,77 @@ public class Constants extends ConstantsBase
     public static int kXboxRStickXAxis  = 4;
     public static int kXboxRStickYAxis  = 5;
 
+    // Joystick Mappings
+    public static int kLowGearButton1 		= Constants.kXboxButtonRB;
+    public static int kLowGearButton2 		= Constants.kXboxButtonRB;
+    public static int kGearIntakeButton 	= Constants.kXboxButtonA;
+    public static int kGearScoreButton 		= Constants.kXboxButtonX;
+    public static int kBallTrayButton 		= Constants.kXboxButtonY;
+    public static int kSwitchCameraButton	= Constants.kXboxButtonB;
+    public static int kQuickTurnButton 		= Constants.kXboxButtonLB;
+    
+    public static int kClimbAxis			= Constants.kXboxRStickYAxis; 
+    
+    public static double kJoystickDeadZoneThreshold = 0.1;
+    
+    // Pneumatic Control Mappings
+    public static final int kHighGearSolenoidId 		= 0;	// PCM 0, Solenoid 0
+    public static final int kLowGearSolenoidId	 		= 1;	// PCM 0, Solenoid 1
+    public static final int kGearIntakeUpSolenoidId 	= 2; 	// PCM 0, Solenoid 2
+    public static final int kGearIntakeDownSolenoidId 	= 3; 	// PCM 0, Solenoid 3
+    public static final int kGearTrayUpSolenoidId 		= 4;	// PCM 0, Solenoid 4
+    public static final int kGearTrayDownSolenoidId 	= 5; 	// PCM 0, Solenoid 5
+    
+    /**
+     * Make an Solenoid instance for the single-number ID of the solenoid
+     *
+     * solenoidIds 0- 7 get mapped to PCM module 0, channels 0-7
+     * solenoidIds 8-15 get mapped to PCM module 1, channels 0-7
+     * 
+     */    
+    public static Solenoid getSolenoidModuleChannel(int solenoidId)
+    {
+    	int module = solenoidId / 8;
+    	int channel = solenoidId % 8;
+        return new Solenoid(module, channel);
+    }
+    
+    public static DoubleSolenoid getDoubleSolenoidModuleChannel(int fwdSolenoidId, int revSolenoidId)
+    {
+    	int module = fwdSolenoidId / 8;		// assumes fwd and rev on same module
+    	int fwdChannel = fwdSolenoidId % 8;
+    	int revChannel = revSolenoidId % 8;
+        return new DoubleSolenoid(module, fwdChannel, revChannel);
+    }
+    
+    
+    // Do not change anything after this line!
+    
+
+    // Motor Controllers
+    // (Note that if multiple Talons are dedicated to a mechanism, any sensors are attached to the master)
+    public static final int kLeftMotorMasterTalonId  	= 1;
+    public static final int kLeftMotorSlave1TalonId  	= 2;
+    public static final int kLeftMotorSlave2TalonId  	= 3;
+    
+    public static final int kClimbMotorTalonId			= 4;    
+    
+    public static final int kRightMotorMasterTalonId 	= 5;
+    public static final int kRightMotorSlave1TalonId 	= 6;
+    public static final int kRightMotorSlave2TalonId 	= 7;
+
+    public static final int kIntakeMotorTalonId			= 8;
+
+    
+    // WPILib doesn't handle drive motor reversal correctly, so we'll do it with these flags
+	// +1 if not reversed, -1 if reversed
+	public static final int lMotorPolarity = -1;
+	public static final int rMotorPolarity = +1;
+    
+
+    // Relay Ports
+    public static int kLedRelayPort = 0;
+    
     // Gyro
 	// The I2C port the BNO055 is connected to
     public static final I2C.Port BNO055_PORT = I2C.Port.kOnboard;
