@@ -117,14 +117,14 @@ public class Constants extends ConstantsBase
     public static int kXboxRStickYAxis  = 5;
 
     // Joystick Mappings
-    public static int kLowGearButton 		= Constants.kXboxButtonY;
-    public static int kForwardIntakeButton 	= Constants.kXboxButtonB;
-    public static int kReverseIntakeButton 	= Constants.kXboxButtonA;
-    public static int kClimbButton 			= Constants.kXboxButtonRB;
-    public static int kReverseClimbButton 	= Constants.kXboxButtonLB;
-    public static int kBallTrayButton 		= Constants.kXboxButtonX;
+    public static int kLowGearButton1 		= Constants.kXboxButtonLB;
+    public static int kLowGearButton2 		= Constants.kXboxButtonRB;
+    public static int kGearIntakeButton 	= Constants.kXboxButtonA;
+    public static int kGearScoreButton 		= Constants.kXboxButtonX;
+    public static int kBallTrayButton 		= Constants.kXboxButtonY;
+    public static int kSwitchCameraButton	= Constants.kXboxButtonB;
     
-    public static int kGearIntakeAxis		= Constants.kXboxRStickYAxis; 
+    public static int kClimbAxis			= Constants.kXboxRStickYAxis; 
     
     public static double kJoystickDeadZoneThreshold = 0.1;
     
@@ -168,13 +168,13 @@ public class Constants extends ConstantsBase
     public static final int kLeftMotorSlave1TalonId  	= 2;
     public static final int kLeftMotorSlave2TalonId  	= 3;
     
-    public static final int kClimbTalonId  				= 4;    
+    public static final int kClimbMotorTalonId			= 4;    
     
     public static final int kRightMotorMasterTalonId 	= 5;
     public static final int kRightMotorSlave1TalonId 	= 6;
     public static final int kRightMotorSlave2TalonId 	= 7;
 
-    public static final int kIntakeTalonId  			= 8;
+    public static final int kIntakeMotorTalonId			= 8;
 
     
     // WPILib doesn't handle drive motor reversal correctly, so we'll do it with these flags

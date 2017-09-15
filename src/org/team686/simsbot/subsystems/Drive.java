@@ -42,6 +42,20 @@ public class Drive extends Subsystem
 		driveStatus = DriveStatus.getInstance();
 	}
 
+	public void setHighGear(boolean _value)
+	{
+		driveCmd.setHighGear(_value); 
+	}
+	
+	public void setHighGear()
+	{
+		setHighGear(true);
+	}
+
+	public void setLowGear()
+	{
+		setHighGear(false);
+	}
 	
 	
 	/*

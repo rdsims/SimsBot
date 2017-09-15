@@ -24,6 +24,7 @@ import org.team686.simsbot.loops.LoopController;
 import org.team686.simsbot.loops.RobotStateLoop;
 import org.team686.simsbot.loops.VisionLoop;
 import org.team686.simsbot.subsystems.Drive;
+import org.team686.simsbot.subsystems.GearPickup;
 
 /**
  * The VM is configured to automatically run this class, and to call the
@@ -49,7 +50,8 @@ public class Robot extends IterativeRobot
 
     CameraServer server;
     
-    DoubleSolenoid gearSolenoid; 
+	GearPickup gearPickup = GearPickup.getInstance();
+
 	
 	enum OperationalMode 
 	{
@@ -60,8 +62,10 @@ public class Robot extends IterativeRobot
 		private OperationalMode(int val) { this.val = val; }
 		public int getVal() { return val; }
 	}
-
 	OperationalMode operationalMode = OperationalMode.DISABLED;
+	
+	
+	
 	
 	public Robot() {
 		CrashTracker.logRobotConstruction();
@@ -107,9 +111,6 @@ public class Robot extends IterativeRobot
 	        camera.setBrightness(-255);
 	        //camera.setExposureManual(0);
 			camera.setResolution(640, 480);
-			
-			gearSolenoid = Constants.getDoubleSolenoidModuleChannel(Constants.kGearIntakeUpSolenoidId, Constants.kGearIntakeDownSolenoidId);
-			
 		} 
 		catch (Throwable t) 
 		{
@@ -200,8 +201,8 @@ public class Robot extends IterativeRobot
 		{
 			CrashTracker.logAutoInit();
 
-			DriveCommand driveCmd = drive.getCommand();
-			driveCmd.setHighGear( true );
+			drive.setHighGear( true );
+			gearPickup.reset();
 			
 			if (autoModeExecuter != null) 
 			{
@@ -277,19 +278,12 @@ public class Robot extends IterativeRobot
 	{
 		try 
 		{
+			// drive subsystem
+			drive.setHighGear( !(controls.getButton(Constants.kLowGearButton1) || controls.getButton(Constants.kLowGearButton2)) );
 			drive.setOpenLoop(controls.getDriveCommand());
 			
-			DriveCommand driveCmd = drive.getCommand();
-			
-			// set low/high gear
-			driveCmd.setHighGear( !controls.getButton(Constants.kLowGearButton) );
-			
-			// set gear intake up/down
-			if (controls.getAxis(Constants.kGearIntakeAxis) > 0.5)
-				gearSolenoid.set(DoubleSolenoid.Value.kForward);
-			else if (controls.getAxis(Constants.kGearIntakeAxis) < 0.5)
-				gearSolenoid.set(DoubleSolenoid.Value.kReverse);
-			
+			// gear pickup subsystem
+			gearPickup.run( controls.getButton(Constants.kGearIntakeButton), controls.getButton(Constants.kGearScoreButton) );
 		} 
 		catch (Throwable t) 
 		{
@@ -310,12 +304,8 @@ public class Robot extends IterativeRobot
 	@Override
 	public void testPeriodic()
 	{
+		drive.setHighGear( !(controls.getButton(Constants.kLowGearButton1) || controls.getButton(Constants.kLowGearButton2)) );
 		drive.testDriveSpeedControl();
-
-		DriveCommand driveCmd = drive.getCommand();
-		
-		// set low/high gear
-		driveCmd.setHighGear( !controls.getButton(Constants.kLowGearButton) );
 	}
 	
 	
