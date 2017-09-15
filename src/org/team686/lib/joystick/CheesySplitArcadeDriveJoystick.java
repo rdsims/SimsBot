@@ -1,7 +1,7 @@
 package org.team686.lib.joystick;
 
-import org.team686.lib.util.CheesyDriveHelper;
 import org.team686.lib.joystick.JoystickControlsBase;
+import org.team686.lib.util.CheesyDriveHelper;
 import org.team686.simsbot.Constants;
 import org.team686.simsbot.command_status.DriveCommand;
 import org.team686.simsbot.subsystems.Drive;
@@ -13,18 +13,18 @@ import org.team686.simsbot.subsystems.Drive;
  * high speeds. Also handles the robot's quick turn functionality - "quick turn"
  * overrides constant-curvature turning for turn-in-place maneuvers.
  */
-public class CheesyTriggerDriveJoystick extends JoystickControlsBase 
+public class CheesySplitArcadeDriveJoystick extends JoystickControlsBase 
 {
-    private static JoystickControlsBase instance = new CheesyTriggerDriveJoystick();
+    private static JoystickControlsBase instance = new CheesySplitArcadeDriveJoystick();
 	public static JoystickControlsBase getInstance() { return instance; }
 
 	private static Drive drive = Drive.getInstance();
-
+    
     public DriveCommand getDriveCommand()
     {
         DriveCommand cmd = drive.getCommand();	// find out if we are currently in high gear or not
-    	double throttle = mStick.getRawAxis(Constants.kXboxRTriggerAxis) - mStick.getRawAxis(Constants.kXboxLTriggerAxis);
-        double turn     = mStick.getX();
+    	double throttle = -mStick.getRawAxis(Constants.kXboxLStickYAxis);
+        double turn     = +mStick.getRawAxis(Constants.kXboxRStickXAxis);
         boolean isQuickTurn = mStick.getRawButton(Constants.kQuickTurnButton);
         
         return CheesyDriveHelper.cheesyDrive(cmd, throttle, turn, isQuickTurn);
@@ -37,3 +37,5 @@ public class CheesyTriggerDriveJoystick extends JoystickControlsBase
     }
 
 }
+
+

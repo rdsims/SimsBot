@@ -2,14 +2,15 @@ package org.team686.lib.joystick;
 
 import org.team686.lib.joystick.JoystickControlsBase;
 import org.team686.lib.util.DriveHelper;
+import org.team686.simsbot.Constants;
 import org.team686.simsbot.command_status.DriveCommand;
 
 /**
  * Implements a simple arcade drive, where single stick is used for throttle and turn.
  */
-public class ArcadeDriveJoystick extends JoystickControlsBase 
+public class SplitArcadeDriveJoystick extends JoystickControlsBase 
 {
-    private static JoystickControlsBase mInstance = new ArcadeDriveJoystick();
+    private static JoystickControlsBase mInstance = new SplitArcadeDriveJoystick();
 
     public static JoystickControlsBase getInstance() 
     {
@@ -19,8 +20,8 @@ public class ArcadeDriveJoystick extends JoystickControlsBase
     
     public DriveCommand getDriveCommand()
     {
-    	double throttle = -mStick.getY();	// TODO: figure out why Y-axis is negated
-        double turn     = -mStick.getX();	// TODO: figure out why X-axis is negated
+    	double throttle = -mStick.getRawAxis(Constants.kXboxLStickYAxis);
+        double turn     = +mStick.getRawAxis(Constants.kXboxRStickXAxis);
     	
 	    boolean squaredInputs = true;	// set to true to increase fine control while permitting full power
 

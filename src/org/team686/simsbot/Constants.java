@@ -101,6 +101,8 @@ public class Constants extends ConstantsBase
     public static final int kLeftMotorTalonId  = 1;
     public static final int kRightMotorTalonId = 2;
 
+    public static int kQuickTurnButton = Constants.kXboxButtonY;
+    
     // Joystick Controls
     public static int kXboxButtonA  = 1;
     public static int kXboxButtonB  = 2;
