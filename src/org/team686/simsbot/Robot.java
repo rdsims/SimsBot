@@ -107,9 +107,9 @@ public class Robot extends IterativeRobot
 			robotLogger.register(drive.getCommand().getLogger());
 			robotLogger.register(DriveState.getInstance().getLogger());
 			robotLogger.register(RobotState.getInstance().getLogger());
-//			robotLogger.register(VisionState.getInstance().getLogger());
-//			robotLogger.register(GoalStateLoop.getInstance().getGoalTracker().getLogger());
-//			robotLogger.register(GoalStates.getInstance().getLogger());
+			robotLogger.register(VisionState.getInstance().getLogger());
+			robotLogger.register(GoalStateLoop.getInstance().getGoalTracker().getLogger());
+			robotLogger.register(GoalStates.getInstance().getLogger());
 
 			// set initial Pose (will be updated during autonomousInit())
 			setInitialPose(new Pose());

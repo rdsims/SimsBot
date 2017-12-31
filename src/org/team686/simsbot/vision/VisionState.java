@@ -5,8 +5,7 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import org.team686.lib.util.DataLogger;
-import org.team686.simsbot.command_status.GoalStates;
-import org.team686.simsbot.command_status.GoalStates.GoalState;
+
 
 import java.util.ArrayList;
 import java.util.List;
@@ -148,15 +147,14 @@ public class VisionState
 		@Override
 		public void log()
 		{
-			for ( int k = 0; k < 1; k++ )
+			int k=0;
+			for (VisionTargetState target : targets)
 			{
-				if (k < targets.size())
-				{
-					put(String.format("VisionState/Target%d/hCenter", k), targets.get(k).hCenter);
-					put(String.format("VisionState/Target%d/hWidth",  k), targets.get(k).hWidth);
-					put(String.format("VisionState/Target%d/vCenter", k), targets.get(k).vCenter);
-					put(String.format("VisionState/Target%d/vWidth",  k), targets.get(k).vWidth);
-				}
+				put(String.format("VisionState/Target%d/hCenter", k), target.hCenter);
+				put(String.format("VisionState/Target%d/hWidth",  k), target.hWidth);
+				put(String.format("VisionState/Target%d/vCenter", k), target.vCenter);
+				put(String.format("VisionState/Target%d/vWidth",  k), target.vWidth);
+				k++;
 			}
 		}
 	};
