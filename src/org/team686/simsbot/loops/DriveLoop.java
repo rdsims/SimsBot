@@ -44,9 +44,14 @@ public class DriveLoop implements Loop
 		switch (Constants.GyroSelection)
 		{
 		case BNO055:
+			System.out.println("Selected gyro = BNO055");
 			gyro = BNO055.getInstance();
+			break;
 		case NAVX:
+		default:
+			System.out.println("Selected gyro = NavX");
 			gyro = NavX.getInstance();
+			break;
 		}
 
 		driveStatus = DriveState.getInstance();

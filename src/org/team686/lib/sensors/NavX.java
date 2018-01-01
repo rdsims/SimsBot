@@ -21,7 +21,7 @@ public class NavX extends GyroBase
 	 *
 	 */
 	public double getHeadingDeg() {
-		return ahrs.getAngle();			 
+		return -ahrs.getAngle();	// sign correction so that heading increases as robot turns to the left	 
 	}
 	
 }

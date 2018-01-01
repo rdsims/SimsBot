@@ -155,7 +155,8 @@ public class Constants extends ConstantsBase
     
     // Gyro
     public enum GyroSelectionEnum { BNO055, NAVX; }
-    public static GyroSelectionEnum GyroSelection = GyroSelectionEnum.BNO055;
+    //public static GyroSelectionEnum GyroSelection = GyroSelectionEnum.BNO055;
+    public static GyroSelectionEnum GyroSelection = GyroSelectionEnum.NAVX;
 
 	// The I2C port the BNO055 is connected to
     public static final I2C.Port BNO055_PORT = I2C.Port.kOnboard;
