@@ -7,6 +7,7 @@ package org.team686.simsbot;
 import org.team686.lib.util.ConstantsBase;
 
 import edu.wpi.first.wpilibj.I2C;
+import edu.wpi.first.wpilibj.SPI;
 
 /**
  * A list of constants used by the rest of the robot code. This include physics
@@ -153,6 +154,9 @@ public class Constants extends ConstantsBase
     public static int kLedRelayPort = 0;
     
     // Gyro
+    public enum GyroSelectionEnum { BNO055, NAVX; }
+    public static GyroSelectionEnum GyroSelection = GyroSelectionEnum.BNO055;
+    
 	// The I2C port the BNO055 is connected to
     public static final I2C.Port BNO055_PORT = I2C.Port.kOnboard;
     
@@ -165,6 +169,11 @@ public class Constants extends ConstantsBase
     public static short kAccelOffsetY = -53;
     public static short kAccelOffsetZ =  25;
     public static short kAccelRadius  = -24;
+    
+    // The SPI port the NavX is connected to
+    // (see https://www.pdocs.kauailabs.com/navx-mxp/guidance/selecting-an-interface/)
+    public static final SPI.Port NAVX_PORT = SPI.Port.kMXP;						// the SPI port has low latency (<0.1 ms)
+    public static byte NAVX_UPDATE_RATE = (byte) (1.0 / Constants.kLoopDt);		// the SPI port supports update rates from 4-200 Hz
     
     // to be deleted
     public static double kCameraHalfFOVRadians = Math.PI/2.0;

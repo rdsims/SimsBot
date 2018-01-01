@@ -5,7 +5,9 @@ import com.ctre.CANTalon.TalonControlMode;
 
 import edu.wpi.first.wpilibj.Timer;
 
+import org.team686.lib.sensors.GyroBase;
 import org.team686.lib.sensors.BNO055;
+import org.team686.lib.sensors.NavX;
 import org.team686.simsbot.Constants;
 import org.team686.simsbot.command_status.DriveCommand;
 import org.team686.simsbot.command_status.DriveState;
@@ -25,7 +27,7 @@ public class DriveLoop implements Loop
 	public static DriveLoop getInstance() { return instance; }
 	
     private static Drive drive;
-	private static BNO055 imu;
+	private static GyroBase gyro;
     private DriveState driveStatus;
     
 	public final CANTalon lMotorMaster, lMotorSlave;
@@ -37,7 +39,16 @@ public class DriveLoop implements Loop
 	private DriveLoop() 
 	{
 		drive = Drive.getInstance();
-		imu = BNO055.getInstance(Constants.BNO055_PORT);
+		
+		// select which gyro is installed
+		switch (Constants.GyroSelection)
+		{
+		case BNO055:
+			gyro = BNO055.getInstance();
+		case NAVX:			
+			gyro = NavX.getInstance();
+		}
+		
 		driveStatus = DriveState.getInstance();
 		
 		lMotorMaster = new CANTalon(Constants.kLeftMotorMasterTalonId);
@@ -148,7 +159,7 @@ public class DriveLoop implements Loop
 			 * documentation, and standard right hand rule convention
 			 * negate it here to correct
 			 */
-			driveStatus.setHeadingDeg( -imu.getHeading() );
+			driveStatus.setHeadingDeg( gyro.getHeadingDeg() );
 	
 			driveStatus.setMotorCurrent(lMotorMaster.getOutputCurrent(), rMotorMaster.getOutputCurrent() );
 			driveStatus.setMotorStatus(lMotorMaster.get(), rMotorMaster.get() );

@@ -12,5 +12,7 @@
 	<classpathentry kind="var" path="USERLIBS_DIR/json-simple-1.1.1.jar"/>
 	<classpathentry kind="var" path="USERLIBS_DIR/jTCPfwd-lite.jar"/>
 	<classpathentry kind="var" path="USERLIBS_DIR/org.eclipse.paho.client.mqttv3-1.0.2.jar"/>
+	<classpathentry kind="var" path="navx-mxp"/>
+	<classpathentry kind="var" path="USERLIBS_DIR/navx_frc.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
