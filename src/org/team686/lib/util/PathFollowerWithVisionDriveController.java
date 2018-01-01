@@ -3,11 +3,14 @@ package org.team686.lib.util;
 import edu.wpi.first.wpilibj.Relay;
 import edu.wpi.first.wpilibj.Timer;
 
+import java.util.Optional;
+
 import org.team686.lib.util.Kinematics.WheelSpeed;
 import org.team686.simsbot.Constants;
 import org.team686.simsbot.command_status.DriveCommand;
 import org.team686.simsbot.command_status.RobotState;
-import org.team686.simsbot.command_status.VisionStatus;
+import org.team686.simsbot.command_status.GoalStates;
+import org.team686.simsbot.command_status.GoalStates.GoalState;
 import org.team686.simsbot.subsystems.Drive;
 
 /**
@@ -30,7 +33,7 @@ public class PathFollowerWithVisionDriveController
 	
 	public Drive drive = Drive.getInstance();
 	public RobotState robotState = RobotState.getInstance();
-	public VisionStatus visionStatus = VisionStatus.getInstance();
+	public GoalStates goalStates = GoalStates.getInstance();
 	private Relay ledRelay = LedRelay.getInstance();
 	
 	Path path;
@@ -40,7 +43,7 @@ public class PathFollowerWithVisionDriveController
 	public double distanceFromPath;
 	public double lookaheadDist;
 	public Vector2d lookaheadPoint = new Vector2d();
-	public double headingToTarget;		
+	public double bearingToTarget;		
 	
 	public double currentTime;
 
@@ -48,7 +51,7 @@ public class PathFollowerWithVisionDriveController
 	public Pose previousPose = new Pose();
 	
 	// camera pose with respect to robot
-	public Pose cameraPose_Robot = new Pose(Constants.kCameraPoseX, Constants.kCameraPoseY, Constants.kCameraPoseTheta);
+	public Pose cameraPose_Robot = new Pose(Constants.kCameraPoseX, Constants.kCameraPoseY, Constants.kCameraPoseThetaRad);
 	
 	public double prevDistanceToTargetInches;
 	public double prevHeadingToTarget;
@@ -88,24 +91,13 @@ public class PathFollowerWithVisionDriveController
 		// Get inputs
 		//---------------------------------------------------
 		
-		// values from camera, normalized to camera's Field of View (-1 to +1) 
-		double imageTimestamp    	 = visionStatus.getImageTimestamp();
-		double normalizedTargetX 	 = visionStatus.getNormalizedTargetX();
-		double normalizedTargetWidth = visionStatus.getNormalizedTargetWidth();
-
 		currentPose = robotState.getLatestFieldToVehicle();		
 		currentTime = Timer.getFPGATimestamp();
-
-//FIXME: add timestamp synchronization to timestamps.  Using adjusted current timestamp for now			
-imageTimestamp = currentTime - Constants.kCameraLatencySeconds;		// remove camera latency
-		
-		// calculate target location based on *previous* robot pose
-		previousPose = robotState.getFieldToVehicle(imageTimestamp);
 
 		//---------------------------------------------------
 		// Process
 		//---------------------------------------------------
-		wheelSpeed = pathVisionDrive(currentTime, currentPose, previousPose, imageTimestamp, normalizedTargetX, normalizedTargetWidth);	// sets speed, curvature to follow path
+		wheelSpeed = pathVisionDrive(currentTime, currentPose);		// sets speed, curvature to follow path
 
 		//---------------------------------------------------
 		// Output: Send drive control
@@ -114,7 +106,7 @@ imageTimestamp = currentTime - Constants.kCameraLatencySeconds;		// remove camer
 	}
 
     
-	public WheelSpeed pathVisionDrive(double _currentTime, Pose _currentPose, Pose _previousPose, double _imageTimestamp, double _normalizedTargetX, double _normalizedTargetWidth)
+	public WheelSpeed pathVisionDrive(double _currentTime, Pose _currentPose)
 	{
 		if (prevTime < 0)				// initial setting of prevTime is important to limit initial acceleration
 			prevTime = _currentTime;	// avoid calling Timer.getFPGATimestamp() in this function to allow off-robot testing
@@ -127,7 +119,7 @@ imageTimestamp = currentTime - Constants.kCameraLatencySeconds;		// remove camer
 		reversed = path.getReverseDirection();
 		boolean visionEnabledSegment = path.getSegmentVisionEnable(); 
 		if (visionEnabledSegment)
-			visionDrive(_currentTime, _currentPose, _previousPose, _imageTimestamp, _normalizedTargetX, _normalizedTargetWidth);
+			visionDrive(_currentTime, _currentPose);
 		else
 			pathDrive(_currentTime, _currentPose);
 			
@@ -177,62 +169,37 @@ imageTimestamp = currentTime - Constants.kCameraLatencySeconds;		// remove camer
 		//---------------------------------------------------
 		Vector2d robotToTarget = lookaheadPoint.sub(_currentPose.getPosition());
 		double lookaheadDist = robotToTarget.length();
-		headingToTarget = robotToTarget.angle() - _currentPose.getHeading();
+		bearingToTarget = robotToTarget.angle() - _currentPose.getHeading();
 		if (reversed)
-			headingToTarget -= Math.PI;	// flip robot around
+			bearingToTarget -= Math.PI;	// flip robot around
 		
-		curvature = 2 * Math.sin(headingToTarget) / lookaheadDist;
+		curvature = 2 * Math.sin(bearingToTarget) / lookaheadDist;
 	}
 
 	
 	
 	// drive towards vision target (or follow path if no target acquired)
-	public void visionDrive(double _currentTime, Pose _currentPose, Pose _previousPose, double _imageTimestamp, double _normalizedTargetX, double _normalizedTargetWidth)
+	public void visionDrive(double _currentTime, Pose _currentPose)
 	{
 		ledRelay.set(Relay.Value.kOn); 		// turn on LEDs during Vision-enabled segments
-		distanceToTargetInches = Double.MAX_VALUE;
-		
-		// If we get a valid message from the Vision co-processor, update our estimate of the target location
-		if (_normalizedTargetWidth > 0) 
-		{
-			//-----------------------------------------------------
-			// Estimate target location based on previous location,
-			// to compensate for latency in processing image
-			//-----------------------------------------------------
-			Pose cameraPose_Field = cameraPose_Robot.transformBy(_previousPose);
-			prevDistanceToTargetInches = Constants.kTargetWidthInches / (2.0*_normalizedTargetWidth*Constants.kTangentCameraHalfFOV);
-			prevHeadingToTarget = _previousPose.getHeading() + (-_normalizedTargetX*Constants.kCameraHalfFOVRadians);
-			Vector2d prevToTarget = Vector2d.magnitudeAngle(prevDistanceToTargetInches, prevHeadingToTarget);
-			targetLocation = cameraPose_Field.getPosition().add(prevToTarget); 	
-			
-			// filter target location with exponential averaging
 
-			if (prevDistanceToTargetInches < Constants.kVisionMaxDistanceInches)	// ignore bogus targets
-			{
-				if (state == PathVisionState.PATH_FOLLOWING)
-				{
-					avgTargetLocation = targetLocation;
-					state = PathVisionState.VISION;			
-				}
-				else
-				{
-					avgTargetLocation = avgTargetLocation.expAverage(targetLocation, Constants.kTargetLocationFilterConstant);
-				}
-			}
-		}
-		
+		Optional<GoalState> optGoalState = goalStates.getBestVisionTarget();
+
+		// If we get a valid message from the Vision co-processor, update our estimate of the target location
+		if (optGoalState.isPresent()) 
+			state = PathVisionState.VISION;
+			
 		// Drive towards target, even if we didn't get a valid Vision co-processor message this time
 		if (state == PathVisionState.VISION)
 		{
-			Vector2d robotToTarget = avgTargetLocation.sub(_currentPose.getPosition());
-			distanceToTargetInches = robotToTarget.length();
-			headingToTarget = robotToTarget.angle() - _currentPose.getHeading();
+			// Get range and angle to target
+			GoalState goalState = optGoalState.get();
+			distanceToTargetInches = goalState.getHorizontalDistance();
+			bearingToTarget = goalState.getRelativeBearing();
 			
-			//---------------------------------------------------
 			// Calculate motor settings to turn towards target   
-			//---------------------------------------------------
 			lookaheadDist = Math.min(Constants.kVisionLookaheadDist, distanceToTargetInches);	// length of chord <= kVisionLookaheadDist
-			curvature     = 2 * Math.sin(headingToTarget) / lookaheadDist;				// curvature = 1/radius of circle (positive: turn left, negative: turn right)
+			curvature     = 2 * Math.sin(bearingToTarget) / lookaheadDist;						// curvature = 1/radius of circle (positive: turn left, negative: turn right)
 		}
 		else
 		{
@@ -240,6 +207,8 @@ imageTimestamp = currentTime - Constants.kCameraLatencySeconds;		// remove camer
 			pathDrive(_currentTime, _currentPose);
 		}
 	}
+	
+	
 	
 	// keep speed within acceleration limits
 	public void speedControl(double _currentTime, double _remainingDistance, double _maxSpeed, double _maxAccel)
@@ -291,7 +260,7 @@ imageTimestamp = currentTime - Constants.kCameraLatencySeconds;		// remove camer
     public void done() 
     {
 		// cleanup code, if any
-    	ledRelay.set(Relay.Value.kOff); 		// turn off LEDs when done
+//    	ledRelay.set(Relay.Value.kOff); 		// turn off LEDs when done
         drive.stop();
     }
 
@@ -315,10 +284,6 @@ imageTimestamp = currentTime - Constants.kCameraLatencySeconds;		// remove camer
             put("PathVision/positionY",  odometry.getY());
             put("PathVision/headingDeg", odometry.getHeadingDeg());
         	
-    		put("PathVision/imageTimestamp", visionStatus.getImageTimestamp() );
-    		put("PathVision/normalizedTargetX", visionStatus.getNormalizedTargetX() );
-    		put("PathVision/normalizedTargetWidth", visionStatus.getNormalizedTargetWidth() );
-            
 			put("PathVision/reversed", reversed);
 			put("PathVision/state", state.toString());
 
@@ -337,13 +302,6 @@ imageTimestamp = currentTime - Constants.kCameraLatencySeconds;		// remove camer
 			put("PathVision/prevPoseX", previousPose.getX());
 			put("PathVision/prevPoseY", previousPose.getY());
 			
-			put("PathVision/targetLocationX", targetLocation.getX());
-			put("PathVision/targetLocationY", targetLocation.getY());
-			put("PathVision/avgTargetLocationX", avgTargetLocation.getX());
-			put("PathVision/avgTargetLocationY", avgTargetLocation.getY());
-			put("PathVision/distanceToTargetInches", distanceToTargetInches);
-			put("PathVision/headingToTarget", headingToTarget);
-
 			put("PathVision/remainingDistance",  remainingDistance );
 			
 			put("PathVision/speed", 	speed);

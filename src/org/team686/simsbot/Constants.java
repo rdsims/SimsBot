@@ -76,26 +76,47 @@ public class Constants extends ConstantsBase
     public static double kPathFollowingLookahead = 24.0; // inches
     public static double kPathFollowingCompletionTolerance = 1.0; 
     
-    // Vision constants
-    public static double kCameraPoseX     = +7.25;	// camera location with respect to robot center of rotation, +X axis is in direction of travel
-    public static double kCameraPoseY     =     0;	// camera location with respect to robot center of rotation, +Y axis is positive to the left
-    public static double kCameraPoseTheta =     0;	// camera angle with respect to robot heading
+    // Vision App Constants
+    public static String kAppPackage  = "org.team686.droidvision2017";
+	public static String kAppActivity = "org.team686.droidvision2017/.VisionTrackerActivity";	
+    public static int kAndroidAppTcpPort = 8686;
     
+    // Vision constants
+    public static double kCameraFrameRate = 30.0;		// frames per second
+    public static double kCameraPoseX        = +7.25;	// camera location with respect to robot center of rotation, X axis is in direction of travel
+    public static double kCameraPoseY        =     0;	// camera location with respect to robot center of rotation, Y axis is positive to the left
+    public static double kCameraPoseZ        =  12.0;	// camera location with respect to floor, Z axis is positive with increasing elevation
+    public static double kCameraPoseThetaRad =     0;	// camera angle with respect to robot heading, in radians
+    public static double kCameraPitchRad     =     0;   // camera vertical angle with respect to level ground, in radians
+    public static double kCameraDeadband = 0.0;
+  
     public static double kVisionMaxVel    = 60.0; // inches/sec  		
     public static double kVisionMaxAccel  = 48.0; // inches/sec^2		
     public static double kTargetWidthInches = 10.25;
+    public static double kTargetHeightInches = 5.00;
+    public static double kCenterOfTargetHeightInches = 12.0;
     public static double kPegTargetDistanceThresholdFromBumperInches = 18;		// inches to stop from target, measured from front bumper
     public static double kPegTargetDistanceThresholdFromCameraInches = kFrontBumperX - kCameraPoseX + kPegTargetDistanceThresholdFromBumperInches;
     public static double kVisionCompletionTolerance = 1.0; 
     public static double kVisionMaxDistanceInches = 240;		// ignore targets greater than this distance
     public static double kVisionLookaheadDist = 24.0;	// inches
-    public static double kCameraFOVDegrees = 42.5;			// Camera Field of View (degrees)
-    public static double kCameraHalfFOVRadians = kCameraFOVDegrees/2.0 * Math.PI/180.0;			// Half of Camera Field of View (radians)
-    public static double kTangentCameraHalfFOV = Math.tan(kCameraHalfFOVRadians);
-    public static double kCameraLatencySeconds = 0.240;			// Camera image capturing latency
-    public static double kTargetLocationFilterConstant = (30.0 * kLoopDt);		// 30 time constants in 1 second
-    
-    
+
+    // Goal Tracking constants
+    public static double kMaxTrackerDistance = 18.0;	// inches
+    public static double kGoalTrackAveragePeriod = 0.3;		// seconds (will average goal detections over this period)
+    public static double kMaxTargetAge = 0.4;			// seconds (will not consider targets that haven't been updated in this time)
+    public static double kTrackReportComparatorStablityWeight = 1.0;
+    public static double kTrackReportComparatorAgeWeight = 1.0;
+    public static double kTrackReportComparatorSwitchingWeight = 3.0;
+    public static double kTrackReportComparatorDistanceWeight = 2.0; // Unused
+
+    // Shooter Constants
+    public static double kShooterPoseX        =     0;	// shooter location with respect to robot center of rotation, X axis is in direction of travel
+    public static double kShooterPoseY        =     0;	// shooter location with respect to robot center of rotation, Y axis is positive to the left
+    public static double kShooterPoseZ        =     0;	// shooter location with respect to floor, Z axis is positive with increasing elevation
+    public static double kShooterPoseThetaRad =     0;	// shooter angle with respect to robot heading, in radians
+    public static double kAutoAimPredictionTime =   0;	// set to 0 since we don't have a turret and need to point the entire robot
+
     
     
     // Do not change anything after this line!
@@ -145,5 +166,8 @@ public class Constants extends ConstantsBase
     public static short kAccelOffsetZ =  25;
     public static short kAccelRadius  = -24;
     
-    
+    // to be deleted
+    public static double kCameraHalfFOVRadians = Math.PI/2.0;
+    public static double kCameraLatencySeconds = 250.0;
+    public static double kTangentCameraHalfFOV = 0.5;
 }

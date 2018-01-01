@@ -6,7 +6,7 @@ import org.team686.lib.util.PIDController;
 
 import org.team686.simsbot.Constants;
 import org.team686.simsbot.command_status.DriveCommand;
-import org.team686.simsbot.command_status.DriveStatus;
+import org.team686.simsbot.command_status.DriveState;
 import org.team686.simsbot.command_status.DriveCommand.DriveControlMode;
 import org.team686.simsbot.loops.Loop;
 
@@ -27,7 +27,7 @@ public class Drive extends Subsystem
 	private DriveCommand driveCmd;
 
 	// drive status
-	public DriveStatus driveStatus;
+	public DriveState driveStatus;
 	
 	// velocity heading
 	private VelocityHeadingSetpoint velocityHeadingSetpoint = new VelocityHeadingSetpoint();
@@ -39,7 +39,7 @@ public class Drive extends Subsystem
 	private Drive() 
 	{
 		driveCmd = DriveCommand.NEUTRAL();	
-		driveStatus = DriveStatus.getInstance();
+		driveStatus = DriveState.getInstance();
 	}
 
 	

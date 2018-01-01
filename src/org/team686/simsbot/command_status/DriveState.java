@@ -7,10 +7,10 @@ import com.ctre.CANTalon.TalonControlMode;
 /**
  * Drivetrain status structure, filled by DriveLoop.java
  */
-public class DriveStatus
+public class DriveState
 {
-	private static DriveStatus instance = new DriveStatus();
-	public static DriveStatus getInstance() { return instance; }	
+	private static DriveState instance = new DriveState();
+	public static DriveState getInstance() { return instance; }	
 	
 	// all member variables should be private to force other object to use the set/get access methods
 	// which are synchronized to allow multi-thread synchronization
@@ -26,7 +26,7 @@ public class DriveStatus
 	private double lMotorStatus, rMotorStatus;
 	private double lMotorPIDError, rMotorPIDError;
 	
-	public DriveStatus() {}
+	public DriveState() {}
 	
 	public synchronized void setTalonControlMode(TalonControlMode val) { talonControlMode = val; }
 	public synchronized TalonControlMode getTalonControlMode() { return talonControlMode; }
@@ -73,7 +73,7 @@ public class DriveStatus
         @Override
         public void log()
         {
-        	synchronized (DriveStatus.this)
+        	synchronized (DriveState.this)
         	{
 	    		put("DriveStatus/TalonControlMode", talonControlMode.toString() );
 	    		put("DriveStatus/brakeMode", brakeMode );
