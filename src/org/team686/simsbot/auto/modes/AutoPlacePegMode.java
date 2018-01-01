@@ -79,7 +79,6 @@ System.out.println("initialPose = " + initialPose);
 			path0.add(new Waypoint(approach3, 				  visionOptions));	// enable vision
 			path0.add(new Waypoint(  target3, 				  visionOptions));
 			pathList.add(path0);
-System.out.println("path1.getRemainingLength() = " + path0.getRemainingLength());
 
 			// back up
 			Path path1 = new Path();

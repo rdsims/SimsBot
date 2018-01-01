@@ -27,9 +27,9 @@ public class GoalStates
 		goalList.clear();	
 	
 	}
-	synchronized public void add(Vector2d _fieldToGoal, Pose _fieldToShooter, int _trackId)	
-	{	
-		goalList.add(new GoalState(_fieldToGoal, _fieldToShooter, _trackId));	
+	synchronized public void add(Vector2d _fieldToGoal, Pose _fieldToShooter, int _trackId, double _time)
+	{
+		goalList.add(new GoalState(_fieldToGoal, _fieldToShooter, _trackId, _time));
 	}
 
 	synchronized public boolean targetFound() { return !goalList.isEmpty(); }
@@ -62,8 +62,9 @@ public class GoalStates
 	    double horizontalDistance;	// in inches
 	    double relativeBearing;		// in radians, relative to robot's heading
 	    int trackId;
+	    double time;				// not really needed, just for debug to see that GoalState is still being updated
 
-	    public GoalState(Vector2d _fieldToGoal, Pose _fieldToShooter, int _trackId) 
+	    public GoalState(Vector2d _fieldToGoal, Pose _fieldToShooter, int _trackId, double _time)
 	    {
 			// find relative distance and bearing to goal
 			Vector2d shooterToGoal = _fieldToGoal.sub(_fieldToShooter.getPosition());
@@ -75,12 +76,14 @@ public class GoalStates
 	        horizontalDistance = distanceToGoal;
 	        relativeBearing = bearingToGoal;
 	        trackId = _trackId;
+	        time = _time;
 	    }
 
 	    public Vector2d getPosition() { return fieldToGoal; }
 	    public double getHorizontalDistance() { return horizontalDistance; }
 	    public double getRelativeBearing() { return relativeBearing; }
 	    public int getTrackId() { return trackId; }
+	    public double getTrackTime() { return time; }
 	}	
 
 
@@ -103,6 +106,7 @@ public class GoalStates
 				put("GoalState/bestTargetY", target.getPosition().getY());
 				put("GoalState/bestTargetRange", target.getHorizontalDistance());
 				put("GoalState/bestTargetBearing", target.getRelativeBearing());
+				put("GoalState/bestTargetTime", target.getTrackTime());
 			}
 			else
 			{
@@ -110,6 +114,7 @@ public class GoalStates
 				put("GoalState/bestTargetY", -999);
 				put("GoalState/bestTargetRange", -999);
 				put("GoalState/bestTargetBearing", -999);
+				put("GoalState/bestTargetTime", -999);
 			}
 		}
 	};

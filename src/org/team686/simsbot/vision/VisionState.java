@@ -4,6 +4,8 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
+import org.team686.lib.util.DataLogger;
+
 
 import java.util.ArrayList;
 import java.util.List;
@@ -21,7 +23,7 @@ public class VisionState
 		return instance;
 	}
 	
-	protected List<VisionTargetState> targets;
+	protected List<VisionTargetState> targets = new ArrayList<>();
 	protected double imageCaptureTimestamp = 0;			// note: assumes transport time from phone to this code is instantaneous
 
 	private static JSONParser parser = new JSONParser();
@@ -138,5 +140,28 @@ public class VisionState
 	synchronized public List<VisionTargetState> getTargets() 	{ return targets; }
 
 	synchronized public double getImageCaptureTimestamp()	{ return imageCaptureTimestamp; }
+
+
+	private final DataLogger logger = new DataLogger()
+	{
+		@Override
+		public void log()
+		{
+			int k=0;
+			for (VisionTargetState target : targets)
+			{
+				put(String.format("VisionState/Target%d/hCenter", k), target.hCenter);
+				put(String.format("VisionState/Target%d/hWidth",  k), target.hWidth);
+				put(String.format("VisionState/Target%d/vCenter", k), target.vCenter);
+				put(String.format("VisionState/Target%d/vWidth",  k), target.vWidth);
+				k++;
+			}
+		}
+	};
+
+	public DataLogger getLogger()
+	{
+		return logger;
+	}
 
 }

@@ -7,6 +7,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 
+import org.team686.lib.util.DataLogger;
 import org.team686.lib.util.Vector2d;
 import org.team686.simsbot.Constants;
 import org.team686.simsbot.command_status.GoalStates.GoalState;
@@ -191,6 +192,8 @@ public class GoalTracker
 		return rv;
 	}
 
+	List<TrackReport> trackReports = new ArrayList<>();
+
 	public List<TrackReport> getSortedTrackReports(double currentTime, Optional<GoalState> currentTarget)
 	{
 		// Sort tracks (actually TrackReports) so we can identify the best track
@@ -204,9 +207,37 @@ public class GoalTracker
 	    		Constants.kTrackReportComparatorStablityWeight, Constants.kTrackReportComparatorAgeWeight, 
 	    		Constants.kTrackReportComparatorSwitchingWeight, currentBestTrackId, currentTime);
 		
-		List<GoalTracker.TrackReport> trackReports = getTrackReports();
+		trackReports = getTrackReports();
 		Collections.sort(trackReports, goalTrackComparator);	// sort tracks by rank
 		
 		return trackReports;
 	}
+
+
+
+
+
+	private final DataLogger logger = new DataLogger()
+	{
+		@Override
+		public void log()
+		{
+			for ( int k = 0; k < 1; k++ )
+			{
+				if (k < trackReports.size())
+				{
+					put(String.format("GoalTracker/BestTrackReport/trackId", k), trackReports.get(k).trackId);
+					put(String.format("GoalTracker/BestTrackReport/FieldToGoalX", k), trackReports.get(k).getFieldToGoal().getX());
+					put(String.format("GoalTracker/BestTrackReport/FieldToGoalY", k), trackReports.get(k).getFieldToGoal().getY());
+					put(String.format("GoalTracker/BestTrackReport/stability", k), trackReports.get(k).getStability());
+				}
+			}
+		}
+	};
+
+	public DataLogger getLogger()
+	{
+		return logger;
+	}
+
 }

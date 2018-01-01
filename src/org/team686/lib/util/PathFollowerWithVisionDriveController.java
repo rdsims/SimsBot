@@ -43,7 +43,7 @@ public class PathFollowerWithVisionDriveController
 	public double distanceFromPath;
 	public double lookaheadDist;
 	public Vector2d lookaheadPoint = new Vector2d();
-	public double bearingToTarget;		
+	public double bearingToTarget;
 	
 	public double currentTime;
 
@@ -90,7 +90,7 @@ public class PathFollowerWithVisionDriveController
 		//---------------------------------------------------
 		// Get inputs
 		//---------------------------------------------------
-		
+
 		currentPose = robotState.getLatestFieldToVehicle();		
 		currentTime = Timer.getFPGATimestamp();
 
@@ -105,7 +105,9 @@ public class PathFollowerWithVisionDriveController
         drive.setVelocitySetpoint(wheelSpeed);
 	}
 
-    
+	boolean visionEnabledPrevSegment = false;
+
+
 	public WheelSpeed pathVisionDrive(double _currentTime, Pose _currentPose)
 	{
 		if (prevTime < 0)				// initial setting of prevTime is important to limit initial acceleration
@@ -117,12 +119,22 @@ public class PathFollowerWithVisionDriveController
 		double maxAccel = 0;
 		
 		reversed = path.getReverseDirection();
-		boolean visionEnabledSegment = path.getSegmentVisionEnable(); 
+
+		boolean visionEnabledSegment = path.getSegmentVisionEnable();
+
+		// turn on/off LEDs when changing to/from vision-enabled segments
+		if (visionEnabledSegment && !visionEnabledPrevSegment)
+			ledRelay.set(Relay.Value.kOn);
+		else if (!visionEnabledSegment && visionEnabledPrevSegment)
+			ledRelay.set(Relay.Value.kOff);
+
 		if (visionEnabledSegment)
 			visionDrive(_currentTime, _currentPose);
 		else
 			pathDrive(_currentTime, _currentPose);
-			
+
+		boolean visionEnabledPrevSegment = visionEnabledSegment;
+
 		if (state == PathVisionState.PATH_FOLLOWING)	 
 		{
 			remainingDistance = path.getRemainingLength();		// TODO: address stopping when past final segment
@@ -158,6 +170,8 @@ public class PathFollowerWithVisionDriveController
 	// Drive towards lookahead point on path
 	private void pathDrive(double _currentTime, Pose _currentPose)
 	{
+		state = PathVisionState.PATH_FOLLOWING;
+
 		//---------------------------------------------------
 		// Find Lookahead Point
 		//---------------------------------------------------
@@ -181,23 +195,19 @@ public class PathFollowerWithVisionDriveController
 	// drive towards vision target (or follow path if no target acquired)
 	public void visionDrive(double _currentTime, Pose _currentPose)
 	{
-		ledRelay.set(Relay.Value.kOn); 		// turn on LEDs during Vision-enabled segments
-
 		Optional<GoalState> optGoalState = goalStates.getBestVisionTarget();
 
 		// If we get a valid message from the Vision co-processor, update our estimate of the target location
-		if (optGoalState.isPresent()) 
-			state = PathVisionState.VISION;
-			
-		// Drive towards target, even if we didn't get a valid Vision co-processor message this time
-		if (state == PathVisionState.VISION)
+		if (optGoalState.isPresent())
 		{
+			state = PathVisionState.VISION;
+
 			// Get range and angle to target
 			GoalState goalState = optGoalState.get();
 			distanceToTargetInches = goalState.getHorizontalDistance();
 			bearingToTarget = goalState.getRelativeBearing();
-			
-			// Calculate motor settings to turn towards target   
+
+			// Calculate motor settings to turn towards target
 			lookaheadDist = Math.min(Constants.kVisionLookaheadDist, distanceToTargetInches);	// length of chord <= kVisionLookaheadDist
 			curvature     = 2 * Math.sin(bearingToTarget) / lookaheadDist;						// curvature = 1/radius of circle (positive: turn left, negative: turn right)
 		}
@@ -208,8 +218,8 @@ public class PathFollowerWithVisionDriveController
 		}
 	}
 	
-	
-	
+
+
 	// keep speed within acceleration limits
 	public void speedControl(double _currentTime, double _remainingDistance, double _maxSpeed, double _maxAccel)
 	{
@@ -260,8 +270,8 @@ public class PathFollowerWithVisionDriveController
     public void done() 
     {
 		// cleanup code, if any
-//    	ledRelay.set(Relay.Value.kOff); 		// turn off LEDs when done
-        drive.stop();
+    	ledRelay.set(Relay.Value.kOff); 		// turn off LEDs when done
+    	drive.stop();
     }
 
  
@@ -283,7 +293,7 @@ public class PathFollowerWithVisionDriveController
             put("PathVision/positionX",  odometry.getX());
             put("PathVision/positionY",  odometry.getY());
             put("PathVision/headingDeg", odometry.getHeadingDeg());
-        	
+
 			put("PathVision/reversed", reversed);
 			put("PathVision/state", state.toString());
 
@@ -301,7 +311,7 @@ public class PathFollowerWithVisionDriveController
 
 			put("PathVision/prevPoseX", previousPose.getX());
 			put("PathVision/prevPoseY", previousPose.getY());
-			
+
 			put("PathVision/remainingDistance",  remainingDistance );
 			
 			put("PathVision/speed", 	speed);

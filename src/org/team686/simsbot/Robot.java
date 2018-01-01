@@ -33,14 +33,12 @@ import org.team686.simsbot.vision.VisionState;
  */
 public class Robot extends IterativeRobot
 {
-	PowerDistributionPanel pdp = new PowerDistributionPanel(); // TODO: add
-																// relay for LED
-																// light ring
+	PowerDistributionPanel pdp = new PowerDistributionPanel();
 
 	JoystickControlsBase controls = ArcadeDriveJoystick.getInstance();
 	RobotState robotState = RobotState.getInstance();
 	Drive drive = Drive.getInstance();
-	VisionServer visionServer = VisionServer.getInstance();
+	VisionServer visionServer = VisionServer.getInstance();	// starts Vision phone app
 	VisionState visionState = VisionState.getInstance();
 
 	AutoModeExecuter autoModeExecuter = null;
@@ -51,6 +49,7 @@ public class Robot extends IterativeRobot
 	DataLogController robotLogger; 	// logger for Robot thread (autonomous thread has it's own logger)
 
 	Relay ledRelay = LedRelay.getInstance();
+
 
 	enum OperationalMode
 	{
@@ -108,6 +107,8 @@ public class Robot extends IterativeRobot
 			robotLogger.register(drive.getCommand().getLogger());
 			robotLogger.register(DriveState.getInstance().getLogger());
 			robotLogger.register(RobotState.getInstance().getLogger());
+			robotLogger.register(VisionState.getInstance().getLogger());
+			robotLogger.register(GoalStateLoop.getInstance().getGoalTracker().getLogger());
 			robotLogger.register(GoalStates.getInstance().getLogger());
 
 			// set initial Pose (will be updated during autonomousInit())
@@ -116,7 +117,7 @@ public class Robot extends IterativeRobot
 			
 			// 2nd attempt to start VisionServer in case the first failed
 			visionServer = VisionServer.getInstance();
-			
+
 			// notify GoalStateLoop when a new vision target message has been received
 			visionState.addVisionStateListener(GoalStateLoop.getInstance());
 		}
@@ -130,9 +131,8 @@ public class Robot extends IterativeRobot
 	public void setInitialPose(Pose _initialPose)
 	{
 		robotState.reset(Timer.getFPGATimestamp(), DriveState.getInstance().getLeftDistanceInches(),
-				DriveState.getInstance().getRightDistanceInches(), _initialPose); // set
-																					// initial
-																					// pose
+				DriveState.getInstance().getRightDistanceInches(), _initialPose);
+
 		System.out.println("InitialPose: " + _initialPose);
 	}
 
@@ -159,7 +159,7 @@ public class Robot extends IterativeRobot
 		boolean logToFile = true;
 		boolean logToSmartDashboard = true;
 		robotLogger.setOutputMode(logToFile, logToSmartDashboard);
-		// ledRelay.set(Relay.Value.kOff); // turn off LEDs
+		ledRelay.set(Relay.Value.kOff); // turn off LEDs
 
 		try
 		{
@@ -212,8 +212,8 @@ public class Robot extends IterativeRobot
 		try
 		{
 			CrashTracker.logAutoInit();
-			visionServer.requestAppRestart();
-			
+			//visionServer.requestAppRestart();
+
 			if (autoModeExecuter != null)
 			{
 				autoModeExecuter.stop();
@@ -261,16 +261,12 @@ public class Robot extends IterativeRobot
 		boolean logToFile = true;
 		boolean logToSmartDashboard = true;
 		robotLogger.setOutputMode(logToFile, logToSmartDashboard);
-// vision testing		
- ledRelay.set(Relay.Value.kOn); // turn on LEDs for vision test
 
-		
+
 		try
 		{
 			CrashTracker.logTeleopInit();
 
-			visionServer.requestAppRestart();
-			
 			// Select joystick control method
 			controls = smartDashboardInteractions.getJoystickControlsMode();
 
@@ -294,6 +290,15 @@ public class Robot extends IterativeRobot
 		try
 		{
 			drive.setOpenLoop(controls.getDriveCommand());
+
+			if (controls.getButton(Constants.kXboxButtonY))
+			{
+				ledRelay.set(Relay.Value.kOn);
+			}
+			else if (controls.getButton(Constants.kXboxButtonA))
+			{
+				ledRelay.set(Relay.Value.kOff);
+			}
 		}
 		catch (Throwable t)
 		{

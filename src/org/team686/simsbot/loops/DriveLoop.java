@@ -39,16 +39,16 @@ public class DriveLoop implements Loop
 	private DriveLoop() 
 	{
 		drive = Drive.getInstance();
-		
+
 		// select which gyro is installed
 		switch (Constants.GyroSelection)
 		{
 		case BNO055:
 			gyro = BNO055.getInstance();
-		case NAVX:			
+		case NAVX:
 			gyro = NavX.getInstance();
 		}
-		
+
 		driveStatus = DriveState.getInstance();
 		
 		lMotorMaster = new CANTalon(Constants.kLeftMotorMasterTalonId);
