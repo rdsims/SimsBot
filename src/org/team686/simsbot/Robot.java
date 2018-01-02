@@ -21,7 +21,8 @@ import org.team686.simsbot.loops.LoopController;
 import org.team686.simsbot.loops.RobotStateLoop;
 import org.team686.simsbot.loops.GoalStateLoop;
 import org.team686.simsbot.subsystems.Drive;
-import org.team686.simsbot.vision.VisionServer;
+//import org.team686.simsbot.vision.DroidVisionServer;
+import org.team686.simsbot.vision.JeVoisVisionServer;
 import org.team686.simsbot.vision.VisionState;
 
 /**
@@ -38,7 +39,8 @@ public class Robot extends IterativeRobot
 	JoystickControlsBase controls = ArcadeDriveJoystick.getInstance();
 	RobotState robotState = RobotState.getInstance();
 	Drive drive = Drive.getInstance();
-	VisionServer visionServer = VisionServer.getInstance();	// starts Vision phone app
+//	DroidVisionServer visionServer = DroidVisionServer.getInstance();	// starts Vision phone app
+	JeVoisVisionServer visionServer = new JeVoisVisionServer(); 
 	VisionState visionState = VisionState.getInstance();
 
 	AutoModeExecuter autoModeExecuter = null;
@@ -116,7 +118,7 @@ public class Robot extends IterativeRobot
 
 			
 			// 2nd attempt to start VisionServer in case the first failed
-			visionServer = VisionServer.getInstance();
+			//visionServer = DroidVisionServer.getInstance();
 
 			// notify GoalStateLoop when a new vision target message has been received
 			visionState.addVisionStateListener(GoalStateLoop.getInstance());
@@ -161,6 +163,10 @@ public class Robot extends IterativeRobot
 		robotLogger.setOutputMode(logToFile, logToSmartDashboard);
 		ledRelay.set(Relay.Value.kOff); // turn off LEDs
 
+		// jevois
+		visionServer.startCameraStream1();
+		visionServer.setSerOutEnable(true);
+		
 		try
 		{
 			CrashTracker.logDisabledInit();
@@ -208,6 +214,10 @@ public class Robot extends IterativeRobot
 		boolean logToFile = true;
 		boolean logToSmartDashboard = true;
 		robotLogger.setOutputMode(logToFile, logToSmartDashboard);
+
+		// jevois
+		visionServer.startCameraStream2();
+		visionServer.setSerOutEnable(true);
 
 		try
 		{

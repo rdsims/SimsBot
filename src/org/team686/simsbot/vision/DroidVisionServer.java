@@ -25,9 +25,9 @@ import org.team686.simsbot.vision.messages.VisionMessage;
  * @see VisionState.java
  */
 
-public class VisionServer extends CrashTrackingRunnable
+public class DroidVisionServer extends CrashTrackingRunnable
 {
-	private static VisionServer instance = null;
+	private static DroidVisionServer instance = null;
 	private ServerSocket serverSocket;
 	private boolean running = true;
 	private int port;
@@ -38,11 +38,11 @@ public class VisionServer extends CrashTrackingRunnable
 	private ArrayList<ServerThread> serverThreads = new ArrayList<>();
 	private volatile boolean appRestartRequested = false;
 
-	public static VisionServer getInstance()
+	public static DroidVisionServer getInstance()
 	{
 		if (instance == null)
 		{
-			instance = new VisionServer(Constants.kAndroidAppTcpPort);
+			instance = new DroidVisionServer(Constants.kAndroidAppTcpPort);
 		}
 		return instance;
 	}
@@ -65,7 +65,7 @@ public class VisionServer extends CrashTrackingRunnable
 	 * 
 	 * @param Port
 	 */
-	private VisionServer(int _port)
+	private DroidVisionServer(int _port)
 	{
 		try
 		{
@@ -178,7 +178,7 @@ public class VisionServer extends CrashTrackingRunnable
 					String[] messages = messageRaw.split("\n");
 					for (String message : messages)
 					{
-						// first level of parsing into "type" and "message
+						// first level of parsing into "type" and "message"
 						OffWireMessage parsedMessage = new OffWireMessage(message); 
 						if (parsedMessage.isValid())
 						{
