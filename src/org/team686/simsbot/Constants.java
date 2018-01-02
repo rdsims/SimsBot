@@ -76,8 +76,13 @@ public class Constants extends ConstantsBase
     public static double kPathFollowingMaxAccel  = 48.0; // inches/sec^2	
     public static double kPathFollowingLookahead = 24.0; // inches
     public static double kPathFollowingCompletionTolerance = 1.0; 
+
+    // Vision Selection
+    public enum VisionSelectionEnum { DROID, JEVOIS; }
+    public static VisionSelectionEnum VisionSelection = VisionSelectionEnum.DROID;
+
     
-    // Vision App Constants
+    // Droid Vision App Constants
     public static String kAppPackage  = "org.team686.droidvision2017";
 	public static String kAppActivity = "org.team686.droidvision2017/.VisionTrackerActivity";
     public static int kAndroidAppTcpPort = 8686;
