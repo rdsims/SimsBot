@@ -287,7 +287,7 @@ public class PathFollowerWithVisionDriveController
     		put("PathVision/talonMode", cmd.getTalonControlMode().toString() );
     		put("PathVision/left",  cmd.getLeftMotor() );
        		put("PathVision/right", cmd.getRightMotor() );
-       		put("PathVision/brake", cmd.getBrake() );
+       		put("PathVision/neutralMode", DriveCommand.getNeutralMode().toString() );
        		
        		Pose odometry = robotState.getLatestFieldToVehicle();
             put("PathVision/positionX",  odometry.getX());

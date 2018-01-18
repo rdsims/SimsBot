@@ -2,6 +2,7 @@ package org.team686.lib.joystick;
 
 import org.team686.lib.joystick.JoystickControlsBase;
 import org.team686.lib.util.Util;
+import org.team686.simsbot.Constants;
 import org.team686.simsbot.command_status.DriveCommand;
 
 /**
@@ -21,7 +22,7 @@ public class TriggerDriveJoystick extends JoystickControlsBase
     {
 	    boolean squaredInputs = false;
 	    
-    	double throttle = mStick.getRawAxis(3) - mStick.getRawAxis(2);
+    	double throttle = mStick.getRawAxis(Constants.kXboxRTriggerAxis) - mStick.getRawAxis(Constants.kXboxLTriggerAxis);
         double turn     = mStick.getX();
      		    
 	    double moveValue   = Util.limit(throttle, 1.0);

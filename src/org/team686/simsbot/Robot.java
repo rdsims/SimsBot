@@ -273,7 +273,7 @@ public class Robot extends IterativeRobot
 			// Configure looper
 			loopController.start();
 
-			drive.setOpenLoop(DriveCommand.NEUTRAL());
+			drive.setOpenLoop(DriveCommand.COAST());
 
 		}
 		catch (Throwable t)

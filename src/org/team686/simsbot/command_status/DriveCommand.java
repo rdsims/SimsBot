@@ -3,7 +3,7 @@ package org.team686.simsbot.command_status;
 import org.team686.lib.util.DataLogger;
 import org.team686.lib.util.Kinematics.WheelSpeed;
 
-import com.ctre.CANTalon.TalonControlMode;
+import com.ctre.phoenix.motorcontrol.*;
 
 import edu.wpi.first.wpilibj.Timer;
 
@@ -40,35 +40,35 @@ public class DriveCommand
 	// all member variables should be private to force other object to use the set/get access methods
 	// which are synchronized to allow multi-thread synchronization	
 	private DriveControlMode driveMode = DriveControlMode.OPEN_LOOP;
-	private TalonControlMode talonMode = TalonControlMode.PercentVbus;
+	private ControlMode talonMode = ControlMode.PercentOutput;
 	private WheelSpeed wheelSpeed = new WheelSpeed();
-	private boolean brake;
+	private static NeutralMode neutralMode;	// Brake or Coast
 	private boolean resetEncoders;
     private double commandTime;
     
     public DriveCommand(double _left, double _right)
     {
-        this(DriveControlMode.OPEN_LOOP, _left, _right, false);
+        this(DriveControlMode.OPEN_LOOP, _left, _right, NeutralMode.Coast);
     }
 
-    public DriveCommand(double _left, double _right, boolean _brake)
+    public DriveCommand(double _left, double _right, NeutralMode _neutralMode)
     {
-        this(DriveControlMode.OPEN_LOOP, _left, _right, _brake);
+        this(DriveControlMode.OPEN_LOOP, _left, _right, _neutralMode);
     }
 
-    public DriveCommand(DriveControlMode _mode, double _left, double _right, boolean _brake) 
+    public DriveCommand(DriveControlMode _mode, double _left, double _right, NeutralMode _neutralMode) 
     {
     	setDriveMode(_mode);
     	setMotors(_left, _right);
-    	setBrake(_brake);
+    	setNeutralMode(_neutralMode);
     	resetEncoders = false;
     }
 
-    public DriveCommand(DriveControlMode _mode, WheelSpeed _vWheel, boolean _brake) 
+    public DriveCommand(DriveControlMode _mode, WheelSpeed _vWheel, NeutralMode _neutralMode) 
     {
     	setDriveMode(_mode);
     	setMotors(_vWheel);
-    	setBrake(_brake);
+    	setNeutralMode(_neutralMode);
     	resetEncoders = false;
     }
     
@@ -78,32 +78,32 @@ public class DriveCommand
     	switch (driveMode)
     	{
     	case OPEN_LOOP:
-    		talonMode = TalonControlMode.PercentVbus;
+    		talonMode = ControlMode.PercentOutput;
     		break;
     		
     	case BASE_LOCKED:
-    		talonMode = TalonControlMode.Position;
+    		talonMode = ControlMode.Position;
     		
     	case VELOCITY_SETPOINT:
     	case VELOCITY_HEADING:
-     		talonMode = TalonControlMode.Speed;
+     		talonMode = ControlMode.Velocity;
     		break;
     		
     	default:
-    		talonMode = TalonControlMode.Disabled;
+    		talonMode = ControlMode.Disabled;
     		break;
     	}
     }
     public synchronized DriveControlMode getDriveControlMode() { return driveMode; }
-    public synchronized TalonControlMode getTalonControlMode() { return talonMode; }
+    public synchronized ControlMode getTalonControlMode() { return talonMode; }
     
     public synchronized void   setMotors(WheelSpeed _wheelSpeed) { wheelSpeed.left = _wheelSpeed.left; wheelSpeed.right = _wheelSpeed.right; setCommandTime(); }
     public synchronized void   setMotors(double _left, double _right) { wheelSpeed.left = _left; wheelSpeed.right = _right; setCommandTime(); }
     public synchronized double getLeftMotor()  { return wheelSpeed.left; }
     public synchronized double getRightMotor() { return wheelSpeed.right; }
 
-    public synchronized void    setBrake(boolean _brake) { brake = _brake; }
-    public synchronized boolean getBrake()  { return brake; }
+    public synchronized void        setNeutralMode(NeutralMode _neutralMode) { neutralMode = _neutralMode; }
+    public synchronized static NeutralMode getNeutralMode()  { return neutralMode; }
     
     public synchronized void    setResetEncoders() { resetEncoders = true; }
     public synchronized boolean getResetEncoders() 
@@ -119,14 +119,14 @@ public class DriveCommand
     
     
     // special constant commands
-    public static DriveCommand NEUTRAL() { return new DriveCommand(DriveControlMode.OPEN_LOOP, 0, 0, false); }
-    public static DriveCommand BRAKE()   { return new DriveCommand(DriveControlMode.OPEN_LOOP, 0, 0, true); }
+    public static DriveCommand COAST() { return new DriveCommand(DriveControlMode.OPEN_LOOP, 0, 0, NeutralMode.Coast); }
+    public static DriveCommand BRAKE() { return new DriveCommand(DriveControlMode.OPEN_LOOP, 0, 0, NeutralMode.Brake); }
     
     
     @Override
     public synchronized String toString() 
     {
-    	return String.format("%s, %s, %s, L/R: (%+7.3f, % 7.3f)", driveMode, talonMode, brake, wheelSpeed.left, wheelSpeed.right);
+    	return String.format("%s, %s, %s, L/R: (%+7.3f, % 7.3f)", driveMode, talonMode, neutralMode, wheelSpeed.left, wheelSpeed.right);
     }
     
     
@@ -142,7 +142,7 @@ public class DriveCommand
 	    		put("DriveCommand/talonMode", talonMode.toString() );
 	    		put("DriveCommand/left",  wheelSpeed.left );
 	       		put("DriveCommand/right", wheelSpeed.right );
-	       		put("DriveCommand/brake", brake );
+	       		put("DriveCommand/brake", neutralMode.value );
         	}
         }
     };

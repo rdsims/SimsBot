@@ -388,7 +388,7 @@ public class TestPathFollowerWithVisionAction
 		
 		// copy commands over to status, as if Talon's performed perfectly
 		driveStatus.setTalonControlMode( newCmd.getTalonControlMode() );
-		driveStatus.setBrakeMode(        newCmd.getBrake() );
+		driveStatus.setNeutralMode(        newCmd.getNeutralMode() );
 		
 		// get encoder values from hardware, set in Drive
 		double lSpeed = newCmd.getLeftMotor();

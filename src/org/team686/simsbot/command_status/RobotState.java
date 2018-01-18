@@ -9,9 +9,6 @@ import org.team686.lib.util.Kinematics;
 import org.team686.lib.util.Pose;
 import org.team686.simsbot.Constants;
 
-
-
-
 /**
  * RobotState keeps track of the poses of various coordinate frames throughout
  * the match. A coordinate frame is simply a point and direction in space that
@@ -53,12 +50,10 @@ import org.team686.simsbot.Constants;
  * system.
  */
 
-public class RobotState
-{
+public class RobotState {
 	private static RobotState instance = new RobotState();
 
-	public static RobotState getInstance()
-	{
+	public static RobotState getInstance() {
 		return instance;
 	}
 
@@ -73,17 +68,12 @@ public class RobotState
 	private double lPrevDistance = 0;
 	private double rPrevDistance = 0;
 
-	
-	
-	
-	public RobotState()
-	{
+	public RobotState() {
 		reset(0, 0, 0, new Pose());
 	}
 
 	public synchronized void reset(double _startTime, double _lEncoderDistance, double _rEncoderDistance,
-			Pose _initialFieldToRobot)
-	{
+			Pose _initialFieldToRobot) {
 		// calibrate initial position to initial pose (set by autonomous mode)
 		fieldToRobot = new InterpolatingTreeMap<>(kObservationBufferSize);
 		fieldToRobot.put(new InterpolatingDouble(_startTime), _initialFieldToRobot);
@@ -103,37 +93,31 @@ public class RobotState
 		setPrevEncoderDistance(_lEncoderDistance, _rEncoderDistance);
 	}
 
-	public void setPrevEncoderDistance(double _lPrevDistance, double _rPrevDistance)
-	{
+	public void setPrevEncoderDistance(double _lPrevDistance, double _rPrevDistance) {
 		lPrevDistance = _lPrevDistance;
 		rPrevDistance = _rPrevDistance;
 	}
 
-	public synchronized Pose getFieldToVehicle(double _timestamp)
-	{
+	public synchronized Pose getFieldToVehicle(double _timestamp) {
 		return fieldToRobot.getInterpolated(new InterpolatingDouble(_timestamp));
 	}
 
-	public synchronized Pose getLatestFieldToVehicle()
-	{
+	public synchronized Pose getLatestFieldToVehicle() {
 		return fieldToRobot.lastEntry().getValue();
 	}
 
-	public synchronized Pose getPredictedFieldToVehicle(double _lookaheadTime)
-	{
+	public synchronized Pose getPredictedFieldToVehicle(double _lookaheadTime) {
 		Kinematics.LinearAngularSpeed speed = new Kinematics.LinearAngularSpeed(robotSpeed.linearSpeed * _lookaheadTime,
-																				robotSpeed.angularSpeed * _lookaheadTime);
+				robotSpeed.angularSpeed * _lookaheadTime);
 		return Kinematics.travelArc(getLatestFieldToVehicle(), speed);
 	}
 
-	public synchronized void addFieldToVehicleObservation(double _timestamp, Pose _observation)
-	{
+	public synchronized void addFieldToVehicleObservation(double _timestamp, Pose _observation) {
 		fieldToRobot.put(new InterpolatingDouble(_timestamp), _observation);
 	}
 
 	public void generateOdometryFromSensors(double _time, double _lEncoderDistance, double _rEncoderDistance,
-			double _lEncoderSpeed, double _rEncoderSpeed, double _gyroAngle)
-	{
+			double _lEncoderSpeed, double _rEncoderSpeed, double _gyroAngle) {
 		Pose lastPose = getLatestFieldToVehicle();
 
 		// get change in encoder distance from last call
@@ -150,58 +134,48 @@ public class RobotState
 		robotSpeed = speed; // used in getPredictedFieldToVehicle()
 	}
 
-	public double getSpeed()
-	{
+	public double getSpeed() {
 		return robotSpeed.linearSpeed;
 	}
 
-	
 	// Field to camera functions
-	
-	public static final Pose robotToCamera = new Pose(Constants.kCameraPoseX, Constants.kCameraPoseY, Constants.kCameraPoseThetaRad);
 
-    public synchronized Pose getFieldToCamera(double timestamp) 
-    {
-    	Pose fieldToRobot = getFieldToVehicle(timestamp); 
-    	Pose fieldToCamera = robotToCamera.changeCoordinateSystem(fieldToRobot);
-        return fieldToCamera;
-    }
+	public static final Pose robotToCamera = new Pose(Constants.kCameraPoseX, Constants.kCameraPoseY,
+			Constants.kCameraPoseThetaRad);
 
-	public synchronized Pose getPredictedFieldToCamera(double _lookaheadTime)
-	{
+	public synchronized Pose getFieldToCamera(double timestamp) {
+		Pose fieldToRobot = getFieldToVehicle(timestamp);
+		Pose fieldToCamera = robotToCamera.changeCoordinateSystem(fieldToRobot);
+		return fieldToCamera;
+	}
+
+	public synchronized Pose getPredictedFieldToCamera(double _lookaheadTime) {
 		Pose fieldToRobot = getPredictedFieldToVehicle(_lookaheadTime);
 		Pose fieldToCamera = robotToCamera.changeCoordinateSystem(fieldToRobot);
-        return fieldToCamera;
+		return fieldToCamera;
 	}
 
 	// Field to camera functions
 
-	public static final Pose robotToShooter = new Pose(Constants.kShooterPoseX, Constants.kShooterPoseY, Constants.kShooterPoseThetaRad);
+	public static final Pose robotToShooter = new Pose(Constants.kShooterPoseX, Constants.kShooterPoseY,
+			Constants.kShooterPoseThetaRad);
 
-    public synchronized Pose getFieldToShooter(double timestamp) 
-    {
-    	Pose fieldToRobot = getFieldToVehicle(timestamp); 
-    	Pose fieldToShooter = robotToShooter.changeCoordinateSystem(fieldToRobot);
-        return fieldToShooter;
-    }
-
-	public synchronized Pose getPredictedFieldToShooter(double _lookaheadTime)
-	{
-		Pose fieldToRobot = getPredictedFieldToVehicle(_lookaheadTime);
+	public synchronized Pose getFieldToShooter(double timestamp) {
+		Pose fieldToRobot = getFieldToVehicle(timestamp);
 		Pose fieldToShooter = robotToShooter.changeCoordinateSystem(fieldToRobot);
-        return fieldToShooter;
+		return fieldToShooter;
 	}
 
+	public synchronized Pose getPredictedFieldToShooter(double _lookaheadTime) {
+		Pose fieldToRobot = getPredictedFieldToVehicle(_lookaheadTime);
+		Pose fieldToShooter = robotToShooter.changeCoordinateSystem(fieldToRobot);
+		return fieldToShooter;
+	}
 
-
-    
-	private final DataLogger logger = new DataLogger()
-	{
+	private final DataLogger logger = new DataLogger() {
 		@Override
-		public void log()
-		{
-			synchronized (RobotState.this)
-			{
+		public void log() {
+			synchronized (RobotState.this) {
 				Pose odometry = getLatestFieldToVehicle();
 				put("RobotState/positionX", odometry.getX());
 				put("RobotState/positionY", odometry.getY());
@@ -210,8 +184,7 @@ public class RobotState
 		}
 	};
 
-	public DataLogger getLogger()
-	{
+	public DataLogger getLogger() {
 		return logger;
 	}
 

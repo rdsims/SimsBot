@@ -17,6 +17,8 @@ public class Constants extends ConstantsBase
 {
     public static double kLoopDt = 0.01;
     public static double kDriveWatchdogTimerThreshold = 0.500;    
+    public static int kTalonTimeoutMs = 5;	// ms
+    public static int kTalonPidIdx = 0;		// for non-cascaded PIDs
     
     // Front Bumper
     public static double kFrontBumperX = 18;	// position of front bumper with respect to robot center of rotation
@@ -33,6 +35,9 @@ public class Constants extends ConstantsBase
     public static int    kQuadEncoderCodesPerRev = 256;
     public static int    kQuadEncoderPulsesPerRev = 4*kQuadEncoderCodesPerRev;
     public static double kQuadEncoderStatusFramePeriod = 0.100;	// 100ms
+    public static boolean	kLeftMotorInverted = false;
+    public static boolean	kRightMotorInverted = true;
+    
     
     // CONTROL LOOP GAINS
     public static double kFullThrottleRPM = 520;	// measured max RPM using NI web interface
@@ -131,8 +136,8 @@ public class Constants extends ConstantsBase
 
     // WPILib doesn't handle drive motor reversal correctly, so we'll do it with these flags
 	// +1 if not reversed, -1 if reversed
-	public static final int lMotorPolarity = +1;
-	public static final int rMotorPolarity = -1;
+	//public static final int lMotorPolarity = +1;
+	//public static final int rMotorPolarity = -1;
     
 
     // Joystick Controls
