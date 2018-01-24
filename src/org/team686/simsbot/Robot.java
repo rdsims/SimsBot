@@ -1,6 +1,7 @@
 
 package org.team686.simsbot;
 
+import java.util.List;
 import java.util.TimeZone;
 
 import edu.wpi.first.wpilibj.IterativeRobot;
@@ -24,6 +25,7 @@ import org.team686.simsbot.subsystems.Drive;
 //import org.team686.simsbot.vision.DroidVisionServer;
 import org.team686.simsbot.vision.JeVoisVisionServer;
 import org.team686.simsbot.vision.VisionState;
+import org.team686.simsbot.vision.VisionTargetState;
 
 /**
  * The VM is configured to automatically run this class, and to call the
@@ -40,7 +42,7 @@ public class Robot extends IterativeRobot
 	RobotState robotState = RobotState.getInstance();
 	Drive drive = Drive.getInstance();
 //	DroidVisionServer visionServer = DroidVisionServer.getInstance();	// starts Vision phone app
-	JeVoisVisionServer visionServer = new JeVoisVisionServer(); 
+	JeVoisVisionServer visionServer; 
 	VisionState visionState = VisionState.getInstance();
 
 	AutoModeExecuter autoModeExecuter = null;
@@ -117,8 +119,8 @@ public class Robot extends IterativeRobot
 			setInitialPose(new Pose());
 
 			
-			// 2nd attempt to start VisionServer in case the first failed
 			//visionServer = DroidVisionServer.getInstance();
+			visionServer = new JeVoisVisionServer(true); 
 
 			// notify GoalStateLoop when a new vision target message has been received
 			visionState.addVisionStateListener(GoalStateLoop.getInstance());
@@ -163,10 +165,6 @@ public class Robot extends IterativeRobot
 		robotLogger.setOutputMode(logToFile, logToSmartDashboard);
 		ledRelay.set(Relay.Value.kOff); // turn off LEDs
 
-		// jevois
-		visionServer.startCameraStream1();
-		visionServer.setSerOutEnable(true);
-		
 		try
 		{
 			CrashTracker.logDisabledInit();
@@ -214,10 +212,6 @@ public class Robot extends IterativeRobot
 		boolean logToFile = true;
 		boolean logToSmartDashboard = true;
 		robotLogger.setOutputMode(logToFile, logToSmartDashboard);
-
-		// jevois
-		visionServer.startCameraStream2();
-		visionServer.setSerOutEnable(true);
 
 		try
 		{
@@ -316,6 +310,27 @@ public class Robot extends IterativeRobot
 			throw t;
 		}
 
+        System.out.println("==============+++==============");
+        System.out.print("Vision Online: ");
+        System.out.println(visionServer.isVisionOnline());
+        System.out.print("Target Visible: ");
+        System.out.println(visionServer.isTgtVisible());
+        System.out.print("Serial Packet RX Rate: ");
+        System.out.println(visionServer.getPacketRxRate_PPS());
+        System.out.print("JeVois Framerate: ");
+        System.out.println(visionServer.getJeVoisFramerate_FPS());
+        System.out.print("JeVois CPU Load: ");
+        System.out.println(visionServer.getJeVoisCpuLoad_pct());
+        
+		List<VisionTargetState> targets = visionState.getTargets();
+		int k=0;
+		for (VisionTargetState target : targets)
+		{
+			System.out.printf("Target %d -- %s\n", k, target.toString());
+			k++;
+		}
+        System.out.println("===============================\n\n");
+		
 	}
 
 	/****************************************************************

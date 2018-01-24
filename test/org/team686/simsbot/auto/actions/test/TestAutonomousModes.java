@@ -17,19 +17,28 @@ import org.team686.lib.util.PathSegment;
 import org.team686.lib.util.Pose;
 import org.team686.lib.util.Vector2d;
 import org.team686.lib.util.Kinematics.WheelSpeed;
+import org.team686.lib.util.MyTimer;
 import org.team686.lib.util.Path.Waypoint;
 import org.team686.lib.util.PathFollowerWithVisionDriveController.PathVisionState;
 import org.team686.simsbot.Constants;
-import org.team686.simsbot.auto.actions.PathFollowerWithVisionAction;
+import org.team686.simsbot.auto.*;
+import org.team686.simsbot.auto.modes.AutoPlacePegMode;
 import org.team686.simsbot.command_status.DriveCommand;
 import org.team686.simsbot.command_status.DriveState;
 import org.team686.simsbot.command_status.RobotState;
+import org.team686.simsbot.loops.DriveLoop;
+import org.team686.simsbot.loops.GoalStateLoop;
+import org.team686.simsbot.loops.LoopController;
+import org.team686.simsbot.loops.RobotStateLoop;
 import org.team686.simsbot.vision.VisionState;
+
+import edu.wpi.first.wpilibj.Timer;
+
 import org.team686.simsbot.subsystems.Drive;
 
 
 
-public class TestPathFollowerWithVisionAction
+public class TestAutonomousModes
 {
 	Pose robotPose;
 	Pose targetPose;
@@ -70,210 +79,96 @@ public class TestPathFollowerWithVisionAction
 	public void tearDown() throws Exception {} 
 
 	
+	// copied from Robot.java
+	public void setInitialPose(Pose _initialPose)
+	{
+		robotState.reset(Timer.getFPGATimestamp(), DriveState.getInstance().getLeftDistanceInches(),
+				DriveState.getInstance().getRightDistanceInches(), _initialPose);
+
+		System.out.println("InitialPose: " + _initialPose);
+	}
+	
 	
 	@Test 
-	public void testPathFollower()
+	public void testAutonomous()
 	{
-		robotPose  = new Pose( 0,  0,  0);
-		targetPose = new Pose( 0,120,  0);
+		// robotInit()
+		TestLoopController loopController = new TestLoopController();
+		loopController.register(drive.getVelocityPIDLoop());
+		loopController.register(DriveLoop.getInstance());
+		loopController.register(RobotStateLoop.getInstance());
+		loopController.register(GoalStateLoop.getInstance());
+		
+		
+		testLogger.deregister();
+		testLogger.register(drive.getCommand().getLogger());
+		testLogger.register(driveStatus.getLogger());
+		testLogger.register(robotState.getLogger());
+		testLogger.register(visionStatus.getLogger());
+		testLogger.setOutputMode(true, false);
 
-		robotState.reset(0, 0, 0, robotPose);
-		drive.getCommand().setResetEncoders();
+		MyTimer.setMode(MyTimer.TimestampMode.SIMULATED);
 		
-    	PathSegment.Options pathOptions   = new PathSegment.Options(Constants.kPathFollowingMaxVel, Constants.kPathFollowingMaxAccel, Constants.kPathFollowingLookahead, false);
-    	
-        Path path = new Path();
-        path.add(new Waypoint(new Vector2d( 0, 0), pathOptions));
-        path.add(new Waypoint(new Vector2d(36, 0), pathOptions));
-        path.add(new Waypoint(new Vector2d(36,18), pathOptions));
-        path.add(new Waypoint(new Vector2d(60,48), pathOptions));
-        path.add(new Waypoint(new Vector2d(80,48), pathOptions));
-        path.add(new Waypoint(new Vector2d(80, 0), pathOptions));
-        path.add(new Waypoint(new Vector2d( 0, 0), pathOptions));
 		
-		cameraTimestampQueue = new ArrayList<Double>();
-		cameraTargetXQueue = new ArrayList<Double>();
-		cameraTargetWidthQueue = new ArrayList<Double>();
+		// autonomousPeriodic()
+		AutoModeExecuter autoModeExecuter = new AutoModeExecuter();
+		autoModeExecuter.setAutoMode( new AutoPlacePegMode(1, true) );
+		
+		setInitialPose(autoModeExecuter.getAutoMode().getInitialPose());
+
+		
 				
-		// fill delay queue with initial values
-		for (double t=0; t<Constants.kCameraLatencySeconds; t+=dt)
+		// autonomousPeriodic()
+		currentTime = 0;
+		while (currentTime <= 15)	// autonomous period lasts 15 seconds
 		{
-			cameraTimestampQueue.add(-999.0);
-			cameraTargetXQueue.add(-999.0);
-			cameraTargetWidthQueue.add(-999.0);
-		}
-		
-		pathVisionDriveAction = new PathFollowerWithVisionAction(path);
-		driveCtrl = pathVisionDriveAction.getDriveController();		
-		
-		testLogger.deregister();
-		testLogger.register(drive.getCommand().getLogger());
-		testLogger.register(driveStatus.getLogger());
-		testLogger.register(robotState.getLogger());
-		testLogger.register(visionStatus.getLogger());
-		testLogger.register(pathVisionDriveAction.getLogger());
-		testLogger.setOutputMode(true, false);
+			// get robot update every kLoopDt
+			autoModeExecuter.getAutoMode().run();
+			loopController.run();
 
-		simulate();		
-	}
-	
-	@Test 
-	public void testPathFollowerReverse()
-	{
-		robotPose  = new Pose( 0,  0,180*Vector2d.degreesToRadians);
-		targetPose = new Pose( 0,120,  0);
-
-		robotState.reset(0, 0, 0, robotPose);
-		drive.getCommand().setResetEncoders();
-		
-    	PathSegment.Options pathOptions   = new PathSegment.Options(Constants.kPathFollowingMaxVel, Constants.kPathFollowingMaxAccel, Constants.kPathFollowingLookahead, false);
-    	
-        Path path = new Path();
-        path.add(new Waypoint(new Vector2d( 0, 0), pathOptions));
-        path.add(new Waypoint(new Vector2d(36, 0), pathOptions));
-        path.add(new Waypoint(new Vector2d(36,18), pathOptions));
-        path.add(new Waypoint(new Vector2d(60,48), pathOptions));
-        path.add(new Waypoint(new Vector2d(80,48), pathOptions));
-        path.add(new Waypoint(new Vector2d(80, 0), pathOptions));
-        path.add(new Waypoint(new Vector2d( 0, 0), pathOptions));
-		
-		cameraTimestampQueue = new ArrayList<Double>();
-		cameraTargetXQueue = new ArrayList<Double>();
-		cameraTargetWidthQueue = new ArrayList<Double>();
-				
-		// fill delay queue with initial values
-		for (double t=0; t<Constants.kCameraLatencySeconds; t+=dt)
-		{
-			cameraTimestampQueue.add(-999.0);
-			cameraTargetXQueue.add(-999.0);
-			cameraTargetWidthQueue.add(-999.0);
-		}
-		
-		path.setReverseOrder();
-		path.setReverseDirection();
-		pathVisionDriveAction = new PathFollowerWithVisionAction(path);
-		driveCtrl = pathVisionDriveAction.getDriveController();		
-
-		testLogger.deregister();
-		testLogger.register(drive.getCommand().getLogger());
-		testLogger.register(driveStatus.getLogger());
-		testLogger.register(robotState.getLogger());
-		testLogger.register(visionStatus.getLogger());
-		testLogger.register(pathVisionDriveAction.getLogger());
-		testLogger.setOutputMode(true, false);
-
-		simulate();		
-	}
-	
-	@Test 
-	public void testVision()
-	{
-		robotPose  = new Pose( 0,  0,  0);
-		targetPose = new Pose(96, 36,  0);
-
-		robotState.reset(0, 0, 0, robotPose);
-		drive.getCommand().setResetEncoders();
-		
-    	PathSegment.Options visionOptions = new PathSegment.Options(Constants.kVisionMaxVel,        Constants.kVisionMaxAccel,        Constants.kPathFollowingLookahead, true);
-    	
-        Path path = new Path();
-        path.add(new Waypoint(robotPose.getPosition(), visionOptions));
-        path.add(new Waypoint(robotPose.interpolate(targetPose, 0.3).getPosition(), visionOptions));
-		
-		cameraTimestampQueue = new ArrayList<Double>();
-		cameraTargetXQueue = new ArrayList<Double>();
-		cameraTargetWidthQueue = new ArrayList<Double>();
-		
-		
-		// fill delay queue with initial values
-		for (double t=0; t<Constants.kCameraLatencySeconds; t+=dt)
-		{
-			cameraTimestampQueue.add(-999.0);
-			cameraTargetXQueue.add(-999.0);
-			cameraTargetWidthQueue.add(-999.0);
-		}
-		
-		pathVisionDriveAction = new PathFollowerWithVisionAction(path);
-		driveCtrl = pathVisionDriveAction.getDriveController();		
-
-		testLogger.deregister();
-		testLogger.register(drive.getCommand().getLogger());
-		testLogger.register(driveStatus.getLogger());
-		testLogger.register(robotState.getLogger());
-		testLogger.register(visionStatus.getLogger());
-		testLogger.register(pathVisionDriveAction.getLogger());
-		testLogger.setOutputMode(true, false);
-
-		simulate();		
-	}
-	
-	@Test 
-	public void testPathVision()
-	{
-		robotPose  = new Pose( 0,  0,  0);
-		targetPose = new Pose( 0,120,  0);
-
-		robotState.reset(0, 0, 0, robotPose);
-		drive.getCommand().setResetEncoders();
-		
-    	PathSegment.Options pathOptions   = new PathSegment.Options(Constants.kPathFollowingMaxVel, Constants.kPathFollowingMaxAccel, Constants.kPathFollowingLookahead, false);
-    	PathSegment.Options visionOptions = new PathSegment.Options(Constants.kVisionMaxVel,        Constants.kVisionMaxAccel,        Constants.kPathFollowingLookahead, true);
-    	
-        Path path = new Path();
-        path.add(new Waypoint(new Vector2d( 0, 0), pathOptions));
-        path.add(new Waypoint(new Vector2d(96, 0), pathOptions));
-        path.add(new Waypoint(new Vector2d(96,96), visionOptions));
-        path.add(new Waypoint(new Vector2d( 0,96), visionOptions));
-		
-		cameraTimestampQueue = new ArrayList<Double>();
-		cameraTargetXQueue = new ArrayList<Double>();
-		cameraTargetWidthQueue = new ArrayList<Double>();	
-		
-		// fill delay queue with initial values
-		for (double t=0; t<Constants.kCameraLatencySeconds; t+=dt)
-		{
-			cameraTimestampQueue.add(-999.0);
-			cameraTargetXQueue.add(-999.0);
-			cameraTargetWidthQueue.add(-999.0);
-		}
-		
-		pathVisionDriveAction = new PathFollowerWithVisionAction(path);
-		driveCtrl = pathVisionDriveAction.getDriveController();		
-
-		testLogger.deregister();
-		testLogger.register(drive.getCommand().getLogger());
-		testLogger.register(driveStatus.getLogger());
-		testLogger.register(robotState.getLogger());
-		testLogger.register(visionStatus.getLogger());
-		testLogger.register(pathVisionDriveAction.getLogger());
-		testLogger.setOutputMode(true, false);
-
-		simulate();		
-	}
-	
-	public void simulate()
-	{
-		pathVisionDriveAction.start(); 		
-
-		/*****************************************************
-		 * Simulation
-		 ****************************************************/
-		for (currentTime = 0; currentTime < 10; currentTime += dt)
-		{
-			if (pathVisionDriveAction.isFinished())
-				break;
+			// simulate robot physics at a higher timing resolution
+			simulateRobotPhysics(Constants.kLoopDt);
+			currentTime += Constants.kLoopDt;
 			
-			simulateTimestep();
 			
-			 // test that did not stray from path
-			if (driveCtrl.getPathVisionState() == PathVisionState.PATH_FOLLOWING)
-			{
-				double distFromPath = driveCtrl.getDistanceFromPath(); 
-				assertTrue(distFromPath < 12);
-			}
+			// test stuff executed every timestep
+			errorCheckEachTimestep();
+			// printout
+
+			
+			// get ready for next timestep
+			MyTimer.update(Constants.kLoopDt);
 		}
-		pathVisionDriveAction.done();
 		
+		errorCheckAtEnd();		
+	}
+	
+
+	public void simulateRobotPhysics(double _dt)
+	{
+    	// simulate physics of mechanism over the robot's time step
+    	double kSimTime = _dt/100.0;	// simulate physics at a higher time resolution
+    	double t = 0.0;
+    	
+    	while (t < _dt)
+    	{
+    		t += kSimTime;
+    	}		
+	}
+	
+	
+	public void errorCheckEachTimestep()
+	{
+		 // test that did not stray from path
+		if (driveCtrl.getPathVisionState() == PathVisionState.PATH_FOLLOWING)
+		{
+			double distFromPath = driveCtrl.getDistanceFromPath(); 
+			assertTrue(distFromPath < 12);
+		}
+	}
+	
+	public void errorCheckAtEnd()
+	{
 		 // test that we finished in the time allotted
         assertTrue(pathVisionDriveAction.isFinished());
 

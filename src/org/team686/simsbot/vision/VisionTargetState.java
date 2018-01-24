@@ -24,4 +24,9 @@ public class VisionTargetState
 	public double getVerticalAngle()	{ return vCenter; }
 	public double getHorizontalWidth()	{ return hWidth; }
 	public double getVerticalWidth()	{ return vWidth; }
+	
+	public String toString()
+	{
+		return "hCenter:" + hCenter + ", hWidth:" + hWidth + ", vCenter:" + vCenter + ", vWidth:" + vWidth + ".";
+	}
 }

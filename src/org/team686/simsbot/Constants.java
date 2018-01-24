@@ -18,7 +18,7 @@ public class Constants extends ConstantsBase
     public static double kLoopDt = 0.01;
     public static double kDriveWatchdogTimerThreshold = 0.500;    
     public static int kTalonTimeoutMs = 5;	// ms
-    public static int kTalonPidIdx = 0;		// for non-cascaded PIDs
+    public static int kTalonPidIdx = 0;		// 0 for non-cascaded PIDs, 1 for cascaded PIDs
     
     // Front Bumper
     public static double kFrontBumperX = 18;	// position of front bumper with respect to robot center of rotation
@@ -84,7 +84,7 @@ public class Constants extends ConstantsBase
 
     // Vision Selection
     public enum VisionSelectionEnum { DROID, JEVOIS; }
-    public static VisionSelectionEnum VisionSelection = VisionSelectionEnum.DROID;
+    public static VisionSelectionEnum VisionSelection = VisionSelectionEnum.JEVOIS;
 
     
     // Droid Vision App Constants
@@ -93,7 +93,8 @@ public class Constants extends ConstantsBase
     public static int kAndroidAppTcpPort = 8686;
 
     // Vision constants
-    public static double kCameraFrameRate = 30.0;		// frames per second
+//J    public static double kCameraFrameRate = 30.0;		// frames per second
+    public static double kCameraFrameRate = 60.0;		// frames per second
     public static double kCameraPoseX        = +7.25;	// camera location with respect to robot center of rotation, X axis is in direction of travel
     public static double kCameraPoseY        =     0;	// camera location with respect to robot center of rotation, Y axis is positive to the left
     public static double kCameraPoseZ        =   9.0;	// camera location with respect to floor, Z axis is positive with increasing elevation

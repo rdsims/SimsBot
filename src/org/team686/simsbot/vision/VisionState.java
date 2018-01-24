@@ -47,7 +47,7 @@ public class VisionState
 		try
 		{
 			JSONObject j = (JSONObject) parser.parse(updateString);
-			Optional<Long> capturedAgoMs = parseLong(j, "capturedAgoMs");
+			Optional<Double> capturedAgoMs = parseDouble(j, "capturedAgoMs");
 			if (!capturedAgoMs.isPresent())
 			{
 				// invalid TargetState
@@ -72,14 +72,9 @@ public class VisionState
 				targetStates.add(new VisionTargetState(hAngle.get(), vAngle.get(), hWidth.get(), vWidth.get()));
 			}
 			
-			// if all target info in JSON was valid, make local copy
+			update(currentTime, capturedAgoMs.get(), targetStates);
 			setTargets( targetStates );
 			
-			// notify all listeners that we have an updated VisionState
-			for (VisionStateListener listener : listeners)
-			{
-				listener.visionStateNotify();
-			}
 		}
 		catch (ParseException e)
 		{
@@ -94,7 +89,32 @@ public class VisionState
 	}
 	
 	
+	public void update(double _currentTime, double _capturedAgoMs, ArrayList<VisionTargetState> _targetStates)	
+	{
+		imageCaptureTimestamp = _currentTime - (_capturedAgoMs / 1000.0);
+		setTargets( _targetStates );
+
+		// notify all listeners that we have an updated VisionState
+		for (VisionStateListener listener : listeners)
+		{
+			listener.visionStateNotify();
+		}
+	}
 	
+	
+	@SuppressWarnings("unused")
+	private static Optional<Integer> parseInt(JSONObject j, String key) throws ClassCastException
+	{
+		Object val = j.get(key);
+		if (val == null)
+		{
+			return Optional.empty();
+		}
+		return Optional.of((int) val);
+	}
+
+
+	@SuppressWarnings("unused")
 	private static Optional<Long> parseLong(JSONObject j, String key) throws ClassCastException
 	{
 		Object val = j.get(key);
